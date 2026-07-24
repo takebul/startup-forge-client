@@ -192,56 +192,64 @@ export default function AuthPage() {
             >
               {/* Name Field (Sign-up only) */}
               {activeTab === "sign-up" && (
-                <Input
-                  isRequired
-                  label="Name"
-                  placeholder="Enter your name"
-                  type="text"
-                  variant="bordered"
-                  value={formData.name}
-                  onChange={(e) => handleChange("name", e.target.value)}
-                  startContent={<Person className="text-default-400 w-4 h-4" />}
-                />
-              )}
+                              <div className="flex flex-col">
+                                <label className="text-sm font-medium mb-1">Name</label>
+                                <div className="relative">
+                                  <Person className="absolute left-3 top-1/2 -translate-y-1/2 text-default-400 w-4 h-4" />
+                                  <input
+                                    required
+                                    type="text"
+                                    placeholder="Enter your name"
+                                    value={formData.name}
+                                    onChange={(e) => handleChange("name", e.target.value)}
+                                    className="w-full px-3 py-2 pl-9 rounded-md border bg-white dark:bg-zinc-900"
+                                  />
+                                </div>
+                              </div>
+                            )}
 
               {/* Email Field */}
-              <Input
-                isRequired
-                label="Email"
-                placeholder="Enter your email"
-                type="email"
-                variant="bordered"
-                value={formData.email}
-                onChange={(e) => handleChange("email", e.target.value)}
-              />
+              <div className="flex flex-col">
+                              <label className="text-sm font-medium mb-1">Email</label>
+                              <input
+                                required
+                                type="email"
+                                placeholder="Enter your email"
+                                value={formData.email}
+                                onChange={(e) => handleChange("email", e.target.value)}
+                                className="w-full px-3 py-2 rounded-md border bg-white dark:bg-zinc-900"
+                              />
+                            </div>
 
               {/* Password Field */}
-              <Input
-                isRequired
-                label="Password"
-                placeholder="Enter your password"
-                type={isVisible ? "text" : "password"}
-                variant="bordered"
-                value={formData.password}
-                onChange={(e) => handleChange("password", e.target.value)}
-                description={
-                  activeTab === "sign-up" &&
-                  "Min 6 chars, 1 uppercase, 1 lowercase"
-                }
-                endContent={
-                  <button
-                    className="focus:outline-none"
-                    type="button"
-                    onClick={toggleVisibility}
-                  >
-                    {isVisible ? (
-                      <EyeOff className="text-default-400 pointer-events-none w-5 h-5" />
-                    ) : (
-                      <Eye className="text-default-400 pointer-events-none w-5 h-5" />
-                    )}
-                  </button>
-                }
-              />
+              <div className="flex flex-col">
+                              <label className="text-sm font-medium mb-1">Password</label>
+                              <div className="relative">
+                                <input
+                                  required
+                                  placeholder="Enter your password"
+                                  type={isVisible ? "text" : "password"}
+                                  value={formData.password}
+                                  onChange={(e) => handleChange("password", e.target.value)}
+                                  className="w-full px-3 py-2 pr-10 rounded-md border bg-white dark:bg-zinc-900"
+                                />
+                                <button
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 focus:outline-none"
+                                  type="button"
+                                  onClick={toggleVisibility}
+                                  aria-label={isVisible ? "Hide password" : "Show password"}
+                                >
+                                  {isVisible ? (
+                                    <EyeOff className="text-default-400 w-5 h-5" />
+                                  ) : (
+                                    <Eye className="text-default-400 w-5 h-5" />
+                                  )}
+                                </button>
+                              </div>
+                              {activeTab === "sign-up" ? (
+                                <p className="text-xs text-default-500 mt-1">Min 6 chars, 1 uppercase, 1 lowercase</p>
+                              ) : null}
+                            </div>
 
               {/* Extra Sign-up Fields */}
               {activeTab === "sign-up" && (
@@ -293,24 +301,24 @@ export default function AuthPage() {
                     </div>
 
                     {formData.imageMode === "url" ? (
-                      <Input
-                        placeholder="https://example.com/avatar.jpg"
-                        variant="bordered"
-                        value={formData.imageUrl}
-                        onChange={(e) =>
-                          handleChange("imageUrl", e.target.value)
-                        }
-                      />
-                    ) : (
-                      <Input
-                        type="file"
-                        variant="bordered"
-                        accept="image/*"
-                        onChange={(e) =>
-                          handleChange("imageFile", e.target.files[0])
-                        }
-                        classNames={{ input: "pt-2" }}
-                      />
+                                          <div className="flex flex-col">
+                                            <input
+                                              type="url"
+                                              placeholder="https://example.com/avatar.jpg"
+                                              value={formData.imageUrl}
+                                              onChange={(e) => handleChange("imageUrl", e.target.value)}
+                                              className="w-full px-3 py-2 rounded-md border bg-white dark:bg-zinc-900"
+                                            />
+                                          </div>
+                                        ) : (
+                                          <div className="flex flex-col">
+                                            <input
+                                              type="file"
+                                              accept="image/*"
+                                              onChange={(e) => handleChange("imageFile", e.target.files[0])}
+                                              className="pt-2"
+                                            />
+                                          </div>
                     )}
                   </div>
                 </>
