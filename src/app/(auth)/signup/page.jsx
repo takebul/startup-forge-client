@@ -200,7 +200,7 @@ export default function AuthPage() {
                                     required
                                     type="text"
                                     placeholder="Enter your name"
-                                    value={formData.name}
+                                    value={formData.name ?? ""}
                                     onChange={(e) => handleChange("name", e.target.value)}
                                     className="w-full px-3 py-2 pl-9 rounded-md border bg-white dark:bg-zinc-900"
                                   />
@@ -215,7 +215,7 @@ export default function AuthPage() {
                                 required
                                 type="email"
                                 placeholder="Enter your email"
-                                value={formData.email}
+                                value={formData.email ?? ""}
                                 onChange={(e) => handleChange("email", e.target.value)}
                                 className="w-full px-3 py-2 rounded-md border bg-white dark:bg-zinc-900"
                               />
@@ -229,7 +229,7 @@ export default function AuthPage() {
                                   required
                                   placeholder="Enter your password"
                                   type={isVisible ? "text" : "password"}
-                                  value={formData.password}
+                                  value={formData.password ?? ""}
                                   onChange={(e) => handleChange("password", e.target.value)}
                                   className="w-full px-3 py-2 pr-10 rounded-md border bg-white dark:bg-zinc-900"
                                 />
@@ -258,7 +258,7 @@ export default function AuthPage() {
                   <div className="flex flex-col gap-1">
                     <label className="text-sm text-default-600">Role</label>
                     <select
-                      value={formData.role}
+                      value={formData.role ?? "Collaborator"}
                       onChange={(e) => handleChange("role", e.target.value)}
                       className="w-full px-3 py-2 rounded-md border bg-white dark:bg-zinc-900"
                       aria-label="Select Role"
@@ -305,7 +305,7 @@ export default function AuthPage() {
                                             <input
                                               type="url"
                                               placeholder="https://example.com/avatar.jpg"
-                                              value={formData.imageUrl}
+                                              value={formData.imageUrl ?? ""}
                                               onChange={(e) => handleChange("imageUrl", e.target.value)}
                                               className="w-full px-3 py-2 rounded-md border bg-white dark:bg-zinc-900"
                                             />
