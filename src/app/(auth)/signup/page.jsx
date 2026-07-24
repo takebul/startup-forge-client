@@ -22,7 +22,6 @@ export default function AuthPage() {
     name: "",
     email: "",
     password: "",
-    role: "Collaborator",
     imageMode: "url", // 'url' or 'upload'
     imageUrl: "",
     imageFile: null,
@@ -98,13 +97,15 @@ export default function AuthPage() {
         }
 
         // 3. Register via Better Auth
-        const result = await authClient.signUp.email({
+        // Build payload without server-forbidden fields (e.g., role)
+        const payload = {
           email: formData.email,
           password: formData.password,
           name: formData.name,
-          image: finalImageUrl,
-          role: formData.role,
-        });
+        };
+        if (finalImageUrl) payload.image = finalImageUrl;
+
+        const result = await authClient.signUp.email(payload);
 
         // better-auth clients often return { data, error }. Log full result for debugging 400 responses.
         if (result?.error) {
@@ -267,18 +268,6 @@ export default function AuthPage() {
               {activeTab === "sign-up" && (
                 <>
                   {/* HeroUI v3 Compound Component Select */}
-                  <div className="flex flex-col gap-1">
-                    <label className="text-sm text-default-600">Role</label>
-                    <select
-                      value={formData.role ?? "Collaborator"}
-                      onChange={(e) => handleChange("role", e.target.value)}
-                      className="w-full px-3 py-2 rounded-md border bg-white dark:bg-zinc-900"
-                      aria-label="Select Role"
-                    >
-                      <option value="Founder">Founder</option>
-                      <option value="Collaborator">Collaborator</option>
-                    </select>
-                  </div>
 
                   {/* Profile Image Handlers */}
                   <div className="flex flex-col gap-2 mt-2">
