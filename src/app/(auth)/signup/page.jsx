@@ -98,7 +98,7 @@ export default function AuthPage() {
         }
 
         // 3. Register via Better Auth
-        const { error } = await authClient.signUp.email({
+        const result = await authClient.signUp.email({
           email: formData.email,
           password: formData.password,
           name: formData.name,
@@ -106,7 +106,19 @@ export default function AuthPage() {
           role: formData.role,
         });
 
-        if (error) throw new Error(error.message || "Sign up failed");
+        // better-auth clients often return { data, error }. Log full result for debugging 400 responses.
+        if (result?.error) {
+          console.error("Sign-up API error:", result);
+          // If the error contains a status or details property, include it for easier debugging.
+          const serverMsg = result.error?.message || result.error?.details || JSON.stringify(result);
+          throw new Error(serverMsg || "Sign up failed");
+        }
+
+        // If the client returned unexpected shape, log it so we can inspect.
+        if (!result) {
+          console.error("Sign-up returned empty result", result);
+          throw new Error("Sign up failed: empty response from auth client");
+        }
 
         setMessage({
           type: "success",
