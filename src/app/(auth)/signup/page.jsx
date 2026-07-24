@@ -2,40 +2,38 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card, Input, Button, Separator } from "@heroui/react";
+import { Card, Input, Button, Separator, Tabs, Tab } from "@heroui/react";
 import { Eye, EyeOff, Image as ImageIcon, Upload } from "lucide-react";
-import { Person, ArrowRightToSquare } from "@gravity-ui/icons";
-import { authClient } from "@/lib/auth-client"; // Adjust path as needed
+import Person from "@gravity-ui/icons/Person";
+import ArrowRightToSquare from "@gravity-ui/icons/ArrowRightToSquare";
+import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 
 export default function AuthPage() {
   const router = useRouter();
 
-  // State for toggling between Login and Sign-up
+  // State
   const [activeTab, setActiveTab] = useState("sign-up");
   const [isVisible, setIsVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ type: "", text: "" }); // type: 'error' | 'success'
+  const [message, setMessage] = useState({ type: "", text: "" });
 
-  // Form State
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
-    imageMode: "url", // 'url' or 'upload'
+    imageMode: "url",
     imageUrl: "",
     imageFile: null,
   });
 
   const toggleVisibility = () => setIsVisible(!isVisible);
 
-  // Handle Form Inputs
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    setMessage({ type: "", text: "" }); // Clear messages on type
+    setMessage({ type: "", text: "" });
   };
 
-  // Password Validation
   const validatePassword = (password) => {
     const hasUpper = /[A-Z]/.test(password);
     const hasLower = /[a-z]/.test(password);
@@ -43,29 +41,24 @@ export default function AuthPage() {
     return hasUpper && hasLower && isMin6;
   };
 
-  // ImgBB Upload Handler
   const uploadToImgBB = async (file) => {
     const data = new FormData();
     data.append("image", file);
-
     const response = await fetch(
       `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_API_KEY}`,
       { method: "POST", body: data },
     );
-
     const result = await response.json();
     if (!result.success) throw new Error("Failed to upload image.");
     return result.data.url;
   };
 
-  // Google Login Handler
   const handleGoogleLogin = async () => {
     setLoading(true);
     const { error } = await authClient.signIn.social({
       provider: "google",
       callbackURL: "/dashboard",
     });
-
     if (error) {
       setMessage({
         type: "error",
@@ -75,7 +68,6 @@ export default function AuthPage() {
     }
   };
 
-  // Main Submit Handler
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -83,21 +75,17 @@ export default function AuthPage() {
 
     try {
       if (activeTab === "sign-up") {
-        // 1. Validate Password
         if (!validatePassword(formData.password)) {
           throw new Error(
             "Password must be at least 6 characters, with 1 uppercase and 1 lowercase letter.",
           );
         }
 
-        // 2. Handle Image
         let finalImageUrl = formData.imageUrl;
         if (formData.imageMode === "upload" && formData.imageFile) {
           finalImageUrl = await uploadToImgBB(formData.imageFile);
         }
 
-        // 3. Register via Better Auth
-        // Build payload without server-forbidden fields (e.g., role)
         const payload = {
           email: formData.email,
           password: formData.password,
@@ -107,15 +95,15 @@ export default function AuthPage() {
 
         const result = await authClient.signUp.email(payload);
 
-        // better-auth clients often return { data, error }. Log full result for debugging 400 responses.
         if (result?.error) {
           console.error("Sign-up API error:", result);
-          // If the error contains a status or details property, include it for easier debugging.
-          const serverMsg = result.error?.message || result.error?.details || JSON.stringify(result);
+          const serverMsg =
+            result.error?.message ||
+            result.error?.details ||
+            JSON.stringify(result);
           throw new Error(serverMsg || "Sign up failed");
         }
 
-        // If the client returned unexpected shape, log it so we can inspect.
         if (!result) {
           console.error("Sign-up returned empty result", result);
           throw new Error("Sign up failed: empty response from auth client");
@@ -127,12 +115,10 @@ export default function AuthPage() {
         });
         setTimeout(() => router.push("/dashboard"), 1500);
       } else {
-        // Login via Better Auth
         const { error } = await authClient.signIn.email({
           email: formData.email,
           password: formData.password,
         });
-
         if (error) throw new Error(error.message || "Invalid credentials");
 
         setMessage({
@@ -149,209 +135,215 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-default-50 p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <Card.Header className="flex flex-col gap-1 pb-0 pt-6 px-6">
-          <div className="flex w-full rounded-md bg-default-100/50 p-1">
-            <button
-              type="button"
-              onClick={() => setActiveTab("login")}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
-                activeTab === "login"
-                  ? "bg-white dark:bg-zinc-900 shadow"
-                  : "bg-transparent"
-              }`}
-            >
-              Login
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("sign-up")}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
-                activeTab === "sign-up"
-                  ? "bg-white dark:bg-zinc-900 shadow"
-                  : "bg-transparent"
-              }`}
-            >
-              Sign up
-            </button>
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-default-100 to-default-200 p-4">
+      <Card className="w-full max-w-md shadow-2xl backdrop-blur-sm bg-white/90 dark:bg-zinc-900/80">
+        {/* Card Header */}
+        <Card.Header className="flex flex-col items-center gap-2 pb-0 pt-8 px-8">
+          <div className="text-2xl font-bold text-foreground">Welcome Back</div>
+          <p className="text-sm text-default-500">
+            {activeTab === "sign-up"
+              ? "Create a new account"
+              : "Sign in to your account"}
+          </p>
         </Card.Header>
 
-        <Card.Content className="px-6 py-4 overflow-hidden">
+        {/* Tab Switcher */}
+        <Card.Body className="px-8 py-6">
+          <Tabs
+            selectedKey={activeTab}
+            onSelectionChange={setActiveTab}
+            fullWidth
+            size="lg"
+            color="primary"
+            variant="underlined"
+            classNames={{
+              tabList: "gap-0 w-full",
+              cursor: "w-full",
+              tab: "h-12 font-medium",
+            }}
+          >
+            <Tab key="login" title="Login" />
+            <Tab key="sign-up" title="Sign Up" />
+          </Tabs>
+
+          {/* Messages */}
           {message.text && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`p-3 mb-4 rounded-md text-sm font-medium ${
+              className={`mt-6 p-3 rounded-lg text-sm font-medium ${
                 message.type === "error"
-                  ? "bg-danger-50 text-danger"
-                  : "bg-success-50 text-success"
+                  ? "bg-danger-50 text-danger-600 dark:bg-danger-400/20 dark:text-danger-400"
+                  : "bg-success-50 text-success-600 dark:bg-success-400/20 dark:text-success-400"
               }`}
             >
               {message.text}
             </motion.div>
           )}
 
+          {/* Form */}
           <AnimatePresence mode="wait">
             <motion.form
               key={activeTab}
-              initial={{ opacity: 0, x: activeTab === "sign-up" ? 20 : -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: activeTab === "sign-up" ? -20 : 20 }}
-              transition={{ duration: 0.3 }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
               onSubmit={handleSubmit}
-              className="flex flex-col gap-4"
+              className="flex flex-col gap-5 mt-6"
             >
-              {/* Name Field (Sign-up only) */}
+              {/* Name (Sign-up only) */}
               {activeTab === "sign-up" && (
-                              <div className="flex flex-col">
-                                <label className="text-sm font-medium mb-1">Name</label>
-                                <div className="relative">
-                                  <Person className="absolute left-3 top-1/2 -translate-y-1/2 text-default-400 w-4 h-4" />
-                                  <input
-                                    required
-                                    type="text"
-                                    placeholder="Enter your name"
-                                    value={formData.name ?? ""}
-                                    onChange={(e) => handleChange("name", e.target.value)}
-                                    className="w-full px-3 py-2 pl-9 rounded-md border bg-white dark:bg-zinc-900"
-                                  />
-                                </div>
-                              </div>
-                            )}
-
-              {/* Email Field */}
-              <div className="flex flex-col">
-                              <label className="text-sm font-medium mb-1">Email</label>
-                              <input
-                                required
-                                type="email"
-                                placeholder="Enter your email"
-                                value={formData.email ?? ""}
-                                onChange={(e) => handleChange("email", e.target.value)}
-                                className="w-full px-3 py-2 rounded-md border bg-white dark:bg-zinc-900"
-                              />
-                            </div>
-
-              {/* Password Field */}
-              <div className="flex flex-col">
-                              <label className="text-sm font-medium mb-1">Password</label>
-                              <div className="relative">
-                                <input
-                                  required
-                                  placeholder="Enter your password"
-                                  type={isVisible ? "text" : "password"}
-                                  value={formData.password ?? ""}
-                                  onChange={(e) => handleChange("password", e.target.value)}
-                                  className="w-full px-3 py-2 pr-10 rounded-md border bg-white dark:bg-zinc-900"
-                                />
-                                <button
-                                  className="absolute right-2 top-1/2 -translate-y-1/2 focus:outline-none"
-                                  type="button"
-                                  onClick={toggleVisibility}
-                                  aria-label={isVisible ? "Hide password" : "Show password"}
-                                >
-                                  {isVisible ? (
-                                    <EyeOff className="text-default-400 w-5 h-5" />
-                                  ) : (
-                                    <Eye className="text-default-400 w-5 h-5" />
-                                  )}
-                                </button>
-                              </div>
-                              {activeTab === "sign-up" ? (
-                                <p className="text-xs text-default-500 mt-1">Min 6 chars, 1 uppercase, 1 lowercase</p>
-                              ) : null}
-                            </div>
-
-              {/* Extra Sign-up Fields */}
-              {activeTab === "sign-up" && (
-                <>
-                  {/* HeroUI v3 Compound Component Select */}
-
-                  {/* Profile Image Handlers */}
-                  <div className="flex flex-col gap-2 mt-2">
-                    <p className="text-sm text-default-600">Profile Image</p>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleChange("imageMode", "url")}
-                        className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                          formData.imageMode === "url"
-                            ? "bg-white dark:bg-zinc-900 shadow"
-                            : "bg-transparent"
-                        }`}
-                      >
-                        <span className="inline-flex items-center gap-1">
-                          <ImageIcon size={14} /> URL
-                        </span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleChange("imageMode", "upload")}
-                        className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                          formData.imageMode === "upload"
-                            ? "bg-white dark:bg-zinc-900 shadow"
-                            : "bg-transparent"
-                        }`}
-                      >
-                        <span className="inline-flex items-center gap-1">
-                          <Upload size={14} /> Upload
-                        </span>
-                      </button>
-                    </div>
-
-                    {formData.imageMode === "url" ? (
-                                          <div className="flex flex-col">
-                                            <input
-                                              type="url"
-                                              placeholder="https://example.com/avatar.jpg"
-                                              value={formData.imageUrl ?? ""}
-                                              onChange={(e) => handleChange("imageUrl", e.target.value)}
-                                              className="w-full px-3 py-2 rounded-md border bg-white dark:bg-zinc-900"
-                                            />
-                                          </div>
-                                        ) : (
-                                          <div className="flex flex-col">
-                                            <input
-                                              type="file"
-                                              accept="image/*"
-                                              onChange={(e) => handleChange("imageFile", e.target.files[0])}
-                                              className="pt-2"
-                                            />
-                                          </div>
-                    )}
-                  </div>
-                </>
+                <Input
+                  label="Full Name"
+                  placeholder="John Doe"
+                  type="text"
+                  required
+                  startContent={<Person className="text-default-400 w-4 h-4" />}
+                  value={formData.name ?? ""}
+                  onValueChange={(v) => handleChange("name", v)}
+                  variant="bordered"
+                  color="primary"
+                  size="lg"
+                  labelPlacement="outside"
+                />
               )}
 
+              {/* Email */}
+              <Input
+                label="Email"
+                placeholder="you@example.com"
+                type="email"
+                required
+                value={formData.email ?? ""}
+                onValueChange={(v) => handleChange("email", v)}
+                variant="bordered"
+                color="primary"
+                size="lg"
+                labelPlacement="outside"
+              />
+
+              {/* Password */}
+              <Input
+                label="Password"
+                placeholder="Enter your password"
+                type={isVisible ? "text" : "password"}
+                required
+                value={formData.password ?? ""}
+                onValueChange={(v) => handleChange("password", v)}
+                variant="bordered"
+                color="primary"
+                size="lg"
+                labelPlacement="outside"
+                description={
+                  activeTab === "sign-up"
+                    ? "Min 6 characters, 1 uppercase, 1 lowercase"
+                    : undefined
+                }
+                endContent={
+                  <button
+                    type="button"
+                    onClick={toggleVisibility}
+                    className="focus:outline-none"
+                    aria-label={isVisible ? "Hide password" : "Show password"}
+                  >
+                    {isVisible ? (
+                      <EyeOff className="text-default-400 w-5 h-5" />
+                    ) : (
+                      <Eye className="text-default-400 w-5 h-5" />
+                    )}
+                  </button>
+                }
+              />
+
+              {/* Image section (Sign-up only) */}
+              {activeTab === "sign-up" && (
+                <div className="flex flex-col gap-3">
+                  <label className="text-sm font-medium text-default-600">
+                    Profile Image
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={
+                        formData.imageMode === "url" ? "solid" : "bordered"
+                      }
+                      color="primary"
+                      onClick={() => handleChange("imageMode", "url")}
+                      startContent={<ImageIcon size={14} />}
+                    >
+                      URL
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={
+                        formData.imageMode === "upload" ? "solid" : "bordered"
+                      }
+                      color="primary"
+                      onClick={() => handleChange("imageMode", "upload")}
+                      startContent={<Upload size={14} />}
+                    >
+                      Upload
+                    </Button>
+                  </div>
+                  {formData.imageMode === "url" ? (
+                    <Input
+                      type="url"
+                      placeholder="https://example.com/avatar.jpg"
+                      value={formData.imageUrl ?? ""}
+                      onValueChange={(v) => handleChange("imageUrl", v)}
+                      variant="bordered"
+                      color="primary"
+                      size="sm"
+                    />
+                  ) : (
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleChange("imageFile", e.target.files[0])
+                      }
+                      className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary file:text-white hover:file:bg-primary-600 transition-colors"
+                    />
+                  )}
+                </div>
+              )}
+
+              {/* Submit Button */}
               <Button
                 color="primary"
                 type="submit"
                 isLoading={loading}
-                className="w-full mt-2 font-medium"
+                size="lg"
+                className="w-full font-semibold mt-2"
                 endContent={
-                  !loading &&
-                  (activeTab === "login" ? (
+                  !loading && activeTab === "login" ? (
                     <ArrowRightToSquare width={18} />
-                  ) : null)
+                  ) : null
                 }
               >
                 {activeTab === "sign-up" ? "Create Account" : "Sign In"}
               </Button>
 
-              <div className="flex items-center gap-4 py-2">
+              {/* Divider */}
+              <div className="flex items-center gap-3 py-1">
                 <Separator className="flex-1" />
-                <p className="text-default-500 text-sm">OR</p>
+                <span className="text-xs font-medium text-default-400">
+                  OR CONTINUE WITH
+                </span>
                 <Separator className="flex-1" />
               </div>
 
+              {/* Google Login */}
               <Button
                 type="button"
                 variant="bordered"
+                size="lg"
                 isLoading={loading}
                 onClick={handleGoogleLogin}
-                className="w-full font-medium"
+                className="w-full font-medium border-default-300"
                 startContent={
                   !loading && (
                     <svg viewBox="0 0 24 24" className="w-5 h-5">
@@ -379,7 +371,7 @@ export default function AuthPage() {
               </Button>
             </motion.form>
           </AnimatePresence>
-        </Card.Content>
+        </Card.Body>
       </Card>
     </div>
   );
