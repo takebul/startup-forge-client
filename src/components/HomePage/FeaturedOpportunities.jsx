@@ -150,7 +150,7 @@ const FeaturedOpportunities = () => {
                     {item.role_title}
                   </h3>
                   <Link
-                    href={`/startup/${item.startup_id}`}
+                    href={`/startups/${item.startup_id}`}
                     className="inline-block text-xs font-semibold text-violet-600 hover:underline dark:text-violet-400"
                   >
                     @{item.startup_name}
@@ -188,7 +188,7 @@ const FeaturedOpportunities = () => {
                   </div>
 
                   <Link
-                    href={`/opportunity/${item.id}`}
+                    href={`/opportunities/${item.id}`}
                     className="inline-flex items-center space-x-1 text-xs font-bold text-violet-600 transition-colors hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
                   >
                     <span>Apply Now</span>
@@ -214,7 +214,7 @@ const FeaturedOpportunities = () => {
         {/* View All Opportunities Button */}
         <div className="mt-12 text-center">
           <Link
-            href="/explore?tab=opportunities"
+            href="/opportunities"
             className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-slate-50 px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             Explore All Opportunities →
