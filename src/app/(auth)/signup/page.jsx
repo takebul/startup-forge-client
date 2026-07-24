@@ -1,378 +1,633 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card, Input, Button, Separator, Tabs, Tab } from "@heroui/react";
-import { Eye, EyeOff, Image as ImageIcon, Upload } from "lucide-react";
+import { Button } from "@heroui/react";
 import Person from "@gravity-ui/icons/Person";
-import ArrowRightToSquare from "@gravity-ui/icons/ArrowRightToSquare";
-import { authClient } from "@/lib/auth-client";
+import Envelope from "@gravity-ui/icons/Envelope";
+import Lock from "@gravity-ui/icons/Lock";
+import Eye from "@gravity-ui/icons/Eye";
+import EyeSlash from "@gravity-ui/icons/EyeSlash";
+import Camera from "@gravity-ui/icons/Camera";
+import LinkIcon from "@gravity-ui/icons/Link";
+import ArrowRight from "@gravity-ui/icons/ArrowRight";
+import CircleCheckFill from "@gravity-ui/icons/CircleCheckFill";
+import CircleXmark from "@gravity-ui/icons/CircleXmark";
+import {
+  ChevronDown,
+  Upload,
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+} from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { signUp, signIn } from "@/lib/auth-client";
 
-export default function AuthPage() {
+function validate(form) {
+  const errs = {};
+  if (!form.name.trim()) errs.name = "Full name is required.";
+  if (!form.email.trim()) {
+    errs.email = "Email address is required.";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+    errs.email = "Enter a valid email address.";
+  }
+  if (!form.password) {
+    errs.password = "Password is required.";
+  } else if (form.password.length < 6) {
+    errs.password = "Password must be at least 6 characters.";
+  } else if (!/[A-Z]/.test(form.password)) {
+    errs.password = "Must contain at least one uppercase letter.";
+  } else if (!/[a-z]/.test(form.password)) {
+    errs.password = "Must contain at least one lowercase letter.";
+  }
+  if (!form.role) errs.role = "Please select a role.";
+  return errs;
+}
+
+function getStrength(pw) {
+  if (!pw) return { score: 0, label: "", color: "" };
+  let score = 0;
+  if (pw.length >= 6) score++;
+  if (pw.length >= 10) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[a-z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  if (score <= 2) return { score, label: "Weak", color: "#ef4444" };
+  if (score <= 4) return { score, label: "Fair", color: "#f59e0b" };
+  return { score, label: "Strong", color: "#22c55e" };
+}
+
+async function uploadToImgbb(file) {
+  const API_KEY = process.env.NEXT_PUBLIC_IMGBB_API_KEY ?? "demo";
+  const fd = new FormData();
+  fd.append("image", file);
+  const res = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, {
+    method: "POST",
+    body: fd,
+  });
+  if (!res.ok) throw new Error("Image upload failed");
+  const data = await res.json();
+  return data.data.url;
+}
+
+function GoogleIcon({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 18 18" fill="none">
+      <path
+        d="M17.64 9.2045c0-.6381-.0573-1.2518-.1636-1.8409H9v3.4814h4.8436c-.2086 1.125-.8427 2.0782-1.7959 2.7164v2.2581h2.9087c1.7018-1.5668 2.6836-3.874 2.6836-6.615z"
+        fill="#4285F4"
+      />
+      <path
+        d="M9 18c2.43 0 4.4673-.8059 5.9564-2.1805l-2.9087-2.2581c-.8059.54-1.8368.8591-3.0477.8591-2.3441 0-4.3282-1.5832-5.036-3.7105H.9574v2.3318C2.4382 15.9832 5.4818 18 9 18z"
+        fill="#34A853"
+      />
+      <path
+        d="M3.964 10.71c-.18-.54-.2827-1.1168-.2827-1.71s.1027-1.17.2827-1.71V4.9582H.9574C.3477 6.1732 0 7.5477 0 9s.3477 2.8268.9574 4.0418L3.964 10.71z"
+        fill="#FBBC05"
+      />
+      <path
+        d="M9 3.5795c1.3214 0 2.5077.4541 3.4405 1.346l2.5813-2.5813C13.4627.8918 11.4255 0 9 0 5.4818 0 2.4382 2.0168.9574 4.9582L3.964 7.29C4.6718 5.1627 6.6559 3.5795 9 3.5795z"
+        fill="#EA4335"
+      />
+    </svg>
+  );
+}
+
+function Field({ label, error, children }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-xs font-medium text-zinc-400 uppercase tracking-widest">
+        {label}
+      </label>
+      {children}
+      <AnimatePresence>
+        {error && (
+          <motion.p
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.18 }}
+            className="flex items-center gap-1.5 text-xs text-red-400"
+          >
+            <AlertCircle size={12} />
+            {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function TextInput({
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+  icon,
+  suffix,
+  hasError,
+  autoComplete,
+}) {
+  return (
+    <div
+      className={[
+        "flex items-center gap-2.5 h-11 px-3.5 rounded-xl border bg-zinc-900 transition-all duration-200",
+        "focus-within:ring-2 focus-within:ring-indigo-500/30",
+        hasError
+          ? "border-red-500/60 focus-within:ring-red-500/20"
+          : "border-zinc-800 hover:border-zinc-700 focus-within:border-indigo-500/50",
+      ].join(" ")}
+    >
+      {icon && <span className="text-zinc-500 flex-shrink-0">{icon}</span>}
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        autoComplete={autoComplete}
+        className="flex-1 bg-transparent text-sm text-zinc-100 placeholder-zinc-600 outline-none min-w-0"
+      />
+      {suffix && <span className="flex-shrink-0">{suffix}</span>}
+    </div>
+  );
+}
+
+export default function SignupPage() {
   const router = useRouter();
-
-  // State
-  const [activeTab, setActiveTab] = useState("sign-up");
-  const [isVisible, setIsVisible] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ type: "", text: "" });
-
-  const [formData, setFormData] = useState({
+  const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
-    imageMode: "url",
     imageUrl: "",
-    imageFile: null,
+    role: "",
   });
+  const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [imageMode, setImageMode] = useState("url");
+  const [imagePreview, setImagePreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const [roleOpen, setRoleOpen] = useState(false);
+  const [status, setStatus] = useState("idle");
+  const [statusMessage, setStatusMessage] = useState("");
+  const fileRef = useRef(null);
 
-  const toggleVisibility = () => setIsVisible(!isVisible);
+  const strength = getStrength(form.password);
 
-  const handleChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    setMessage({ type: "", text: "" });
-  };
+  function set(key, value) {
+    setForm((f) => ({ ...f, [key]: value }));
+    if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }));
+  }
 
-  const validatePassword = (password) => {
-    const hasUpper = /[A-Z]/.test(password);
-    const hasLower = /[a-z]/.test(password);
-    const isMin6 = password.length >= 6;
-    return hasUpper && hasLower && isMin6;
-  };
+  async function handleFileChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadError(null);
+    const local = URL.createObjectURL(file);
+    setImagePreview(local);
+    setUploading(true);
+    try {
+      const url = await uploadToImgbb(file);
+      set("imageUrl", url);
+      setImagePreview(url);
+    } catch {
+      setUploadError("Upload failed. Check your Imgbb API key.");
+      set("imageUrl", "");
+    } finally {
+      setUploading(false);
+    }
+  }
 
-  const uploadToImgBB = async (file) => {
-    const data = new FormData();
-    data.append("image", file);
-    const response = await fetch(
-      `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_API_KEY}`,
-      { method: "POST", body: data },
-    );
-    const result = await response.json();
-    if (!result.success) throw new Error("Failed to upload image.");
-    return result.data.url;
-  };
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const errs = validate(form);
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      return;
+    }
+    setStatus("loading");
 
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    const { error } = await authClient.signIn.social({
+    // Sign up with Better Auth
+    const { data, error } = await signUp.email({
+      name: form.name,
+      email: form.email,
+      password: form.password,
+      image: form.imageUrl || undefined,
+      role: form.role,
+    });
+
+    console.log({ data, error });
+
+    if (error) {
+      setStatus("error");
+      setStatusMessage(error.message || "Signup failed. Please try again.");
+    } else {
+      setStatus("success");
+      setStatusMessage(`Welcome, ${form.name.split(" ")[0]}! Redirecting...`);
+      setTimeout(() => {
+        router.push("/");
+      }, 1200);
+    }
+  }
+
+  async function handleGoogleAuth() {
+    setStatus("loading");
+    const { error } = await signIn.social({
       provider: "google",
-      callbackURL: "/dashboard",
+      callbackURL: "/",
     });
     if (error) {
-      setMessage({
-        type: "error",
-        text: error.message || "Google login failed",
-      });
-      setLoading(false);
+      setStatus("error");
+      setStatusMessage(
+        error.message || "Google sign-in failed. Please try again.",
+      );
     }
-  };
+  }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage({ type: "", text: "" });
-
-    try {
-      if (activeTab === "sign-up") {
-        if (!validatePassword(formData.password)) {
-          throw new Error(
-            "Password must be at least 6 characters, with 1 uppercase and 1 lowercase letter.",
-          );
-        }
-
-        let finalImageUrl = formData.imageUrl;
-        if (formData.imageMode === "upload" && formData.imageFile) {
-          finalImageUrl = await uploadToImgBB(formData.imageFile);
-        }
-
-        const payload = {
-          email: formData.email,
-          password: formData.password,
-          name: formData.name,
-        };
-        if (finalImageUrl) payload.image = finalImageUrl;
-
-        const result = await authClient.signUp.email(payload);
-
-        if (result?.error) {
-          console.error("Sign-up API error:", result);
-          const serverMsg =
-            result.error?.message ||
-            result.error?.details ||
-            JSON.stringify(result);
-          throw new Error(serverMsg || "Sign up failed");
-        }
-
-        if (!result) {
-          console.error("Sign-up returned empty result", result);
-          throw new Error("Sign up failed: empty response from auth client");
-        }
-
-        setMessage({
-          type: "success",
-          text: "Account created successfully! Redirecting...",
-        });
-        setTimeout(() => router.push("/dashboard"), 1500);
-      } else {
-        const { error } = await authClient.signIn.email({
-          email: formData.email,
-          password: formData.password,
-        });
-        if (error) throw new Error(error.message || "Invalid credentials");
-
-        setMessage({
-          type: "success",
-          text: "Login successful! Redirecting...",
-        });
-        setTimeout(() => router.push("/dashboard"), 1500);
-      }
-    } catch (err) {
-      setMessage({ type: "error", text: err.message });
-    } finally {
-      setLoading(false);
-    }
+  const roleLabels = {
+    founder: "Founder",
+    collaborator: "Collaborator",
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-default-100 to-default-200 p-4">
-      <Card className="w-full max-w-md shadow-2xl backdrop-blur-sm bg-white/90 dark:bg-zinc-900/80">
-        {/* Card Header */}
-        <Card.Header className="flex flex-col items-center gap-2 pb-0 pt-8 px-8">
-          <div className="text-2xl font-bold text-foreground">Welcome Back</div>
-          <p className="text-sm text-default-500">
-            {activeTab === "sign-up"
-              ? "Create a new account"
-              : "Sign in to your account"}
-          </p>
-        </Card.Header>
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none">
+        <div
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full opacity-[0.07]"
+          style={{
+            background: "radial-gradient(ellipse, #6366f1 0%, transparent 70%)",
+          }}
+        />
+        <div
+          className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full opacity-[0.05]"
+          style={{
+            background: "radial-gradient(ellipse, #8b5cf6 0%, transparent 70%)",
+          }}
+        />
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at center, rgba(255,255,255,0.5) 1px, transparent 1px)",
+            backgroundSize: "28px 28px",
+          }}
+        />
+      </div>
 
-        {/* Tab Switcher */}
-        <Card.Body className="px-8 py-6">
-          <Tabs
-            selectedKey={activeTab}
-            onSelectionChange={setActiveTab}
-            fullWidth
-            size="lg"
-            color="primary"
-            variant="underlined"
-            classNames={{
-              tabList: "gap-0 w-full",
-              cursor: "w-full",
-              tab: "h-12 font-medium",
-            }}
-          >
-            <Tab key="login" title="Login" />
-            <Tab key="sign-up" title="Sign Up" />
-          </Tabs>
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -16 }}
+        transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+        className="relative w-full max-w-[440px]"
+      >
+        <div className="relative rounded-2xl border border-zinc-800/80 bg-zinc-900/80 backdrop-blur-xl shadow-2xl overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
 
-          {/* Messages */}
-          {message.text && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`mt-6 p-3 rounded-lg text-sm font-medium ${
-                message.type === "error"
-                  ? "bg-danger-50 text-danger-600 dark:bg-danger-400/20 dark:text-danger-400"
-                  : "bg-success-50 text-success-600 dark:bg-success-400/20 dark:text-success-400"
-              }`}
-            >
-              {message.text}
-            </motion.div>
-          )}
+          <div className="px-7 pt-8 pb-7">
+            <div className="mb-7">
+              <div className="flex items-center gap-2.5 mb-5">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+                  <div className="w-3.5 h-3.5 rounded-[3px] bg-indigo-400" />
+                </div>
+                <span className="text-xs font-semibold tracking-[0.2em] text-zinc-500 uppercase">
+                  Launchpad
+                </span>
+              </div>
+              <h1 className="text-2xl font-bold text-zinc-50 tracking-tight leading-none mb-1.5">
+                Create your account
+              </h1>
+              <p className="text-sm text-zinc-500">
+                Join the network of founders and collaborators.
+              </p>
+            </div>
 
-          {/* Form */}
-          <AnimatePresence mode="wait">
-            <motion.form
-              key={activeTab}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
-              onSubmit={handleSubmit}
-              className="flex flex-col gap-5 mt-6"
-            >
-              {/* Name (Sign-up only) */}
-              {activeTab === "sign-up" && (
-                <Input
-                  label="Full Name"
-                  placeholder="John Doe"
-                  type="text"
-                  required
-                  startContent={<Person className="text-default-400 w-4 h-4" />}
-                  value={formData.name ?? ""}
-                  onValueChange={(v) => handleChange("name", v)}
-                  variant="bordered"
-                  color="primary"
-                  size="lg"
-                  labelPlacement="outside"
-                />
-              )}
-
-              {/* Email */}
-              <Input
-                label="Email"
-                placeholder="you@example.com"
-                type="email"
-                required
-                value={formData.email ?? ""}
-                onValueChange={(v) => handleChange("email", v)}
-                variant="bordered"
-                color="primary"
-                size="lg"
-                labelPlacement="outside"
-              />
-
-              {/* Password */}
-              <Input
-                label="Password"
-                placeholder="Enter your password"
-                type={isVisible ? "text" : "password"}
-                required
-                value={formData.password ?? ""}
-                onValueChange={(v) => handleChange("password", v)}
-                variant="bordered"
-                color="primary"
-                size="lg"
-                labelPlacement="outside"
-                description={
-                  activeTab === "sign-up"
-                    ? "Min 6 characters, 1 uppercase, 1 lowercase"
-                    : undefined
-                }
-                endContent={
-                  <button
-                    type="button"
-                    onClick={toggleVisibility}
-                    className="focus:outline-none"
-                    aria-label={isVisible ? "Hide password" : "Show password"}
-                  >
-                    {isVisible ? (
-                      <EyeOff className="text-default-400 w-5 h-5" />
-                    ) : (
-                      <Eye className="text-default-400 w-5 h-5" />
-                    )}
-                  </button>
-                }
-              />
-
-              {/* Image section (Sign-up only) */}
-              {activeTab === "sign-up" && (
-                <div className="flex flex-col gap-3">
-                  <label className="text-sm font-medium text-default-600">
-                    Profile Image
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={
-                        formData.imageMode === "url" ? "solid" : "bordered"
-                      }
-                      color="primary"
-                      onClick={() => handleChange("imageMode", "url")}
-                      startContent={<ImageIcon size={14} />}
-                    >
-                      URL
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={
-                        formData.imageMode === "upload" ? "solid" : "bordered"
-                      }
-                      color="primary"
-                      onClick={() => handleChange("imageMode", "upload")}
-                      startContent={<Upload size={14} />}
-                    >
-                      Upload
-                    </Button>
-                  </div>
-                  {formData.imageMode === "url" ? (
-                    <Input
-                      type="url"
-                      placeholder="https://example.com/avatar.jpg"
-                      value={formData.imageUrl ?? ""}
-                      onValueChange={(v) => handleChange("imageUrl", v)}
-                      variant="bordered"
-                      color="primary"
-                      size="sm"
-                    />
+            <AnimatePresence>
+              {(status === "success" || status === "error") && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  animate={{ opacity: 1, height: "auto", marginBottom: 20 }}
+                  exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className={[
+                    "flex items-start gap-3 rounded-xl px-4 py-3 text-sm",
+                    status === "success"
+                      ? "bg-emerald-500/10 border border-emerald-500/25 text-emerald-300"
+                      : "bg-red-500/10 border border-red-500/25 text-red-300",
+                  ].join(" ")}
+                >
+                  {status === "success" ? (
+                    <CheckCircle2 size={16} className="flex-shrink-0 mt-0.5" />
                   ) : (
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) =>
-                        handleChange("imageFile", e.target.files[0])
-                      }
-                      className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary file:text-white hover:file:bg-primary-600 transition-colors"
+                    <CircleXmark
+                      width={16}
+                      height={16}
+                      className="flex-shrink-0 mt-0.5"
                     />
                   )}
-                </div>
+                  <span>{statusMessage}</span>
+                </motion.div>
               )}
+            </AnimatePresence>
 
-              {/* Submit Button */}
+            <form
+              onSubmit={handleSubmit}
+              noValidate
+              className="flex flex-col gap-4"
+            >
+              <Field label="Full Name" error={errors.name}>
+                <TextInput
+                  value={form.name}
+                  onChange={(v) => set("name", v)}
+                  placeholder="Alex Johnson"
+                  icon={<Person width={15} height={15} />}
+                  hasError={!!errors.name}
+                  autoComplete="name"
+                />
+              </Field>
+
+              <Field label="Email" error={errors.email}>
+                <TextInput
+                  value={form.email}
+                  onChange={(v) => set("email", v)}
+                  placeholder="alex@company.com"
+                  type="email"
+                  icon={<Envelope width={15} height={15} />}
+                  hasError={!!errors.email}
+                  autoComplete="email"
+                />
+              </Field>
+
+              <Field label="Password" error={errors.password}>
+                <TextInput
+                  value={form.password}
+                  onChange={(v) => set("password", v)}
+                  placeholder="Min. 6 chars, Aa..."
+                  type={showPassword ? "text" : "password"}
+                  icon={<Lock width={15} height={15} />}
+                  hasError={!!errors.password}
+                  autoComplete="new-password"
+                  suffix={
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((s) => !s)}
+                      className="text-zinc-500 hover:text-zinc-300 transition-colors p-0.5"
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                    >
+                      {showPassword ? (
+                        <EyeSlash width={15} height={15} />
+                      ) : (
+                        <Eye width={15} height={15} />
+                      )}
+                    </button>
+                  }
+                />
+                {form.password.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex items-center gap-2 mt-0.5"
+                  >
+                    <div className="flex gap-0.5 flex-1">
+                      {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <div
+                          key={i}
+                          className="h-0.5 flex-1 rounded-full transition-all duration-300"
+                          style={{
+                            backgroundColor:
+                              i <= strength.score ? strength.color : "#27272a",
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <span
+                      className="text-[11px] font-medium"
+                      style={{ color: strength.color }}
+                    >
+                      {strength.label}
+                    </span>
+                  </motion.div>
+                )}
+              </Field>
+
+              <Field label="Profile Image" error={uploadError ?? undefined}>
+                <div className="flex items-center gap-2 mb-2">
+                  <button
+                    type="button"
+                    onClick={() => setImageMode("url")}
+                    className={[
+                      "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all",
+                      imageMode === "url"
+                        ? "bg-indigo-500/15 border-indigo-500/40 text-indigo-300"
+                        : "bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:border-zinc-600",
+                    ].join(" ")}
+                  >
+                    <LinkIcon width={12} height={12} />
+                    URL
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setImageMode("file")}
+                    className={[
+                      "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all",
+                      imageMode === "file"
+                        ? "bg-indigo-500/15 border-indigo-500/40 text-indigo-300"
+                        : "bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:border-zinc-600",
+                    ].join(" ")}
+                  >
+                    <Upload size={12} />
+                    Upload
+                  </button>
+                </div>
+
+                {imageMode === "url" ? (
+                  <TextInput
+                    value={form.imageUrl}
+                    onChange={(v) => {
+                      set("imageUrl", v);
+                      setImagePreview(v || null);
+                    }}
+                    placeholder="https://example.com/avatar.jpg"
+                    icon={<Camera width={15} height={15} />}
+                  />
+                ) : (
+                  <div>
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleFileChange}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileRef.current?.click()}
+                      className="w-full h-11 flex items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-700 hover:border-indigo-500/50 bg-zinc-900 hover:bg-indigo-500/5 text-sm text-zinc-500 hover:text-indigo-300 transition-all duration-200"
+                    >
+                      {uploading ? (
+                        <Loader2 size={15} className="animate-spin" />
+                      ) : (
+                        <Upload size={15} />
+                      )}
+                      {uploading ? "Uploading…" : "Choose image file"}
+                    </button>
+                  </div>
+                )}
+
+                <AnimatePresence>
+                  {imagePreview && !uploading && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      className="flex items-center gap-3 mt-2.5"
+                    >
+                      <div className="w-10 h-10 rounded-full overflow-hidden border border-zinc-700 bg-zinc-800 flex-shrink-0">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                          onError={() => setImagePreview(null)}
+                        />
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-emerald-400">
+                        <CircleCheckFill width={13} height={13} />
+                        Image ready
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </Field>
+
+              <Field label="Role" error={errors.role}>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setRoleOpen((o) => !o)}
+                    className={[
+                      "flex items-center justify-between w-full h-11 px-3.5 rounded-xl border bg-zinc-900 text-sm transition-all duration-200",
+                      "focus:outline-none focus:ring-2 focus:ring-indigo-500/30",
+                      roleOpen
+                        ? "border-indigo-500/50 ring-2 ring-indigo-500/20"
+                        : "",
+                      errors.role
+                        ? "border-red-500/60"
+                        : "border-zinc-800 hover:border-zinc-700",
+                      form.role ? "text-zinc-100" : "text-zinc-600",
+                    ].join(" ")}
+                  >
+                    <span>
+                      {form.role ? roleLabels[form.role] : "Select your role…"}
+                    </span>
+                    <motion.span
+                      animate={{ rotate: roleOpen ? 180 : 0 }}
+                      transition={{ duration: 0.18 }}
+                      className="text-zinc-500"
+                    >
+                      <ChevronDown size={15} />
+                    </motion.span>
+                  </button>
+
+                  <AnimatePresence>
+                    {roleOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -6, scale: 0.97 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute top-[calc(100%+6px)] left-0 right-0 z-20 rounded-xl border border-zinc-800 bg-zinc-900 shadow-2xl overflow-hidden"
+                      >
+                        {["founder", "collaborator"].map((r) => (
+                          <button
+                            key={r}
+                            type="button"
+                            onClick={() => {
+                              set("role", r);
+                              setRoleOpen(false);
+                            }}
+                            className={[
+                              "w-full text-left px-3.5 py-2.5 text-sm transition-colors",
+                              form.role === r
+                                ? "bg-indigo-500/15 text-indigo-300"
+                                : "text-zinc-300 hover:bg-zinc-800",
+                            ].join(" ")}
+                          >
+                            <span className="font-medium">{roleLabels[r]}</span>
+                            <span className="ml-2 text-zinc-600 text-xs">
+                              {r === "founder"
+                                ? "— building something new"
+                                : "— joining a team"}
+                            </span>
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </Field>
+
               <Button
-                color="primary"
                 type="submit"
-                isLoading={loading}
-                size="lg"
-                className="w-full font-semibold mt-2"
-                endContent={
-                  !loading && activeTab === "login" ? (
-                    <ArrowRightToSquare width={18} />
-                  ) : null
-                }
+                isDisabled={status === "loading" || status === "success"}
+                className={[
+                  "mt-1 w-full h-11 rounded-xl font-semibold text-sm transition-all duration-200",
+                  "bg-indigo-600 hover:bg-indigo-500 text-white",
+                  "disabled:opacity-50 disabled:cursor-not-allowed",
+                  "focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:ring-offset-2 focus:ring-offset-zinc-900",
+                  "flex items-center justify-center gap-2",
+                ].join(" ")}
               >
-                {activeTab === "sign-up" ? "Create Account" : "Sign In"}
+                {status === "loading" ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Creating account…
+                  </>
+                ) : status === "success" ? (
+                  <>
+                    <CheckCircle2 size={16} />
+                    Account created!
+                  </>
+                ) : (
+                  <>
+                    Create account
+                    <ArrowRight width={15} height={15} />
+                  </>
+                )}
               </Button>
+            </form>
 
-              {/* Divider */}
-              <div className="flex items-center gap-3 py-1">
-                <Separator className="flex-1" />
-                <span className="text-xs font-medium text-default-400">
-                  OR CONTINUE WITH
-                </span>
-                <Separator className="flex-1" />
-              </div>
+            <div className="flex items-center gap-3 my-5">
+              <div className="flex-1 h-px bg-zinc-800" />
+              <span className="text-xs text-zinc-600">or continue with</span>
+              <div className="flex-1 h-px bg-zinc-800" />
+            </div>
 
-              {/* Google Login */}
-              <Button
-                type="button"
-                variant="bordered"
-                size="lg"
-                isLoading={loading}
-                onClick={handleGoogleLogin}
-                className="w-full font-medium border-default-300"
-                startContent={
-                  !loading && (
-                    <svg viewBox="0 0 24 24" className="w-5 h-5">
-                      <path
-                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                        fill="#4285F4"
-                      />
-                      <path
-                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                        fill="#34A853"
-                      />
-                      <path
-                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                        fill="#FBBC05"
-                      />
-                      <path
-                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                        fill="#EA4335"
-                      />
-                    </svg>
-                  )
-                }
+            <button
+              type="button"
+              onClick={handleGoogleAuth}
+              disabled={status === "loading"}
+              className="w-full h-11 flex items-center justify-center gap-2.5 rounded-xl border border-zinc-700 hover:border-zinc-600 bg-zinc-900 hover:bg-zinc-800 text-sm text-zinc-200 font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <GoogleIcon />
+              Continue with Google
+            </button>
+
+            <p className="text-center text-sm text-zinc-600 mt-5">
+              Already have an account?{" "}
+              <Link
+                href="/signin"
+                className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
               >
-                Continue with Google
-              </Button>
-            </motion.form>
-          </AnimatePresence>
-        </Card.Body>
-      </Card>
+                Sign in
+              </Link>
+            </p>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 }
