@@ -16,6 +16,7 @@ import {
   Crown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { Button } from "@heroui/react";
 
 // -----------------------------------------------------------------------------
 // FAQ DATA
@@ -295,12 +296,14 @@ export default function FounderPricingPage() {
             </div>
 
             <div>
-              <Link
-                href="/register?role=founder&plan=premium"
-                className="mt-8 flex w-full items-center justify-center rounded-xl bg-indigo-600 py-3.5 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 transition-all hover:bg-indigo-500"
-              >
-                Upgrade to Premium — ${isYearly ? "24" : "29"}/mo
-              </Link>
+              <form method="POST" action={"/api/subscription"}>
+                <Button
+                  type="submit"
+                  className="mt-8 flex w-full items-center justify-center rounded-xl bg-indigo-600 py-3.5 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 transition-all hover:bg-indigo-500"
+                >
+                  Upgrade to Premium — ${isYearly ? "24" : "29"}/mo
+                </Button>
+              </form>
               <p className="mt-2 text-center text-[10px] text-slate-500">
                 🔒 Secure Stripe checkout | Cancel anytime
               </p>
