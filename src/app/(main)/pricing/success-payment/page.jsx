@@ -9,19 +9,27 @@ import {
   Receipt,
   Mail,
 } from "lucide-react";
+import { payment } from "@/lib/actions/payments";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export default async function SuccessSubscriptionPage({ searchParams }) {
   const { session_id } = await searchParams;
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  const user = session?.user;
 
   if (!session_id) {
     throw new Error("Please provide a valid session_id (`cs_test_...`)");
   }
 
-  const session = await stripe.checkout.sessions.retrieve(session_id, {
+  const payment_session = await stripe.checkout.sessions.retrieve(session_id, {
     expand: ["line_items", "payment_intent"],
   });
 
-  const { status, customer_details, amount_total, currency } = session;
+  const { status, customer_details, amount_total, currency } = payment_session;
   const customerEmail = customer_details?.email;
 
   if (status === "open") {
@@ -29,6 +37,10 @@ export default async function SuccessSubscriptionPage({ searchParams }) {
   }
 
   if (status === "complete") {
+    const payment_result = await payment({ user, session_id });
+
+    console.log(payment_result);
+
     // Format amount paid
     const amountFormatted = amount_total
       ? new Intl.NumberFormat("en-US", {

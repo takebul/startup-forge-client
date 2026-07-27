@@ -8,19 +8,19 @@ export async function proxy(request) {
     headers: await headers(),
   });
 
-  console.log(session);
+  // console.log(session);
 
-  // if (session?.user?.plan === "free") {
-  //   return NextResponse.redirect(new URL("/pricing", request.url));
-  // }
+  if (session?.user?.plan === "free") {
+    return NextResponse.redirect(new URL("/pricing", request.url));
+  }
 
-  // if (!session) {
-  //   return NextResponse.redirect(new URL("/signin", request.url));
-  // }
+  if (!session) {
+    return NextResponse.redirect(new URL("/signin", request.url));
+  }
 
-  return NextResponse.redirect(new URL("/signin", request.url));
+  // return NextResponse.redirect(new URL("/signin", request.url));
 }
 
 export const config = {
-  matcher: ["/profile"],
+  matcher: ["/profile", "/dashboard/founder"],
 };

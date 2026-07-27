@@ -19,7 +19,7 @@ export async function POST() {
         },
       ],
       mode: "subscription",
-      success_url: `${origin}/pricing/success-subscription?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${origin}/pricing/success-payment?session_id={CHECKOUT_SESSION_ID}`,
     });
     return NextResponse.redirect(session.url, 303);
   } catch (err) {

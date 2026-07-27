@@ -296,7 +296,7 @@ export default function FounderPricingPage() {
             </div>
 
             <div>
-              <form method="POST" action={"/api/subscription"}>
+              <form method="POST" action={"/api/payments"}>
                 <Button
                   type="submit"
                   className="mt-8 flex w-full items-center justify-center rounded-xl bg-indigo-600 py-3.5 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 transition-all hover:bg-indigo-500"
