@@ -35,6 +35,10 @@ const Navbar = () => {
   const pathname = usePathname();
   const router = useRouter();
 
+  if (pathname.includes("dashboard")) {
+    return null;
+  }
+
   useEffect(() => {
     setMounted(true);
   }, []);

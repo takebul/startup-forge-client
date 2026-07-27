@@ -216,6 +216,7 @@ export default function SignupPage() {
       password: form.password,
       image: form.imageUrl || undefined,
       role: form.role,
+      plan: "free", // Default plan for new users
     });
 
     console.log({ data, error });

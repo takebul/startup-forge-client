@@ -13,16 +13,10 @@ export const auth = betterAuth({
   user: {
     additionalFields: {
       role: {
-        type: "string",
-        required: false,
         defaultValue: "collaborator",
-        input: true, // Works now because admin() plugin isn't locking 'role'
       },
       plan: {
-        type: "string",
-        required: false,
-        defaultValue: "collaborator_free",
-        input: false, // Prevents client from altering their pricing plan
+        defaultValue: "free",
       },
     },
   },
