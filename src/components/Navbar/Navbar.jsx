@@ -35,13 +35,13 @@ const Navbar = () => {
   const pathname = usePathname();
   const router = useRouter();
 
-  if (pathname.includes("dashboard")) {
-    return null;
-  }
-
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  if (pathname.includes("dashboard")) {
+    return null;
+  }
 
   const publicLinks = [
     { name: "Home", href: "/", icon: Home },

@@ -1,97 +1,34 @@
 "use client";
 
-import {
-  Rocket,
-  FileText,
-  Users,
-  Briefcase,
-  TrendingUp,
-  Clock,
-  Info,
-} from "lucide-react";
+import { Btn, Label } from "@/components/Dashboard/founder-dashboard-shared";
 
-export default function FounderDashboardPage() {
+export default function FounderDashboardOverviewPage() {
   return (
-    <div className="mx-auto max-w-7xl space-y-8">
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Stat 1 */}
-        <div className="flex flex-col justify-between rounded-xl border border-[#1E212B] bg-[#12141D] p-5 shadow-sm">
-          <div className="flex items-start justify-between">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
-              <Rocket className="h-5 w-5" />
-            </div>
-            <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
-              Active
-            </span>
-          </div>
-          <div className="mt-4">
-            <h2 className="text-3xl font-bold text-white">3</h2>
-            <p className="mt-1 text-sm text-slate-400">Published Startups</p>
-          </div>
-          <div className="mt-4 flex items-center space-x-1.5 text-xs text-emerald-400">
-            <TrendingUp className="h-3.5 w-3.5" />
-            <span>+1 this month</span>
-          </div>
+    <div className="p-8 space-y-6">
+      <h2 className="text-xl font-bold text-slate-100">
+        Founder Dashboard Overview
+      </h2>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="rounded-2xl p-5 bg-[#0D1528] border border-slate-800">
+          <p className="text-xs font-mono uppercase text-slate-500 mb-2">
+            Total Opportunities
+          </p>
+          <p className="text-3xl font-extrabold text-amber-500 mb-1">3</p>
+          <p className="text-xs text-slate-500">active roles posted</p>
         </div>
-
-        {/* Stat 2 */}
-        <div className="flex flex-col justify-between rounded-xl border border-[#1E212B] bg-[#12141D] p-5 shadow-sm">
-          <div className="flex items-start justify-between">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500">
-              <FileText className="h-5 w-5" />
-            </div>
-            <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-400">
-              Pending
-            </span>
-          </div>
-          <div className="mt-4">
-            <h2 className="text-3xl font-bold text-white">18</h2>
-            <p className="mt-1 text-sm text-slate-400">Total Applications</p>
-          </div>
-          <div className="mt-4 flex items-center space-x-1.5 text-xs text-amber-400">
-            <Clock className="h-3.5 w-3.5" />
-            <span>7 need review</span>
-          </div>
+        <div className="rounded-2xl p-5 bg-[#0D1528] border border-slate-800">
+          <p className="text-xs font-mono uppercase text-slate-500 mb-2">
+            Total Applications
+          </p>
+          <p className="text-3xl font-extrabold text-indigo-400 mb-1">3</p>
+          <p className="text-xs text-slate-500">across all roles</p>
         </div>
-
-        {/* Stat 3 */}
-        <div className="flex flex-col justify-between rounded-xl border border-[#1E212B] bg-[#12141D] p-5 shadow-sm">
-          <div className="flex items-start justify-between">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500">
-              <Users className="h-5 w-5" />
-            </div>
-            <span className="rounded-md bg-indigo-500/10 px-2 py-0.5 text-[10px] font-bold text-indigo-400">
-              Team
-            </span>
-          </div>
-          <div className="mt-4">
-            <h2 className="text-3xl font-bold text-white">6</h2>
-            <p className="mt-1 text-sm text-slate-400">Accepted Members</p>
-          </div>
-          <div className="mt-4 flex items-center space-x-1.5 text-xs text-indigo-400">
-            <TrendingUp className="h-3.5 w-3.5" />
-            <span>+2 this week</span>
-          </div>
-        </div>
-
-        {/* Stat 4 */}
-        <div className="flex flex-col justify-between rounded-xl border border-[#1E212B] bg-[#12141D] p-5 shadow-sm">
-          <div className="flex items-start justify-between">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10 text-purple-500">
-              <Briefcase className="h-5 w-5" />
-            </div>
-            <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
-              Open
-            </span>
-          </div>
-          <div className="mt-4">
-            <h2 className="text-3xl font-bold text-white">9</h2>
-            <p className="mt-1 text-sm text-slate-400">Open Roles</p>
-          </div>
-          <div className="mt-4 flex items-center space-x-1.5 text-xs text-slate-500">
-            <Info className="h-3.5 w-3.5" />
-            <span>3 with applicants</span>
-          </div>
+        <div className="rounded-2xl p-5 bg-[#0D1528] border border-slate-800">
+          <p className="text-xs font-mono uppercase text-slate-500 mb-2">
+            Accepted Members
+          </p>
+          <p className="text-3xl font-extrabold text-emerald-400 mb-1">1</p>
+          <p className="text-xs text-slate-500">team members onboarded</p>
         </div>
       </div>
     </div>

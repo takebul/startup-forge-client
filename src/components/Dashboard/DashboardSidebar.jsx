@@ -17,11 +17,10 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 const DashboardSidebar = () => {
   const pathname = usePathname();
-
   const { data: session } = authClient.useSession();
   const user = session?.user;
 
@@ -32,20 +31,23 @@ const DashboardSidebar = () => {
       { label: "Dashboard", href: "/dashboard/founder", icon: LayoutDashboard },
       {
         label: "My Startups",
-        href: "/dashboard/founder/startups",
+        href: "/dashboard/founder/my-startup",
         icon: Layers,
+      },
+      {
+        label: "Add Opportunity",
+        href: "/dashboard/founder/add-opportunity",
+        icon: Inbox,
+      },
+      {
+        label: "Manage Opportunities",
+        href: "/dashboard/founder/manage-opportunities",
+        icon: Users,
       },
       {
         label: "Applications",
         href: "/dashboard/founder/applications",
-        icon: Inbox,
-      },
-      { label: "Team Roles", href: "/dashboard/founder/roles", icon: Users },
-      {
-        label: "Notifications",
-        href: "/dashboard/founder/notifications",
         icon: Bell,
-        badge: 3,
       },
     ],
     collaborator: [
@@ -102,19 +104,13 @@ const DashboardSidebar = () => {
     { label: "Profile", href: "/dashboard/profile", icon: User },
     { label: "Settings", href: "/dashboard/settings", icon: Settings },
   ];
+
   return (
-    <div>
-      <div className="flex h-20 items-center px-6">
+    <aside className="w-60 bg-[#080E1C] border-r border-slate-800 flex flex-col h-screen sticky top-0">
+      <div className="flex h-20 items-center px-6 border-b border-slate-800/50">
         <Link href="/" className="flex items-center space-x-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded bg-indigo-600 text-white">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              className="h-5 w-5"
-            >
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-            </svg>
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500 text-slate-950 font-bold">
+            SF
           </div>
           <span className="text-xl font-bold tracking-tight text-white">
             StartupForge
@@ -122,25 +118,22 @@ const DashboardSidebar = () => {
         </Link>
       </div>
 
-      {/* Navigation Sections */}
       <div className="flex-1 overflow-y-auto px-4 py-4">
         <div className="mb-6">
           <h3 className="mb-3 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
             Main Menu
           </h3>
           <nav className="space-y-1.5">
-            {MAIN_MENU[role].map((link) => {
-              const isActive =
-                pathname === link.href ||
-                (link.label === "Dashboard" && pathname === "/dashboard");
+            {MAIN_MENU[role]?.map((link) => {
+              const isActive = pathname === link.href;
               const Icon = link.icon;
               return (
                 <Link
                   key={link.label}
                   href={link.href}
-                  className={`flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                  className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                     isActive
-                      ? "bg-indigo-600 text-white"
+                      ? "bg-amber-500/10 text-amber-500 border border-amber-500/20"
                       : "text-slate-400 hover:bg-[#1A1D27] hover:text-slate-200"
                   }`}
                 >
@@ -149,7 +142,7 @@ const DashboardSidebar = () => {
                     <span>{link.label}</span>
                   </div>
                   {link.badge && (
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500 text-[10px] font-bold text-white">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-slate-950">
                       {link.badge}
                     </span>
                   )}
@@ -170,7 +163,7 @@ const DashboardSidebar = () => {
                 <Link
                   key={link.label}
                   href={link.href}
-                  className="flex items-center space-x-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-[#1A1D27] hover:text-slate-200"
+                  className="flex items-center space-x-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-[#1A1D27] hover:text-slate-200"
                 >
                   <Icon className="h-4 w-4" />
                   <span>{link.label}</span>
@@ -181,18 +174,24 @@ const DashboardSidebar = () => {
         </div>
       </div>
 
-      {/* Bottom Profile Card */}
-      <div className="p-4">
+      <div className="p-4 border-t border-slate-800/50">
         <div className="flex items-center justify-between rounded-xl bg-[#151722] p-3 border border-[#232634]">
           <div className="flex items-center space-x-3">
             <img
-              src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80"
-              alt="Alex Rivera"
-              className="h-8 w-8 rounded-full object-cover ring-2 ring-indigo-500/30"
+              src={
+                user?.image ||
+                "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80"
+              }
+              alt={user?.name || "User"}
+              className="h-8 w-8 rounded-full object-cover ring-2 ring-amber-500/30"
             />
             <div className="flex flex-col">
-              <span className="text-xs font-bold text-white">Alex Rivera</span>
-              <span className="text-[10px] text-slate-500">Founder</span>
+              <span className="text-xs font-bold text-white">
+                {user?.name || "Alex Rivera"}
+              </span>
+              <span className="text-[10px] text-slate-500 capitalize">
+                {role}
+              </span>
             </div>
           </div>
           <button className="text-slate-500 hover:text-slate-300">
@@ -200,7 +199,7 @@ const DashboardSidebar = () => {
           </button>
         </div>
       </div>
-    </div>
+    </aside>
   );
 };
 
