@@ -2,13 +2,14 @@
 
 import { useState, useRef, useCallback } from "react";
 
-const IMGBB_API_KEY = "YOUR_IMGBB_API_KEY";
+const IMGBB_API_KEY = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
 
 export async function uploadToImgbb(file) {
-  if (IMGBB_API_KEY === "YOUR_IMGBB_API_KEY") {
-    await new Promise((r) => setTimeout(r, 800));
-    return "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=80&h=80&fit=crop";
-  }
+  // if (IMGBB_API_KEY === "YOUR_IMGBB_API_KEY") {
+  //   await new Promise((r) => setTimeout(r, 800));
+  //   return "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=80&h=80&fit=crop";
+  // }
+
   const form = new FormData();
   form.append("image", file);
   const res = await fetch(
