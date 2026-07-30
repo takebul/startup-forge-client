@@ -24,7 +24,7 @@ import {
 import { authClient } from "@/lib/auth-client";
 import { createStartup } from "@/lib/actions/startup";
 
-export default function FounderMyStartupPage({ startups }) {
+export default function FounderMyStartup({ startups }) {
   const { data: session } = authClient.useSession();
   const user = session?.user;
 

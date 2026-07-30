@@ -1,5 +1,5 @@
 import { serverFetch } from "../core/server";
 
-export const getStartups = async () => {
-  return serverFetch("/api/startups");
+export const getStartups = async (userId) => {
+  return serverFetch(`/api/startups?userId=${userId}`);
 };
