@@ -25,8 +25,8 @@ import {
 
 import {
   createStartup,
-  updateStartup,
   deleteStartup,
+  updateStartup,
 } from "@/lib/actions/startup";
 
 export default function FounderMyStartups({ founder, startups }) {
@@ -92,12 +92,11 @@ export default function FounderMyStartups({ founder, startups }) {
   async function handleEditing(e) {
     e.preventDefault();
     const id = editingStartup?._id || editingStartup?.id;
-    if (!id) return;
 
     setLoading(true);
     try {
-      // const result = await updateStartup(id, editingStartup);
-      // console.log("Update result:", result);
+      const result = await updateStartup(id, editingStartup);
+      console.log("Update result:", result);
 
       // Re-fetch Server Component data & reset editing view
       router.refresh();
@@ -117,8 +116,8 @@ export default function FounderMyStartups({ founder, startups }) {
 
     setLoading(true);
     try {
-      // const result = await deleteStartup(confirmDeleteId);
-      // console.log("Delete result:", result);
+      const result = await deleteStartup(confirmDeleteId);
+      console.log("Delete result:", result);
 
       // Re-fetch Server Component data & close modal
       router.refresh();

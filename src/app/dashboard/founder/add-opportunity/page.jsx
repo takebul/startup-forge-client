@@ -237,7 +237,9 @@ export default function AddOpportunityPage() {
               <Button
                 type="button"
                 onClick={() =>
-                  router.push("/dashboard/founder/manage-opportunities")
+                  router.push(
+                    `/dashboard/founder/manage-opportunities?userId=${user?.id}`,
+                  )
                 }
                 className="w-full px-4 py-2.5 rounded-xl font-semibold text-xs bg-amber-500 hover:bg-amber-600 text-slate-950 transition-all cursor-pointer"
               >

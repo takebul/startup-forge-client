@@ -3,12 +3,24 @@
 const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL;
 
 export const serverMutation = async (path, data, method = "POST") => {
-  const res = await fetch(`${baseUrl}${path}`, {
+  const uri = `${baseUrl}${path}`;
+
+  const res = await fetch(uri, {
     method: method,
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
+  });
+
+  return handleStatusCode(res);
+};
+
+export const deleteData = async (dataId) => {
+  const uri = `${baseUrl}${dataId}`;
+
+  const res = await fetch(uri, {
+    method: "DELETE",
   });
 
   return handleStatusCode(res);
