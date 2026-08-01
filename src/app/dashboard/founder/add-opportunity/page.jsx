@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Form,
   TextField,
@@ -11,9 +12,19 @@ import {
   FieldError,
 } from "@heroui/react";
 
-import { Select } from "@/components/Dashboard/founder-dashboard-shared";
+import { Select, Modal } from "@/components/Dashboard/founder-dashboard-shared";
+import { createOpportunity } from "@/lib/actions/opportunities";
+import { authClient } from "@/lib/auth-client";
 
 export default function AddOpportunityPage() {
+  const router = useRouter();
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+
+  const [loading, setLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState(null);
+
   const [form, setForm] = useState({
     roleTitle: "",
     requiredSkills: "",
@@ -22,9 +33,31 @@ export default function AddOpportunityPage() {
     deadline: "",
   });
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    console.log("Posting Opportunity:", form);
+    setLoading(true);
+    setError(null);
+
+    try {
+      if (!user?.id) {
+        throw new Error("User session not found. Please log in again.");
+      }
+
+      const response = await createOpportunity({ ...form, userId: user.id });
+
+      // Handle case where server response indicates an error or falsy return
+      if (response?.error) {
+        throw new Error(response.error);
+      }
+
+      console.log("Posted Opportunity Successfully:", response);
+      setIsSuccess(true);
+    } catch (err) {
+      console.error("Error creating opportunity:", err);
+      setError(err.message || "Failed to add opportunity. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   function handleReset() {
@@ -35,6 +68,12 @@ export default function AddOpportunityPage() {
       commitmentLevel: "Part-Time",
       deadline: "",
     });
+    setError(null);
+  }
+
+  function handleCreateAnother() {
+    handleReset();
+    setIsSuccess(false);
   }
 
   return (
@@ -45,6 +84,19 @@ export default function AddOpportunityPage() {
           Post a new collaborative role to recruit talent for your startup.
         </p>
       </div>
+
+      {/* Error Message Banner */}
+      {error && (
+        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center justify-between">
+          <span>⚠️ {error}</span>
+          <button
+            onClick={() => setError(null)}
+            className="text-xs font-mono underline hover:text-red-300"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       <Form
         onSubmit={handleSubmit}
@@ -146,9 +198,10 @@ export default function AddOpportunityPage() {
         <div className="flex gap-3 pt-2">
           <Button
             type="submit"
-            className="px-5 py-2.5 rounded-xl font-semibold text-sm bg-amber-500 hover:bg-amber-600 text-slate-950 transition-all cursor-pointer"
+            isDisabled={loading}
+            className="px-5 py-2.5 rounded-xl font-semibold text-sm bg-amber-500 hover:bg-amber-600 text-slate-950 transition-all cursor-pointer disabled:opacity-50"
           >
-            Post Opportunity
+            {loading ? "Posting..." : "Post Opportunity"}
           </Button>
           <Button
             type="reset"
@@ -159,6 +212,48 @@ export default function AddOpportunityPage() {
           </Button>
         </div>
       </Form>
+
+      {/* Success Modal */}
+      {isSuccess && (
+        <Modal title="Opportunity Created!" onClose={() => setIsSuccess(false)}>
+          <div className="space-y-4 text-center py-2">
+            <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl mx-auto">
+              ✓
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-100">
+                Opportunity Posted Successfully
+              </h3>
+              <p className="text-xs text-slate-400 mt-1">
+                Your role for{" "}
+                <span className="text-amber-500 font-semibold">
+                  {form.roleTitle}
+                </span>{" "}
+                is now live. What would you like to do next?
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
+              <Button
+                type="button"
+                onClick={() =>
+                  router.push("/dashboard/founder/manage-opportunities")
+                }
+                className="w-full px-4 py-2.5 rounded-xl font-semibold text-xs bg-amber-500 hover:bg-amber-600 text-slate-950 transition-all cursor-pointer"
+              >
+                Go to Manage Opportunities
+              </Button>
+              <Button
+                type="button"
+                onClick={handleCreateAnother}
+                className="w-full px-4 py-2.5 rounded-xl font-semibold text-xs bg-white/5 hover:bg-white/10 text-slate-300 border border-slate-800 transition-all cursor-pointer"
+              >
+                Create Another Opportunity
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

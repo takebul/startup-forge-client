@@ -41,7 +41,7 @@ const DashboardSidebar = () => {
       },
       {
         label: "Manage Opportunities",
-        href: "/dashboard/founder/manage-opportunities",
+        href: `/dashboard/founder/manage-opportunities?userId=${user?.id}`,
         icon: Users,
       },
       {

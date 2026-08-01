@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Form,
   TextField,
@@ -21,12 +22,15 @@ import {
   Badge,
   Modal,
 } from "@/components/Dashboard/founder-dashboard-shared";
-import { authClient } from "@/lib/auth-client";
-import { createStartup } from "@/lib/actions/startup";
 
-export default function FounderMyStartup({ startups }) {
-  const { data: session } = authClient.useSession();
-  const user = session?.user;
+import {
+  createStartup,
+  updateStartup,
+  deleteStartup,
+} from "@/lib/actions/startup";
+
+export default function FounderMyStartups({ founder, startups }) {
+  const router = useRouter();
 
   // Normalize initial prop to array
   const [startupList, setStartupList] = useState(
@@ -36,6 +40,7 @@ export default function FounderMyStartup({ startups }) {
   const [isCreating, setIsCreating] = useState(false);
   const [editingStartup, setEditingStartup] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Form state for creating a new startup
   const [newStartup, setNewStartup] = useState({
@@ -62,7 +67,7 @@ export default function FounderMyStartup({ startups }) {
     e.preventDefault();
     if (!newStartup.startup_name.trim()) return;
 
-    const result = await createStartup({ ...newStartup, userId: user?.id });
+    const result = await createStartup({ ...newStartup, userId: founder?.id });
     console.log(result);
 
     // Append new startup to local list
@@ -79,6 +84,50 @@ export default function FounderMyStartup({ startups }) {
       status: "Pending",
     });
     setIsCreating(false);
+  }
+
+  // =========================================================================
+  // NEW: HANDLER TO UPDATE / EDIT A STARTUP
+  // =========================================================================
+  async function handleEditing(e) {
+    e.preventDefault();
+    const id = editingStartup?._id || editingStartup?.id;
+    if (!id) return;
+
+    setLoading(true);
+    try {
+      // const result = await updateStartup(id, editingStartup);
+      // console.log("Update result:", result);
+
+      // Re-fetch Server Component data & reset editing view
+      router.refresh();
+      setEditingStartup(null);
+    } catch (error) {
+      console.error("Failed to update startup:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // =========================================================================
+  // NEW: HANDLER TO DELETE A STARTUP
+  // =========================================================================
+  async function handleDelete() {
+    if (!confirmDeleteId) return;
+
+    setLoading(true);
+    try {
+      // const result = await deleteStartup(confirmDeleteId);
+      // console.log("Delete result:", result);
+
+      // Re-fetch Server Component data & close modal
+      router.refresh();
+      setConfirmDeleteId(null);
+    } catch (error) {
+      console.error("Failed to delete startup:", error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   // =========================================================================
@@ -256,22 +305,14 @@ export default function FounderMyStartup({ startups }) {
   }
 
   // =========================================================================
-  // 2. EDITING STATE: RENDER UPDATE FORM
+  // 2. EDITING STATE: RENDER UPDATE FORM (NOW USING handleEditing)
   // =========================================================================
   if (editingStartup) {
     return (
       <div className="p-8 space-y-6">
         <h2 className="text-xl font-bold text-slate-100">Update Startup</h2>
         <Form
-          onSubmit={(e) => {
-            e.preventDefault();
-            setStartupList(
-              startupList.map((item) =>
-                item.id === editingStartup.id ? editingStartup : item,
-              ),
-            );
-            setEditingStartup(null);
-          }}
+          onSubmit={handleEditing}
           className="rounded-2xl p-6 space-y-4 bg-[#0D1528] border border-slate-800"
         >
           <TextField className="w-full">
@@ -279,7 +320,7 @@ export default function FounderMyStartup({ startups }) {
               Startup Name
             </Label>
             <Input
-              value={editingStartup.startup_name}
+              value={editingStartup.startup_name || editingStartup.name || ""}
               onChange={(e) =>
                 setEditingStartup({
                   ...editingStartup,
@@ -295,7 +336,7 @@ export default function FounderMyStartup({ startups }) {
               Logo
             </Label>
             <ImageUpload
-              value={editingStartup.logo}
+              value={editingStartup.logo || ""}
               onChange={(url) =>
                 setEditingStartup({ ...editingStartup, logo: url })
               }
@@ -308,7 +349,7 @@ export default function FounderMyStartup({ startups }) {
                 Industry
               </Label>
               <Select
-                value={editingStartup.industry}
+                value={editingStartup.industry || "Artificial Intelligence"}
                 onChange={(v) =>
                   setEditingStartup({ ...editingStartup, industry: v })
                 }
@@ -320,7 +361,11 @@ export default function FounderMyStartup({ startups }) {
                 Funding Stage
               </Label>
               <Select
-                value={editingStartup.funding_stage}
+                value={
+                  editingStartup.funding_stage ||
+                  editingStartup.fundingStage ||
+                  "Seed"
+                }
                 onChange={(v) =>
                   setEditingStartup({ ...editingStartup, funding_stage: v })
                 }
@@ -335,7 +380,11 @@ export default function FounderMyStartup({ startups }) {
             </Label>
             <Input
               type="email"
-              value={editingStartup.founder_email || ""}
+              value={
+                editingStartup.founder_email ||
+                editingStartup.founderEmail ||
+                ""
+              }
               onChange={(e) =>
                 setEditingStartup({
                   ...editingStartup,
@@ -351,7 +400,7 @@ export default function FounderMyStartup({ startups }) {
               Description
             </Label>
             <Textarea
-              value={editingStartup.description}
+              value={editingStartup.description || ""}
               onChange={(v) =>
                 setEditingStartup({
                   ...editingStartup,
@@ -364,9 +413,10 @@ export default function FounderMyStartup({ startups }) {
           <div className="flex gap-3 pt-2">
             <Button
               type="submit"
-              className="px-5 py-2.5 rounded-xl font-semibold text-sm bg-amber-500 hover:bg-amber-600 text-slate-950 transition-all cursor-pointer"
+              isDisabled={loading}
+              className="px-5 py-2.5 rounded-xl font-semibold text-sm bg-amber-500 hover:bg-amber-600 text-slate-950 transition-all cursor-pointer disabled:opacity-50"
             >
-              Save Changes
+              {loading ? "Saving..." : "Save Changes"}
             </Button>
             <Button
               type="button"
@@ -437,116 +487,116 @@ export default function FounderMyStartup({ startups }) {
             </Table.Header>
 
             <Table.Body>
-              {startupList.map((item, idx) => (
-                <Table.Row
-                  key={item.id || idx}
-                  className="border-b border-slate-800/50 hover:bg-white/[0.02] transition-colors"
-                >
-                  {/* Startup Column */}
-                  <Table.Cell className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      {item.logo ? (
-                        <img
-                          src={item.logo}
-                          alt={item.startup_name}
-                          className="w-10 h-10 rounded-xl object-cover"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center font-bold text-sm">
-                          {item.startup_name ? item.startup_name[0] : "S"}
+              {startupList.map((item, idx) => {
+                const itemId = item._id || item.id || idx;
+                const name = item.startup_name || item.name || "Untitled";
+
+                return (
+                  <Table.Row
+                    key={itemId}
+                    className="border-b border-slate-800/50 hover:bg-white/[0.02] transition-colors"
+                  >
+                    {/* Startup Column */}
+                    <Table.Cell className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        {item.logo ? (
+                          <img
+                            src={item.logo}
+                            alt={name}
+                            className="w-10 h-10 rounded-xl object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center font-bold text-sm">
+                            {name[0]}
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-semibold text-sm text-slate-100">
+                            {name}
+                          </p>
+                          <p className="text-xs text-slate-500 line-clamp-1 max-w-xs">
+                            {item.description}
+                          </p>
                         </div>
-                      )}
+                      </div>
+                    </Table.Cell>
+
+                    {/* Industry & Stage Column */}
+                    <Table.Cell className="px-6 py-4 text-sm text-slate-300">
                       <div>
-                        <p className="font-semibold text-sm text-slate-100">
-                          {item.startup_name}
+                        <p className="font-medium text-slate-200">
+                          {item.industry}
                         </p>
-                        <p className="text-xs text-slate-500 line-clamp-1 max-w-xs">
-                          {item.description}
+                        <p className="text-xs text-slate-500">
+                          {item.funding_stage || item.fundingStage}
                         </p>
                       </div>
-                    </div>
-                  </Table.Cell>
+                    </Table.Cell>
 
-                  {/* Industry & Stage Column */}
-                  <Table.Cell className="px-6 py-4 text-sm text-slate-300">
-                    <div>
-                      <p className="font-medium text-slate-200">
-                        {item.industry}
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        {item.funding_stage}
-                      </p>
-                    </div>
-                  </Table.Cell>
+                    {/* Email Column */}
+                    <Table.Cell className="px-6 py-4 text-xs font-mono text-slate-400">
+                      {item.founder_email || item.founderEmail || "N/A"}
+                    </Table.Cell>
 
-                  {/* Email Column */}
-                  <Table.Cell className="px-6 py-4 text-xs font-mono text-slate-400">
-                    {item.founder_email || "N/A"}
-                  </Table.Cell>
+                    {/* Status Column */}
+                    <Table.Cell className="px-6 py-4">
+                      <Badge
+                        label={
+                          item.status === "Approved" || item.approved
+                            ? "Approved"
+                            : "Pending"
+                        }
+                        variant={
+                          item.status === "Approved" || item.approved
+                            ? "green"
+                            : "amber"
+                        }
+                      />
+                    </Table.Cell>
 
-                  {/* Status Column */}
-                  <Table.Cell className="px-6 py-4">
-                    <Badge
-                      label={
-                        item.status === "Approved" || item.approved
-                          ? "Approved"
-                          : "Pending"
-                      }
-                      variant={
-                        item.status === "Approved" || item.approved
-                          ? "green"
-                          : "amber"
-                      }
-                    />
-                  </Table.Cell>
-
-                  {/* Actions Column */}
-                  <Table.Cell className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Btn
-                        onClick={() => setEditingStartup(item)}
-                        variant="outline"
-                        size="sm"
-                      >
-                        Update
-                      </Btn>
-                      <Btn
-                        onClick={() => setConfirmDeleteId(item.id || idx)}
-                        variant="danger"
-                        size="sm"
-                      >
-                        Delete
-                      </Btn>
-                    </div>
-                  </Table.Cell>
-                </Table.Row>
-              ))}
+                    {/* Actions Column */}
+                    <Table.Cell className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Btn
+                          onClick={() => setEditingStartup(item)}
+                          variant="outline"
+                          size="sm"
+                        >
+                          Update
+                        </Btn>
+                        <Btn
+                          onClick={() => setConfirmDeleteId(itemId)}
+                          variant="danger"
+                          size="sm"
+                        >
+                          Delete
+                        </Btn>
+                      </div>
+                    </Table.Cell>
+                  </Table.Row>
+                );
+              })}
             </Table.Body>
           </Table.Content>
         </Table.ScrollContainer>
       </Table>
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal (NOW USING handleDelete) */}
       {confirmDeleteId !== null && (
         <Modal title="Delete Startup?" onClose={() => setConfirmDeleteId(null)}>
           <p className="text-sm text-slate-400 mb-5">
-            Are you sure? This action cannot be undone.
+            Are you sure? This action cannot be undone and will delete the
+            startup record.
           </p>
           <div className="flex gap-3">
-            <Btn
-              onClick={() => {
-                setStartupList(
-                  startupList.filter(
-                    (item, idx) => (item.id || idx) !== confirmDeleteId,
-                  ),
-                );
-                setConfirmDeleteId(null);
-              }}
-              variant="danger"
-            >
-              Yes, Delete
+            <Btn onClick={handleDelete} variant="danger" disabled={loading}>
+              {loading ? "Deleting..." : "Yes, Delete"}
             </Btn>
-            <Btn onClick={() => setConfirmDeleteId(null)} variant="ghost">
+            <Btn
+              onClick={() => setConfirmDeleteId(null)}
+              variant="ghost"
+              disabled={loading}
+            >
               Cancel
             </Btn>
           </div>

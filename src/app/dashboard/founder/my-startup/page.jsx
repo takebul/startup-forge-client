@@ -1,20 +1,10 @@
-import { getStartups } from "@/lib/api/startups";
-import FounderMyStartup from "./FounderMyStartups";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getFounderStartups } from "@/lib/api/startups";
+import FounderMyStartups from "./FounderMyStartups";
+import { getUserSession } from "@/lib/core/session";
 
 export default async function FounderMyStartupPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const user = await getUserSession();
+  const startups = await getFounderStartups(user?.id);
 
-  const user = session?.user;
-
-  const startups = await getStartups(user?.id);
-
-  return (
-    <>
-      <FounderMyStartup startups={startups} />
-    </>
-  );
+  return <FounderMyStartups founder={user} startups={startups} />;
 }
