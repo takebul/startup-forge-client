@@ -66,8 +66,8 @@ export default function ManageOpportunities({ founderOpportunities }) {
 
     setLoading(true);
     try {
-      // const res = await updateOpportunity(targetId, editing);
-      // console.log("Updated opportunity successfully:", res);
+      const res = await updateOpportunity(targetId, editing);
+      console.log("Updated opportunity successfully:", res);
 
       // Refresh Server Components to fetch fresh list
       router.refresh();
@@ -85,8 +85,8 @@ export default function ManageOpportunities({ founderOpportunities }) {
 
     setLoading(true);
     try {
-      // const res = await deleteOpportunity(id);
-      // console.log("Deleted opportunity successfully:", res);
+      const res = await deleteOpportunity(id);
+      console.log("Deleted opportunity successfully:", res);
 
       // Refresh Server Components to fetch fresh list
       router.refresh();

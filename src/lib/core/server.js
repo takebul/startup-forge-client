@@ -27,7 +27,9 @@ export const deleteData = async (dataId) => {
 };
 
 export const serverFetch = async (path) => {
-  const res = await fetch(`${baseUrl}${path}`);
+  const uri = `${baseUrl}${path}`;
+
+  const res = await fetch(uri);
   return handleStatusCode(res);
 };
 
