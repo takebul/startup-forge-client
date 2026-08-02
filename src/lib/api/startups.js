@@ -1,7 +1,7 @@
 import { serverFetch } from "../core/server";
 
-export const getFounderStartups = async (userId) => {
-  return serverFetch(`/api/my/startups?userId=${userId}`);
+export const getFounderStartups = async (startupId) => {
+  return serverFetch(`/api/my/startups?startupId=${startupId}`);
 };
 
 export const getStartupDetails = async (startupData) => {

@@ -67,7 +67,10 @@ export default function FounderMyStartups({ founder, startups }) {
     e.preventDefault();
     if (!newStartup.startup_name.trim()) return;
 
-    const result = await createStartup({ ...newStartup, userId: founder?.id });
+    const result = await createStartup({
+      ...newStartup,
+      startupId: founder?.id,
+    });
     console.log(result);
 
     // Append new startup to local list

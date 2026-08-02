@@ -1,5 +1,5 @@
 import { serverFetch } from "../core/server";
 
-export const getOpportunitiesByUserId = async (userId) => {
-  return serverFetch(`/api/my/opportunities?userId=${userId}`);
+export const getOpportunitiesByUserId = async (startupId) => {
+  return serverFetch(`/api/my/opportunities?startupId=${startupId}`);
 };

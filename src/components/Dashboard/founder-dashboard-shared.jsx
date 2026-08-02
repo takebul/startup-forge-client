@@ -4,14 +4,11 @@ import { useState, useRef, useCallback } from "react";
 
 const IMGBB_API_KEY = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
 
+// ─── Image Upload API ────────────────────────────────────────────────────────
 export async function uploadToImgbb(file) {
-  // if (IMGBB_API_KEY === "YOUR_IMGBB_API_KEY") {
-  //   await new Promise((r) => setTimeout(r, 800));
-  //   return "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=80&h=80&fit=crop";
-  // }
-
   const form = new FormData();
   form.append("image", file);
+
   const res = await fetch(
     `https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`,
     {
@@ -19,10 +16,13 @@ export async function uploadToImgbb(file) {
       body: form,
     },
   );
+
   const data = await res.json();
   if (!data.success) throw new Error("Upload failed");
   return data.data.display_url;
 }
+
+// ─── UI Primitives ───────────────────────────────────────────────────────────
 
 export function Label({ children }) {
   return (
@@ -38,37 +38,55 @@ export function Input({
   placeholder,
   type = "text",
   disabled,
+  name,
+  defaultValue,
+  required,
 }) {
   return (
     <input
       type={type}
+      name={name}
+      defaultValue={defaultValue}
       value={value}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={onChange ? (e) => onChange(e.target.value) : undefined}
       placeholder={placeholder}
       disabled={disabled}
+      required={required}
       className="w-full px-3 py-2.5 rounded-xl text-sm outline-none transition-colors duration-150 bg-[#060C1A] border border-slate-800 text-slate-200 focus:border-amber-500/50 disabled:opacity-50"
     />
   );
 }
 
-export function Textarea({ value, onChange, placeholder, rows = 3 }) {
+export function Textarea({
+  value,
+  onChange,
+  placeholder,
+  rows = 3,
+  name,
+  defaultValue,
+  required,
+}) {
   return (
     <textarea
+      name={name}
+      defaultValue={defaultValue}
       value={value}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={onChange ? (e) => onChange(e.target.value) : undefined}
       placeholder={placeholder}
       rows={rows}
+      required={required}
       className="w-full px-3 py-2.5 rounded-xl text-sm outline-none transition-colors duration-150 resize-none bg-[#060C1A] border border-slate-800 text-slate-200 focus:border-amber-500/50"
     />
   );
 }
 
-export function Select({ value, onChange, options }) {
+export function Select({ value, onChange, options, name }) {
   return (
     <div className="relative">
       <select
+        name={name}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onChange && onChange(e.target.value)}
         className="w-full appearance-none px-3 py-2.5 pr-8 rounded-xl text-sm outline-none transition-colors duration-150 cursor-pointer bg-[#060C1A] border border-slate-800 text-slate-200 focus:border-amber-500/50"
       >
         {options.map((o) => (
@@ -125,7 +143,9 @@ export function Btn({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`${base} ${sizes[size]} ${variants[variant]} ${fullWidth ? "w-full" : ""} ${disabled ? "opacity-50 pointer-events-none" : ""}`}
+      className={`${base} ${sizes[size]} ${variants[variant]} ${
+        fullWidth ? "w-full" : ""
+      } ${disabled ? "opacity-50 pointer-events-none" : ""}`}
     >
       {children}
     </button>
@@ -142,7 +162,9 @@ export function Badge({ label, variant }) {
   };
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium font-mono ${map[variant] || map.gray}`}
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium font-mono ${
+        map[variant] || map.gray
+      }`}
     >
       {label}
     </span>
@@ -154,6 +176,30 @@ export function StatusBadge({ status }) {
   if (status === "Accepted") return <Badge label="Accepted" variant="green" />;
   if (status === "Rejected") return <Badge label="Rejected" variant="red" />;
   return <Badge label={status} variant="gray" />;
+}
+
+export function EmptyState({ icon, title, sub }) {
+  return (
+    <div className="rounded-2xl p-14 text-center bg-[#0D1528] border border-slate-800">
+      <p className="text-4xl mb-3">{icon}</p>
+      <p className="font-semibold text-base text-slate-200 mb-1">{title}</p>
+      <p className="text-sm text-slate-500">{sub}</p>
+    </div>
+  );
+}
+
+export function StatCard({ label, value, sub, color = "#F59E0B" }) {
+  return (
+    <div className="rounded-2xl p-5 bg-[#0D1528] border border-slate-800">
+      <p className="text-xs font-mono uppercase tracking-wider text-slate-500 mb-2">
+        {label}
+      </p>
+      <p className="text-3xl font-extrabold mb-1" style={{ color }}>
+        {value}
+      </p>
+      {sub && <p className="text-xs text-slate-500">{sub}</p>}
+    </div>
+  );
 }
 
 export function Modal({ title, onClose, children }) {

@@ -41,7 +41,7 @@ const DashboardSidebar = () => {
       },
       {
         label: "Manage Opportunities",
-        href: `/dashboard/founder/manage-opportunities?userId=${user?.id}`,
+        href: `/dashboard/founder/manage-opportunities?startupId=${user?.id}`,
         icon: Users,
       },
       {
@@ -57,23 +57,28 @@ const DashboardSidebar = () => {
         icon: LayoutDashboard,
       },
       {
-        label: "Browse Startups",
-        href: "/dashboard/collaborator/startups",
+        label: "Browse Opportunities",
+        href: "/dashboard/collaborator/browse-opportunities",
         icon: Search,
       },
       {
         label: "My Applications",
-        href: "/dashboard/collaborator/applications",
+        href: "/dashboard/collaborator/my-applications",
         icon: File,
       },
       {
-        label: "Saved Roles",
-        href: "/dashboard/collaborator/roles",
+        label: "profile",
+        href: "/dashboard/collaborator/profile",
         icon: BookMarked,
       },
       {
-        label: "Notifications",
-        href: "/dashboard/collaborator/notifications",
+        label: "Bookmark",
+        href: "/dashboard/collaborator/bookmark",
+        icon: BookMarked,
+      },
+      {
+        label: "Premium",
+        href: "/dashboard/collaborator/premium",
         icon: Bell,
         badge: 2,
       },
