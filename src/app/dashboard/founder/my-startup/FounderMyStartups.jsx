@@ -83,7 +83,6 @@ export default function FounderMyStartups({ founder, startups }) {
       description: "",
       funding_stage: "Seed",
       founder_email: "",
-      status: "Pending",
     });
     setIsCreating(false);
   }
@@ -270,7 +269,6 @@ export default function FounderMyStartups({ founder, startups }) {
                   description: "",
                   funding_stage: "Seed",
                   founder_email: "",
-                  status: "Pending",
                 })
               }
               className="px-5 py-2.5 rounded-xl font-semibold text-sm bg-white/5 hover:bg-white/10 text-slate-400 border border-slate-800 transition-all cursor-pointer"
