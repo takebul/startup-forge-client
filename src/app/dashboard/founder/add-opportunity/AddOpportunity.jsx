@@ -21,6 +21,11 @@ export default function AddOpportunity({ startup }) {
   const { data: session } = authClient.useSession();
   const user = session?.user;
 
+  // Safely extract startup object whether it's an array or object
+  const activeStartup = Array.isArray(startup)
+    ? startup[0]
+    : startup?.data || startup;
+
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState(null);
@@ -43,13 +48,18 @@ export default function AddOpportunity({ startup }) {
         throw new Error("User session not found. Please log in again.");
       }
 
-      const response = await createOpportunity({
+      const startupName =
+        activeStartup?.startup_name || activeStartup?.name || "My Startup";
+
+      const payload = {
         ...form,
         startupId: user?.id,
-        startupName: startup.startup_name,
-      });
+        startupName: startupName,
+      };
 
-      // Handle case where server response indicates an error or falsy return
+      const response = await createOpportunity(payload);
+
+      // Handle case where server response indicates an error
       if (response?.error) {
         throw new Error(response.error);
       }
@@ -95,7 +105,7 @@ export default function AddOpportunity({ startup }) {
           <span>⚠️ {error}</span>
           <button
             onClick={() => setError(null)}
-            className="text-xs font-mono underline hover:text-red-300"
+            className="text-xs font-mono underline hover:text-red-300 cursor-pointer"
           >
             Dismiss
           </button>
@@ -241,9 +251,7 @@ export default function AddOpportunity({ startup }) {
               <Button
                 type="button"
                 onClick={() =>
-                  router.push(
-                    `/dashboard/founder/manage-opportunities?userId=${user?.id}`,
-                  )
+                  router.push("/dashboard/founder/manage-opportunities")
                 }
                 className="w-full px-4 py-2.5 rounded-xl font-semibold text-xs bg-amber-500 hover:bg-amber-600 text-slate-950 transition-all cursor-pointer"
               >

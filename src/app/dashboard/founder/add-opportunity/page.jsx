@@ -4,11 +4,11 @@ import { getUserSession } from "@/lib/core/session";
 
 const AddOpportunityPage = async () => {
   const user = await getUserSession();
-  const startup = await getFounderStartups(user?.id);
+  const startupData = await getFounderStartups(user?.id);
 
   return (
     <div>
-      <AddOpportunity startup={startup[0]} />
+      <AddOpportunity startup={startupData} />
     </div>
   );
 };

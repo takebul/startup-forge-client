@@ -11,7 +11,6 @@ import {
   Button,
   Description,
   FieldError,
-  Table,
 } from "@heroui/react";
 
 import {
@@ -90,7 +89,7 @@ export default function FounderMyStartups({ founder, startups }) {
   }
 
   // =========================================================================
-  // NEW: HANDLER TO UPDATE / EDIT A STARTUP
+  // HANDLER TO UPDATE / EDIT A STARTUP
   // =========================================================================
   async function handleEditing(e) {
     e.preventDefault();
@@ -112,7 +111,7 @@ export default function FounderMyStartups({ founder, startups }) {
   }
 
   // =========================================================================
-  // NEW: HANDLER TO DELETE A STARTUP
+  // HANDLER TO DELETE A STARTUP
   // =========================================================================
   async function handleDelete() {
     if (!confirmDeleteId) return;
@@ -138,25 +137,13 @@ export default function FounderMyStartups({ founder, startups }) {
   if (!startupList || startupList.length === 0 || isCreating) {
     return (
       <div className="p-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-slate-100">
-              Create Startup Profile
-            </h2>
-            <p className="text-xs text-slate-400 mt-1">
-              Fill in the details below to publish a new startup on
-              StartupForge.
-            </p>
-          </div>
-          {startupList && startupList.length > 0 && (
-            <Button
-              type="button"
-              onClick={() => setIsCreating(false)}
-              className="px-4 py-2 rounded-xl font-medium text-xs bg-white/5 hover:bg-white/10 text-slate-300 border border-slate-800 transition-all cursor-pointer"
-            >
-              ← Back to List
-            </Button>
-          )}
+        <div>
+          <h2 className="text-xl font-bold text-slate-100">
+            Create Startup Profile
+          </h2>
+          <p className="text-xs text-slate-400 mt-1">
+            Fill in the details below to publish a new startup on StartupForge.
+          </p>
         </div>
 
         <Form
@@ -273,33 +260,23 @@ export default function FounderMyStartups({ founder, startups }) {
             >
               Create Startup
             </Button>
-            {startupList.length > 0 ? (
-              <Button
-                type="button"
-                onClick={() => setIsCreating(false)}
-                className="px-5 py-2.5 rounded-xl font-semibold text-sm bg-white/5 hover:bg-white/10 text-slate-400 border border-slate-800 transition-all cursor-pointer"
-              >
-                Cancel
-              </Button>
-            ) : (
-              <Button
-                type="reset"
-                onClick={() =>
-                  setNewStartup({
-                    startup_name: "",
-                    logo: "",
-                    industry: "Artificial Intelligence",
-                    description: "",
-                    funding_stage: "Seed",
-                    founder_email: "",
-                    status: "Pending",
-                  })
-                }
-                className="px-5 py-2.5 rounded-xl font-semibold text-sm bg-white/5 hover:bg-white/10 text-slate-400 border border-slate-800 transition-all cursor-pointer"
-              >
-                Reset
-              </Button>
-            )}
+            <Button
+              type="reset"
+              onClick={() =>
+                setNewStartup({
+                  startup_name: "",
+                  logo: "",
+                  industry: "Artificial Intelligence",
+                  description: "",
+                  funding_stage: "Seed",
+                  founder_email: "",
+                  status: "Pending",
+                })
+              }
+              className="px-5 py-2.5 rounded-xl font-semibold text-sm bg-white/5 hover:bg-white/10 text-slate-400 border border-slate-800 transition-all cursor-pointer"
+            >
+              Reset
+            </Button>
           </div>
         </Form>
       </div>
@@ -307,7 +284,7 @@ export default function FounderMyStartups({ founder, startups }) {
   }
 
   // =========================================================================
-  // 2. EDITING STATE: RENDER UPDATE FORM (NOW USING handleEditing)
+  // 2. EDITING STATE: RENDER UPDATE FORM
   // =========================================================================
   if (editingStartup) {
     return (
@@ -434,156 +411,87 @@ export default function FounderMyStartups({ founder, startups }) {
   }
 
   // =========================================================================
-  // 3. IF DATA EXISTS (startupList.length > 0): SHOW DATA TABLE
+  // 3. DETAILED CARD DISPLAY STATE (NO TABLE, NO CREATE BUTTON, NO TOTAL BADGE)
   // =========================================================================
   return (
     <div className="p-8 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-slate-100">My Startups</h2>
-          <p className="text-xs text-slate-400 mt-1">
-            Manage your registered startup ideas and recruitment details.
-          </p>
-        </div>
-
-        {/* Action button to trigger creation form when data exists */}
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-mono text-slate-500 bg-slate-900 border border-slate-800 px-3 py-2 rounded-xl">
-            Total:{" "}
-            <span className="text-amber-500 font-bold">
-              {startupList.length}
-            </span>
-          </span>
-          <Button
-            type="button"
-            onClick={() => setIsCreating(true)}
-            className="px-4 py-2 rounded-xl font-semibold text-xs bg-amber-500 hover:bg-amber-600 text-slate-950 transition-all cursor-pointer shadow-lg shadow-amber-500/10 flex items-center gap-1.5"
-          >
-            <span>+</span> Create New Startup
-          </Button>
-        </div>
+      <div>
+        <h2 className="text-xl font-bold text-slate-100">My Startup</h2>
+        <p className="text-xs text-slate-400 mt-1">
+          Manage your registered startup profile and details.
+        </p>
       </div>
 
-      <Table className="w-full bg-[#0D1528] border border-slate-800 rounded-2xl overflow-hidden">
-        <Table.ScrollContainer>
-          <Table.Content aria-label="Startups list table" className="w-full">
-            <Table.Header className="bg-[#060C1A] border-b border-slate-800">
-              <Table.Column
-                isRowHeader
-                className="px-6 py-4 text-xs font-mono uppercase text-slate-400 font-semibold text-left"
-              >
-                Startup
-              </Table.Column>
-              <Table.Column className="px-6 py-4 text-xs font-mono uppercase text-slate-400 font-semibold text-left">
-                Industry & Stage
-              </Table.Column>
-              <Table.Column className="px-6 py-4 text-xs font-mono uppercase text-slate-400 font-semibold text-left">
-                Founder Email
-              </Table.Column>
-              <Table.Column className="px-6 py-4 text-xs font-mono uppercase text-slate-400 font-semibold text-left">
-                Status
-              </Table.Column>
-              <Table.Column className="px-6 py-4 text-xs font-mono uppercase text-slate-400 font-semibold text-right">
-                Actions
-              </Table.Column>
-            </Table.Header>
+      <div className="space-y-4">
+        {startupList.map((item, idx) => {
+          const itemId = item._id || item.id || idx;
+          const name = item.startup_name || item.name || "Untitled";
+          const isApproved = item.status === "Approved" || item.approved;
 
-            <Table.Body>
-              {startupList.map((item, idx) => {
-                const itemId = item._id || item.id || idx;
-                const name = item.startup_name || item.name || "Untitled";
+          return (
+            <div
+              key={itemId}
+              className="rounded-2xl bg-[#0D1528] border border-slate-800 p-6 space-y-5"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-[#060C1A] border border-slate-800 flex items-center justify-center">
+                  {item.logo ? (
+                    <img
+                      src={item.logo}
+                      alt={name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-amber-500 font-bold text-lg">
+                      {name[0]}
+                    </span>
+                  )}
+                </div>
 
-                return (
-                  <Table.Row
-                    key={itemId}
-                    className="border-b border-slate-800/50 hover:bg-white/[0.02] transition-colors"
-                  >
-                    {/* Startup Column */}
-                    <Table.Cell className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        {item.logo ? (
-                          <img
-                            src={item.logo}
-                            alt={name}
-                            className="w-10 h-10 rounded-xl object-cover"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center font-bold text-sm">
-                            {name[0]}
-                          </div>
-                        )}
-                        <div>
-                          <p className="font-semibold text-sm text-slate-100">
-                            {name}
-                          </p>
-                          <p className="text-xs text-slate-500 line-clamp-1 max-w-xs">
-                            {item.description}
-                          </p>
-                        </div>
-                      </div>
-                    </Table.Cell>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <h3 className="text-lg font-bold text-slate-100">{name}</h3>
+                    <Badge
+                      label={isApproved ? "Approved" : "Pending Review"}
+                      variant={isApproved ? "green" : "amber"}
+                    />
+                  </div>
+                  <p className="text-sm text-slate-400 mt-1">
+                    {item.industry} ·{" "}
+                    {item.funding_stage || item.fundingStage || "N/A"}
+                  </p>
+                  <p className="text-xs font-mono text-slate-500 mt-0.5">
+                    {item.founder_email || item.founderEmail || "N/A"}
+                  </p>
+                </div>
+              </div>
 
-                    {/* Industry & Stage Column */}
-                    <Table.Cell className="px-6 py-4 text-sm text-slate-300">
-                      <div>
-                        <p className="font-medium text-slate-200">
-                          {item.industry}
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          {item.funding_stage || item.fundingStage}
-                        </p>
-                      </div>
-                    </Table.Cell>
+              <p className="text-sm text-slate-300 leading-relaxed">
+                {item.description || "No description provided."}
+              </p>
 
-                    {/* Email Column */}
-                    <Table.Cell className="px-6 py-4 text-xs font-mono text-slate-400">
-                      {item.founder_email || item.founderEmail || "N/A"}
-                    </Table.Cell>
+              <div className="flex gap-3 pt-4 border-t border-slate-800/80">
+                <Btn
+                  onClick={() => setEditingStartup(item)}
+                  variant="outline"
+                  size="sm"
+                >
+                  Update Startup
+                </Btn>
+                <Btn
+                  onClick={() => setConfirmDeleteId(itemId)}
+                  variant="danger"
+                  size="sm"
+                >
+                  Delete Startup
+                </Btn>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
-                    {/* Status Column */}
-                    <Table.Cell className="px-6 py-4">
-                      <Badge
-                        label={
-                          item.status === "Approved" || item.approved
-                            ? "Approved"
-                            : "Pending"
-                        }
-                        variant={
-                          item.status === "Approved" || item.approved
-                            ? "green"
-                            : "amber"
-                        }
-                      />
-                    </Table.Cell>
-
-                    {/* Actions Column */}
-                    <Table.Cell className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Btn
-                          onClick={() => setEditingStartup(item)}
-                          variant="outline"
-                          size="sm"
-                        >
-                          Update
-                        </Btn>
-                        <Btn
-                          onClick={() => setConfirmDeleteId(itemId)}
-                          variant="danger"
-                          size="sm"
-                        >
-                          Delete
-                        </Btn>
-                      </div>
-                    </Table.Cell>
-                  </Table.Row>
-                );
-              })}
-            </Table.Body>
-          </Table.Content>
-        </Table.ScrollContainer>
-      </Table>
-
-      {/* Delete Confirmation Modal (NOW USING handleDelete) */}
+      {/* Delete Confirmation Modal */}
       {confirmDeleteId !== null && (
         <Modal title="Delete Startup?" onClose={() => setConfirmDeleteId(null)}>
           <p className="text-sm text-slate-400 mb-5">
