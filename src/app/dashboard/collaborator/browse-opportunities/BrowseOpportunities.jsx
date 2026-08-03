@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Btn,
@@ -24,7 +24,7 @@ const WORK_TYPE_VARIANTS = {
 const PAGE_SIZE = 4;
 
 function getSkillsArray(skills) {
-  if (Array.isArray(skills)) return skills;
+  if (Array.isArray(skills)) return skills.filter(Boolean);
   if (typeof skills === "string" && skills.trim()) {
     return skills
       .split(",")
@@ -96,33 +96,36 @@ export default function BrowseOpportunities({
   const router = useRouter();
   const activeUserId = user?.id || user?._id;
 
-  const [fullUser, setFullUser] = useState(user);
+  const [fullUser, setFullUser] = useState(() => user || {});
 
-  // Sync state if user prop changes
   useEffect(() => {
-    setFullUser(user);
+    if (user) {
+      setFullUser((prev) => ({ ...prev, ...user }));
+    }
   }, [user]);
 
-  // Fetch complete profile from MongoDB API to ensure skills & bio are loaded
-  useEffect(() => {
+  const fetchLatestProfile = useCallback(async () => {
     if (!activeUserId) return;
-
-    async function fetchLatestProfile() {
-      try {
-        const res = await fetch(`/api/user/profile/${activeUserId}`);
-        if (res.ok) {
-          const dbUser = await res.json();
-          if (dbUser && (dbUser.skills || dbUser.bio)) {
-            setFullUser((prev) => ({ ...prev, ...dbUser }));
-          }
+    try {
+      const res = await fetch(
+        `/api/user/profile/${activeUserId}?t=${Date.now()}`,
+        { cache: "no-store" },
+      );
+      if (res.ok) {
+        const dbUser = await res.json();
+        const profileData = dbUser?.data || dbUser?.user || dbUser;
+        if (profileData && typeof profileData === "object") {
+          setFullUser((prev) => ({ ...prev, ...profileData }));
         }
-      } catch (err) {
-        console.error("Error loading user profile:", err);
       }
+    } catch (err) {
+      console.error("Error fetching latest profile:", err);
     }
-
-    fetchLatestProfile();
   }, [activeUserId]);
+
+  useEffect(() => {
+    fetchLatestProfile();
+  }, [fetchLatestProfile]);
 
   const parseOpportunities = (data) => {
     if (!data) return [];
@@ -197,10 +200,10 @@ export default function BrowseOpportunities({
     if (fullUser?.email && !form.email) {
       setForm((prev) => ({ ...prev, email: fullUser.email }));
     }
-  }, [fullUser]);
+  }, [fullUser, form.email]);
 
   // =========================================================================
-  // PROFILE COMPLETION CALCULATOR (25% per field)
+  // PROFILE COMPLETION CALCULATOR
   // =========================================================================
   const getProfileCompletion = (userData) => {
     if (!userData) return { percentage: 0, isComplete: false };
@@ -223,9 +226,6 @@ export default function BrowseOpportunities({
   const { percentage: completionPercentage, isComplete: isProfileComplete } =
     getProfileCompletion(fullUser);
 
-  // =========================================================================
-  // APPLICATION GATEKEEPER
-  // =========================================================================
   const handleInitiateApply = (opportunity) => {
     if (!isProfileComplete) {
       setShowIncompleteModal(true);
@@ -235,13 +235,14 @@ export default function BrowseOpportunities({
   };
 
   // =========================================================================
-  // BOOKMARK TOGGLE HANDLER
+  // BOOKMARK TOGGLE HANDLER (SAVING FULL OPPORTUNITY METADATA TO DB)
   // =========================================================================
   const toggleBookmark = async (id) => {
     if (!id || !activeUserId) return;
     const targetId = String(id);
     const isBookmarked = bookmarks.includes(targetId);
 
+    // Optimistic UI update
     setBookmarks((prev) =>
       isBookmarked ? prev.filter((b) => b !== targetId) : [...prev, targetId],
     );
@@ -250,13 +251,25 @@ export default function BrowseOpportunities({
       if (isBookmarked) {
         await deleteBookmark(targetId, activeUserId);
       } else {
+        // Find opportunity object from state
+        const targetOpp = opportunities.find(
+          (o) => String(o._id || o.id) === targetId,
+        );
+
         await createBookmark({
           opportunityId: targetId,
           userId: String(activeUserId),
+          roleTitle: targetOpp?.roleTitle || "Collaborator Role",
+          startupName: targetOpp?.startupName || "Startup",
+          workType: targetOpp?.workType || "Remote",
+          commitmentLevel: targetOpp?.commitmentLevel || "Part-Time",
+          deadline: targetOpp?.deadline || "N/A",
+          requiredSkills: getSkillsArray(targetOpp?.requiredSkills),
         });
       }
     } catch (err) {
       console.error("Failed to toggle bookmark:", err);
+      // Revert state on failure
       setBookmarks((prev) =>
         isBookmarked ? [...prev, targetId] : prev.filter((b) => b !== targetId),
       );
@@ -620,7 +633,6 @@ export default function BrowseOpportunities({
               </p>
             </div>
 
-            {/* Progress Bar */}
             <div className="w-full bg-slate-900 border border-slate-800 rounded-full h-2 overflow-hidden my-3">
               <div
                 className="bg-amber-500 h-full rounded-full transition-all duration-300"
