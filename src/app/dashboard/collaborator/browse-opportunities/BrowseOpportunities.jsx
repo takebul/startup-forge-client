@@ -12,6 +12,7 @@ import {
 } from "@/components/Dashboard/founder-dashboard-shared";
 import { Bookmark } from "@gravity-ui/icons";
 import { createApplication } from "@/lib/actions/applications";
+import { createBookmark, deleteBookmark } from "@/lib/actions/bookmarks";
 
 const WORK_TYPE_VARIANTS = {
   Remote: "green",
@@ -21,7 +22,6 @@ const WORK_TYPE_VARIANTS = {
 
 const PAGE_SIZE = 4;
 
-// 🔥 Helper function: Safely converts strings, arrays, or null/undefined into a clean Array
 function getSkillsArray(skills) {
   if (Array.isArray(skills)) return skills;
   if (typeof skills === "string" && skills.trim()) {
@@ -88,9 +88,12 @@ function PaginationControls({
 
 export default function BrowseOpportunities({
   opportunitiesData,
-  opportunityId,
+  initialBookmarks = [],
+  initialAppliedOppIds = [],
+  user,
 }) {
-  // Normalize incoming props safely
+  const activeUserId = user?.id || user?._id;
+
   const parseOpportunities = (data) => {
     if (!data) return [];
     if (Array.isArray(data)) return data;
@@ -99,82 +102,168 @@ export default function BrowseOpportunities({
     return [];
   };
 
+  // Extract pure string IDs and deduplicate
+  const parseBookmarks = (data) => {
+    if (!data) return [];
+    const list = Array.isArray(data)
+      ? data
+      : Array.isArray(data?.data)
+        ? data.data
+        : [];
+    const ids = list
+      .map((b) =>
+        String(typeof b === "string" ? b : b.opportunityId || b._id || b.id),
+      )
+      .filter(Boolean);
+    return Array.from(new Set(ids));
+  };
+
   const [opportunities, setOpportunities] = useState(() =>
     parseOpportunities(opportunitiesData),
   );
 
-  // Sync state whenever props update
+  const [bookmarks, setBookmarks] = useState(() =>
+    parseBookmarks(initialBookmarks),
+  );
+
+  const [submitted, setSubmitted] = useState(() =>
+    Array.isArray(initialAppliedOppIds)
+      ? Array.from(new Set(initialAppliedOppIds.map(String)))
+      : [],
+  );
+
   useEffect(() => {
     setOpportunities(parseOpportunities(opportunitiesData));
   }, [opportunitiesData]);
 
-  const [bookmarks, setBookmarks] = useState([]);
-  const [filter, setFilter] = useState("all"); // "all" | "bookmarked"
+  useEffect(() => {
+    setBookmarks(parseBookmarks(initialBookmarks));
+  }, [initialBookmarks]);
+
+  useEffect(() => {
+    setSubmitted(
+      Array.isArray(initialAppliedOppIds)
+        ? Array.from(new Set(initialAppliedOppIds.map(String)))
+        : [],
+    );
+  }, [initialAppliedOppIds]);
+
+  const [filter, setFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [displayedOpps, setDisplayedOpps] = useState([]);
 
-  // Modals state
-  const [selected, setSelected] = useState(null); // Details Modal
-  const [applyModal, setApplyModal] = useState(null); // Apply Modal
-  const [submitted, setSubmitted] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [applyModal, setApplyModal] = useState(null);
   const [form, setForm] = useState({
-    email: "",
+    email: user?.email || "",
     portfolio: "",
     motivation: "",
   });
 
-  // Bookmark Toggle (checks both _id and id)
-  const toggleBookmark = (id) => {
-    if (!id) return;
+  useEffect(() => {
+    if (user?.email && !form.email) {
+      setForm((prev) => ({ ...prev, email: user.email }));
+    }
+  }, [user]);
+
+  // =========================================================================
+  // 1. BOOKMARK TOGGLE HANDLER (PURE OPTIMISTIC CLIENT STATE, NO REFRESH)
+  // =========================================================================
+  const toggleBookmark = async (id) => {
+    if (!id || !activeUserId) return;
+    const targetId = String(id);
+    const isBookmarked = bookmarks.includes(targetId);
+
+    // Optimistic UI update
     setBookmarks((prev) =>
-      prev.includes(id) ? prev.filter((b) => b !== id) : [...prev, id],
+      isBookmarked ? prev.filter((b) => b !== targetId) : [...prev, targetId],
     );
+
+    try {
+      if (isBookmarked) {
+        await deleteBookmark(targetId, activeUserId);
+      } else {
+        await createBookmark({
+          opportunityId: targetId,
+          userId: String(activeUserId),
+        });
+      }
+    } catch (err) {
+      console.error("Failed to toggle bookmark:", err);
+      // Revert state if request failed
+      setBookmarks((prev) =>
+        isBookmarked ? [...prev, targetId] : prev.filter((b) => b !== targetId),
+      );
+    }
   };
 
-  // Filtered List based on tab selection
   const filteredOpps = useMemo(() => {
     return filter === "bookmarked"
-      ? opportunities.filter((o) => bookmarks.includes(o._id || o.id))
+      ? opportunities.filter((o) => bookmarks.includes(String(o._id || o.id)))
       : opportunities;
   }, [opportunities, bookmarks, filter]);
 
   const totalPages = Math.ceil(filteredOpps.length / PAGE_SIZE) || 1;
 
-  // Pagination Effect with loading skeleton
   useEffect(() => {
     setLoading(true);
     const timer = setTimeout(() => {
       const start = (page - 1) * PAGE_SIZE;
       setDisplayedOpps(filteredOpps.slice(start, start + PAGE_SIZE));
       setLoading(false);
-    }, 300);
+    }, 200);
 
     return () => clearTimeout(timer);
   }, [page, filteredOpps]);
 
-  // Reset page when filter changes
   useEffect(() => {
     setPage(1);
   }, [filter]);
 
-  // Submit Application Handler
+  // =========================================================================
+  // 2. APPLICATION SUBMIT HANDLER (NO PAGE RELOAD / NO ROUTER REFRESH)
+  // =========================================================================
   const submitApplication = async (e) => {
     e.preventDefault();
     if (!form.email || !form.motivation || !applyModal) return;
 
-    const targetId = applyModal._id || applyModal.id;
-    setSubmitted((prev) => [...prev, targetId]);
-    setApplyModal(null);
+    const targetOpportunityId = String(applyModal._id || applyModal.id);
+    setIsSubmitting(true);
 
-    const addApplication = await createApplication({
-      ...form,
-      opportunityId,
-    });
-    console.log(addApplication);
+    try {
+      const payload = {
+        applicantEmail: form.email,
+        portfolioLink: form.portfolio,
+        motivationMessage: form.motivation,
+        opportunityId: targetOpportunityId,
+        opportunityTitle:
+          applyModal.roleTitle || applyModal.title || "Collaborator Role",
+        startupName: applyModal.startupName || "Startup",
+        applicantName: user?.name || "Collaborator",
+        collaboratorId: activeUserId,
+      };
+
+      const result = await createApplication(payload);
+      console.log("Application posted successfully:", result);
+
+      // Local state update without page refresh or reload
+      setSubmitted((prev) =>
+        Array.from(new Set([...prev, targetOpportunityId])),
+      );
+      setApplyModal(null);
+      setForm({
+        email: user?.email || "",
+        portfolio: "",
+        motivation: "",
+      });
+    } catch (err) {
+      console.error("Failed to post application:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-
-  console.log("form", form);
 
   return (
     <div className="p-8 space-y-6">
@@ -214,7 +303,7 @@ export default function BrowseOpportunities({
         </div>
       </div>
 
-      {/* Grid Content with Skeleton loading */}
+      {/* Grid Content */}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {Array.from({ length: PAGE_SIZE }).map((_, i) => (
@@ -228,10 +317,6 @@ export default function BrowseOpportunities({
               </div>
               <div className="h-5 w-2/3 bg-white/5 rounded" />
               <div className="h-3 w-1/4 bg-white/5 rounded" />
-              <div className="flex gap-2 pt-2">
-                <div className="h-5 w-12 bg-white/5 rounded" />
-                <div className="h-5 w-16 bg-white/5 rounded" />
-              </div>
             </div>
           ))}
         </div>
@@ -252,12 +337,10 @@ export default function BrowseOpportunities({
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {displayedOpps.map((o, idx) => {
-            const itemId = o._id || o.id || idx;
+            const itemId = String(o._id || o.id || idx);
             const isBookmarked = bookmarks.includes(itemId);
             const isApplied = submitted.includes(itemId);
             const variant = WORK_TYPE_VARIANTS[o.workType] || "gray";
-
-            // 🔥 Safely get skills array whether DB returned String or Array
             const skillsList = getSkillsArray(o.requiredSkills);
 
             return (
@@ -276,7 +359,6 @@ export default function BrowseOpportunities({
                       <Badge label={o.commitmentLevel} variant="gray" />
                     </div>
 
-                    {/* Bookmark Toggle */}
                     <button
                       onClick={() => toggleBookmark(itemId)}
                       className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs transition-colors cursor-pointer ${
@@ -352,8 +434,9 @@ export default function BrowseOpportunities({
       {selected && (
         <Modal title="Opportunity Details" onClose={() => setSelected(null)}>
           {(() => {
-            const selectedId = selected._id || selected.id;
+            const selectedId = String(selected._id || selected.id);
             const isBookmarked = bookmarks.includes(selectedId);
+            const isApplied = submitted.includes(selectedId);
             const skillsList = getSkillsArray(selected.requiredSkills);
 
             return (
@@ -415,16 +498,22 @@ export default function BrowseOpportunities({
                 </div>
 
                 <div className="flex gap-3 pt-2">
-                  <Btn
-                    fullWidth
-                    onClick={() => {
-                      const target = selected;
-                      setSelected(null);
-                      setApplyModal(target);
-                    }}
-                  >
-                    Apply Now
-                  </Btn>
+                  {isApplied ? (
+                    <div className="flex-1 flex items-center justify-center py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold text-xs font-mono">
+                      ✓ Already Applied
+                    </div>
+                  ) : (
+                    <Btn
+                      fullWidth
+                      onClick={() => {
+                        const target = selected;
+                        setSelected(null);
+                        setApplyModal(target);
+                      }}
+                    >
+                      Apply Now
+                    </Btn>
+                  )}
                   <button
                     onClick={() => toggleBookmark(selectedId)}
                     className={`px-4 py-2 rounded-xl text-sm transition-colors border font-medium cursor-pointer ${
@@ -485,14 +574,10 @@ export default function BrowseOpportunities({
               />
             </div>
 
-            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-mono bg-amber-500/10 border border-amber-500/20 text-slate-300">
-              <span className="text-amber-500">ℹ</span>
-              Initial Application Status:{" "}
-              <Badge label="Pending" variant="amber" />
-            </div>
-
             <div className="flex gap-3 pt-2">
-              <Btn type="submit">Submit Application</Btn>
+              <Btn type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Submitting..." : "Submit Application"}
+              </Btn>
               <Btn variant="ghost" onClick={() => setApplyModal(null)}>
                 Cancel
               </Btn>
