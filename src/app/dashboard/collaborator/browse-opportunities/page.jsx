@@ -1,18 +1,28 @@
 import { getOpportunities } from "@/lib/api/opportunities";
 import { getBookmarksById } from "@/lib/api/bookmarks";
-import { getApplicationsById } from "@/lib/api/applications"; // Function fetching /api/my/applications
+import { getApplicationsById } from "@/lib/api/applications";
 import { getUserSession } from "@/lib/core/session";
+import { getProfileData } from "@/lib/api/users";
 import BrowseOpportunities from "./BrowseOpportunities";
 
 const BrowseOpportunitiesPage = async () => {
   const user = await getUserSession();
+  const userId = user?.id || user?._id;
 
-  // Fetch all 3 data sources in parallel
-  const [opportunities, rawBookmarks, rawApplications] = await Promise.all([
-    getOpportunities(),
-    user?.id ? getBookmarksById(user?.id) : [],
-    user?.id ? getApplicationsById(user?.id) : [],
-  ]);
+  // Fetch ALL 4 data sources in parallel for maximum speed
+  const [opportunities, rawBookmarks, rawApplications, userProfile] =
+    await Promise.all([
+      getOpportunities(),
+      userId ? getBookmarksById(userId) : [],
+      userId ? getApplicationsById(userId) : [],
+      userId ? getProfileData(userId) : null,
+    ]);
+
+  // 🔥 MERGE auth session with full MongoDB profile data (includes skills & bio)
+  const fullUser = {
+    ...user,
+    ...userProfile,
+  };
 
   // Normalize Bookmarks to IDs array
   const parseBookmarks = (data) => {
@@ -25,14 +35,14 @@ const BrowseOpportunitiesPage = async () => {
   // Extract Opportunity IDs user has already applied to
   const parseAppliedOppIds = (data) => {
     const list = Array.isArray(data) ? data : data?.data || [];
-    return list.map((app) => app.opportunityId).filter(Boolean);
+    return list.map((app) => String(app.opportunityId)).filter(Boolean);
   };
 
   return (
     <div>
       <BrowseOpportunities
         opportunitiesData={opportunities}
-        user={user}
+        user={fullUser} // <-- FIX: Passing fullUser with skills & bio
         initialBookmarks={parseBookmarks(rawBookmarks)}
         initialAppliedOppIds={parseAppliedOppIds(rawApplications)}
       />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import {
   Btn,
   Badge,
@@ -92,7 +93,36 @@ export default function BrowseOpportunities({
   initialAppliedOppIds = [],
   user,
 }) {
+  const router = useRouter();
   const activeUserId = user?.id || user?._id;
+
+  const [fullUser, setFullUser] = useState(user);
+
+  // Sync state if user prop changes
+  useEffect(() => {
+    setFullUser(user);
+  }, [user]);
+
+  // Fetch complete profile from MongoDB API to ensure skills & bio are loaded
+  useEffect(() => {
+    if (!activeUserId) return;
+
+    async function fetchLatestProfile() {
+      try {
+        const res = await fetch(`/api/user/profile/${activeUserId}`);
+        if (res.ok) {
+          const dbUser = await res.json();
+          if (dbUser && (dbUser.skills || dbUser.bio)) {
+            setFullUser((prev) => ({ ...prev, ...dbUser }));
+          }
+        }
+      } catch (err) {
+        console.error("Error loading user profile:", err);
+      }
+    }
+
+    fetchLatestProfile();
+  }, [activeUserId]);
 
   const parseOpportunities = (data) => {
     if (!data) return [];
@@ -102,7 +132,6 @@ export default function BrowseOpportunities({
     return [];
   };
 
-  // Extract pure string IDs and deduplicate
   const parseBookmarks = (data) => {
     if (!data) return [];
     const list = Array.isArray(data)
@@ -156,27 +185,63 @@ export default function BrowseOpportunities({
 
   const [selected, setSelected] = useState(null);
   const [applyModal, setApplyModal] = useState(null);
+  const [showIncompleteModal, setShowIncompleteModal] = useState(false);
+
   const [form, setForm] = useState({
-    email: user?.email || "",
+    email: fullUser?.email || "",
     portfolio: "",
     motivation: "",
   });
 
   useEffect(() => {
-    if (user?.email && !form.email) {
-      setForm((prev) => ({ ...prev, email: user.email }));
+    if (fullUser?.email && !form.email) {
+      setForm((prev) => ({ ...prev, email: fullUser.email }));
     }
-  }, [user]);
+  }, [fullUser]);
 
   // =========================================================================
-  // 1. BOOKMARK TOGGLE HANDLER (PURE OPTIMISTIC CLIENT STATE, NO REFRESH)
+  // PROFILE COMPLETION CALCULATOR (25% per field)
+  // =========================================================================
+  const getProfileCompletion = (userData) => {
+    if (!userData) return { percentage: 0, isComplete: false };
+    let score = 0;
+
+    if (userData.name && String(userData.name).trim().length > 0) score += 25;
+    if (userData.image && String(userData.image).trim().length > 0) score += 25;
+
+    const skills = getSkillsArray(userData.skills);
+    if (skills.length > 0) score += 25;
+
+    if (userData.bio && String(userData.bio).trim().length > 0) score += 25;
+
+    return {
+      percentage: score,
+      isComplete: score === 100,
+    };
+  };
+
+  const { percentage: completionPercentage, isComplete: isProfileComplete } =
+    getProfileCompletion(fullUser);
+
+  // =========================================================================
+  // APPLICATION GATEKEEPER
+  // =========================================================================
+  const handleInitiateApply = (opportunity) => {
+    if (!isProfileComplete) {
+      setShowIncompleteModal(true);
+      return;
+    }
+    setApplyModal(opportunity);
+  };
+
+  // =========================================================================
+  // BOOKMARK TOGGLE HANDLER
   // =========================================================================
   const toggleBookmark = async (id) => {
     if (!id || !activeUserId) return;
     const targetId = String(id);
     const isBookmarked = bookmarks.includes(targetId);
 
-    // Optimistic UI update
     setBookmarks((prev) =>
       isBookmarked ? prev.filter((b) => b !== targetId) : [...prev, targetId],
     );
@@ -192,7 +257,6 @@ export default function BrowseOpportunities({
       }
     } catch (err) {
       console.error("Failed to toggle bookmark:", err);
-      // Revert state if request failed
       setBookmarks((prev) =>
         isBookmarked ? [...prev, targetId] : prev.filter((b) => b !== targetId),
       );
@@ -223,7 +287,7 @@ export default function BrowseOpportunities({
   }, [filter]);
 
   // =========================================================================
-  // 2. APPLICATION SUBMIT HANDLER (NO PAGE RELOAD / NO ROUTER REFRESH)
+  // APPLICATION SUBMIT HANDLER
   // =========================================================================
   const submitApplication = async (e) => {
     e.preventDefault();
@@ -241,20 +305,19 @@ export default function BrowseOpportunities({
         opportunityTitle:
           applyModal.roleTitle || applyModal.title || "Collaborator Role",
         startupName: applyModal.startupName || "Startup",
-        applicantName: user?.name || "Collaborator",
+        applicantName: fullUser?.name || "Collaborator",
         collaboratorId: activeUserId,
       };
 
       const result = await createApplication(payload);
       console.log("Application posted successfully:", result);
 
-      // Local state update without page refresh or reload
       setSubmitted((prev) =>
         Array.from(new Set([...prev, targetOpportunityId])),
       );
       setApplyModal(null);
       setForm({
-        email: user?.email || "",
+        email: fullUser?.email || "",
         portfolio: "",
         motivation: "",
       });
@@ -407,7 +470,7 @@ export default function BrowseOpportunities({
                     {isApplied ? (
                       <Badge label="Applied" variant="green" />
                     ) : (
-                      <Btn size="sm" onClick={() => setApplyModal(o)}>
+                      <Btn size="sm" onClick={() => handleInitiateApply(o)}>
                         Apply
                       </Btn>
                     )}
@@ -508,7 +571,7 @@ export default function BrowseOpportunities({
                       onClick={() => {
                         const target = selected;
                         setSelected(null);
-                        setApplyModal(target);
+                        handleInitiateApply(target);
                       }}
                     >
                       Apply Now
@@ -531,6 +594,62 @@ export default function BrowseOpportunities({
         </Modal>
       )}
 
+      {/* Profile Incomplete Warning Modal */}
+      {showIncompleteModal && (
+        <Modal
+          title="Profile Completion Required"
+          onClose={() => setShowIncompleteModal(false)}
+        >
+          <div className="space-y-4 text-center py-2">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center text-2xl mx-auto font-bold">
+              ⚠️
+            </div>
+
+            <div>
+              <h3 className="text-lg font-bold text-slate-100">
+                Complete Your Profile First
+              </h3>
+              <p className="text-xs text-slate-400 mt-1.5 max-w-sm mx-auto leading-relaxed">
+                Your profile is currently{" "}
+                <span className="text-amber-500 font-bold font-mono">
+                  {completionPercentage}%
+                </span>{" "}
+                complete. Startup founders require a 100% completed profile
+                (Full Name, Photo, Skills, and Bio) before accepting
+                applications.
+              </p>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="w-full bg-slate-900 border border-slate-800 rounded-full h-2 overflow-hidden my-3">
+              <div
+                className="bg-amber-500 h-full rounded-full transition-all duration-300"
+                style={{ width: `${completionPercentage}%` }}
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <Btn
+                fullWidth
+                onClick={() => {
+                  setShowIncompleteModal(false);
+                  router.push("/dashboard/collaborator/profile");
+                }}
+              >
+                Go to Profile Settings →
+              </Btn>
+              <Btn
+                variant="ghost"
+                fullWidth
+                onClick={() => setShowIncompleteModal(false)}
+              >
+                Cancel
+              </Btn>
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {/* Apply Modal */}
       {applyModal && (
         <Modal
@@ -550,7 +669,7 @@ export default function BrowseOpportunities({
                 value={form.email}
                 onChange={(v) => setForm({ ...form, email: v })}
                 placeholder="you@example.com"
-                required
+                disabled
               />
             </div>
 
