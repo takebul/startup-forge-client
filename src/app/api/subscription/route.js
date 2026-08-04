@@ -25,6 +25,7 @@ export async function POST(request) {
         },
       ],
       mode: "subscription",
+      metadata: { planId },
       success_url: `${origin}/pricing/success-subscription?session_id={CHECKOUT_SESSION_ID}`,
     });
     return NextResponse.redirect(session.url, 303);

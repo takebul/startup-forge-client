@@ -5,7 +5,8 @@ import { getOpportunitiesByUserId } from "@/lib/api/opportunities";
 const ManageOpportunitiesPage = async () => {
   const user = await getUserSession();
   const opportunities = await getOpportunitiesByUserId(user?.id);
-  console.log(user);
+
+  console.log(opportunities);
   return (
     <div>
       <ManageOpportunities founderOpportunities={opportunities} />

@@ -9,7 +9,7 @@ import {
   Receipt,
   Mail,
 } from "lucide-react";
-import { payment } from "@/lib/actions/payments";
+import { subscription } from "@/lib/actions/subscriptions";
 import { getUserSession } from "@/lib/core/session";
 
 export default async function SuccessSubscriptionPage({ searchParams }) {
@@ -25,7 +25,14 @@ export default async function SuccessSubscriptionPage({ searchParams }) {
     expand: ["line_items", "payment_intent"],
   });
 
-  const { status, customer_details, amount_total, currency } = payment_session;
+  const {
+    status,
+    customer_details,
+    amount_total,
+    currency,
+    metadata,
+    payment_status,
+  } = payment_session;
   const customerEmail = customer_details?.email;
 
   if (status === "open") {
@@ -33,7 +40,15 @@ export default async function SuccessSubscriptionPage({ searchParams }) {
   }
 
   if (status === "complete") {
-    const payment_result = await payment({ user, session_id });
+    const subsInfo = {
+      email: user?.email,
+      planId: metadata.planId,
+      payment_status: payment_status,
+      amount: amount_total,
+      session_id: session_id,
+      userId: user?.id,
+    };
+    const payment_result = await subscription({ subsInfo, user });
 
     console.log(payment_result);
 

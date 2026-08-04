@@ -10,19 +10,32 @@ export async function proxy(request) {
 
   // console.log(session);
 
-  if (session?.user?.plan === "free") {
-    return NextResponse.redirect(new URL("/pricing", request.url));
-  }
+  if (
+    session?.user?.plan === "founder_free" ||
+    session?.user?.plan === "collaborator_free"
+  ) {
+    // return NextResponse.redirect(new URL("/pricing", request.url));
 
-  if (!session) {
-    return NextResponse.redirect(new URL("/signin", request.url));
+    const signinUrl = new URL("/pricing", request.url);
+
+    signinUrl.searchParams.set(
+      "redirect",
+      request.nextUrl.pathname + request.nextUrl.search,
+    );
+
+    return NextResponse.redirect(signinUrl);
   }
+  return NextResponse.next();
+
+  // if (!session) {
+  //   return NextResponse.redirect(new URL("/signin", request.url));
+  // }
 
   // return NextResponse.redirect(new URL("/signin", request.url));
 }
 
 export const config = {
-  matcher: ["/profile", "/dashboard/founder"],
+  matcher: ["/profile", "/dashboard/founder", "/dashboard/collaborator"],
 };
 
 // {

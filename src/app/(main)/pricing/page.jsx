@@ -19,15 +19,15 @@ import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@heroui/react";
 
 // -----------------------------------------------------------------------------
-// PRICING PLANS DATA (WITH plan_id)
+// PRICING PLANS DATA (WITH plan_id & UPDATED TEXT)
 // -----------------------------------------------------------------------------
 const PRICING_PLANS = [
   {
-    plan_id: "plan_free_starter_01",
+    plan_id: "founder_free",
     name: "Free",
     tagline: "Starter",
     description:
-      "Ideal for early-stage founders launching their first concept.",
+      "Ideal for early-stage founders testing their first startup concept.",
     price: "$0",
     period: "/ month",
     billingNote: "No credit card required",
@@ -37,7 +37,7 @@ const PRICING_PLANS = [
     href: "/signup?redirect=/dashboard/founder",
     features: [
       { text: "1 Active Startup Listing", included: true },
-      { text: "Up to 3 Open Team Roles", included: true },
+      { text: "Up to 3 Open Opportunity Roles", included: true, isBold: true },
       { text: "Basic Candidate Applications", included: true },
       { text: "Standard In-App Messaging", included: true },
       { text: "Priority Listing Placement", included: false },
@@ -46,7 +46,7 @@ const PRICING_PLANS = [
     ],
   },
   {
-    plan_id: "plan_premium_founder_02",
+    plan_id: "founder_premium",
     name: "Premium Founder",
     tagline: "Accelerate",
     description: "For ambitious founders building dedicated core teams fast.",
@@ -60,7 +60,7 @@ const PRICING_PLANS = [
     buttonText: "Upgrade to Premium — $29/mo",
     features: [
       { text: "Everything in Free", included: true, isBold: true },
-      { text: "Unlimited Startup Posts & Roles", included: true, isBold: true },
+      { text: "Up to 10 Open Opportunity Roles", included: true, isBold: true },
       { text: "Priority Listing Placement", included: true, isBold: true },
       { text: "Advanced Applicant Search & Filters", included: true },
       { text: "Full Recruitment Dashboard", included: true },
@@ -70,7 +70,7 @@ const PRICING_PLANS = [
     ],
   },
   {
-    plan_id: "plan_enterprise_scale_03",
+    plan_id: "founder_enterprise",
     name: "Enterprise",
     tagline: "Scale & Studio",
     description: "For venture studios, incubators, and multi-team scaleups.",
@@ -82,6 +82,11 @@ const PRICING_PLANS = [
     buttonText: "Get Enterprise — $99/mo",
     features: [
       { text: "Everything in Premium Founder", included: true, isBold: true },
+      {
+        text: "Up to 100 Open Opportunity Roles",
+        included: true,
+        isBold: true,
+      },
       { text: "Multi-User Team Access (Up to 10 Seats)", included: true },
       { text: "Custom White-Label Talent Portal", included: true },
       { text: "API Access & ATS Syncing", included: true },
@@ -119,7 +124,7 @@ const FAQ_ITEMS = [
   {
     question: "Can I upgrade my plan as my team grows?",
     answer:
-      "Absolutely. You can start on the Free plan to validate your concept and upgrade to Premium Founder or Enterprise whenever you need priority listing placement, applicant filters, or multi-seat team access.",
+      "Substantially yes! You can start on the Free plan (up to 3 opportunities) to validate your concept, upgrade to Premium Founder (up to 10 opportunities) for accelerated recruiting, or choose Enterprise (up to 100 opportunities) for scale.",
   },
 ];
 
@@ -129,9 +134,9 @@ const FAQ_ITEMS = [
 const FEATURE_HIGHLIGHTS = [
   {
     icon: Rocket,
-    title: "Unlimited Startup Postings",
+    title: "Scalable Opportunity Postings",
     description:
-      "Publish as many startup ideas and open roles as you need. Build co-founding teams across multiple ventures simultaneously.",
+      "Post 3, 10, or up to 100 open roles depending on your plan. Build co-founding teams across multiple ventures simultaneously.",
     iconBg: "bg-indigo-500/10 text-indigo-400",
   },
   {
@@ -182,10 +187,10 @@ const COMPARISON_ROWS = [
     enterprise: "Unlimited",
   },
   {
-    feature: "Open Team Roles",
-    free: "Up to 3",
-    premium: "Unlimited",
-    enterprise: "Unlimited",
+    feature: "Opportunity Postings / Month",
+    free: "3 Roles",
+    premium: "10 Roles",
+    enterprise: "100 Roles",
   },
   {
     feature: "Priority Search Placement",
@@ -239,7 +244,7 @@ const TESTIMONIALS = [
   },
   {
     quote:
-      "Filtering by tech stack and weekly time commitment helped us recruit 3 developers in under a week. StartupForge saved us months of searching on generic job boards.",
+      "Upgrading to Premium Founder gave us 10 role slots, helping us recruit 3 developers and a designer in under a week. StartupForge saved us months of searching.",
     author: "Sarah Kim",
     role: "Founder @ EcoGrid",
     avatar:
@@ -282,9 +287,9 @@ export default function FounderPricingPage() {
           </h1>
 
           <p className="mt-4 text-base text-slate-400 sm:text-lg">
-            Start for free to test your idea. Upgrade to unlock priority
-            placement, advanced candidate filtering, and scaling recruitment
-            tools.
+            Start for free to test your idea with up to 3 opportunity postings.
+            Upgrade to Premium or Enterprise for expanded opportunity quotas and
+            advanced candidate filtering.
           </p>
         </div>
 
@@ -610,11 +615,7 @@ export default function FounderPricingPage() {
 
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <form method="POST" action="/api/subscription">
-                <input
-                  type="hidden"
-                  name="plan_id"
-                  value="plan_premium_founder_02"
-                />
+                <input type="hidden" name="plan_id" value="founder_premium" />
                 <button
                   type="submit"
                   className="rounded-xl bg-white px-8 py-3.5 text-xs font-bold text-indigo-950 shadow-lg transition-transform hover:scale-105"
@@ -624,7 +625,7 @@ export default function FounderPricingPage() {
               </form>
 
               <Link
-                href="/register?role=founder"
+                href="/signup?redirect=/dashboard/founder"
                 className="rounded-xl border border-indigo-400/30 bg-indigo-950/50 px-8 py-3.5 text-xs font-bold text-indigo-200 transition-colors hover:bg-indigo-900/50"
               >
                 Start Free

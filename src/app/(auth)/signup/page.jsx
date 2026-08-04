@@ -203,6 +203,8 @@ export default function SignupPage() {
     }
   }
 
+  const plan = form.role === "founder" ? "founder_free" : "collaborator_free";
+
   async function handleSubmit(e) {
     e.preventDefault();
     const errs = validate(form);
@@ -219,7 +221,7 @@ export default function SignupPage() {
       password: form.password,
       image: form.imageUrl || undefined,
       role: form.role,
-      plan: "free", // Default plan for new users
+      plan: plan,
     });
 
     console.log({ data, error });
