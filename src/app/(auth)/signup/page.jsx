@@ -21,7 +21,7 @@ import {
   Loader2,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signUp, signIn } from "@/lib/auth-client";
 
 function validate(form) {
@@ -181,6 +181,9 @@ export default function SignupPage() {
     if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }));
   }
 
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/";
+
   async function handleFileChange(e) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -228,7 +231,7 @@ export default function SignupPage() {
       setStatus("success");
       setStatusMessage(`Welcome, ${form.name.split(" ")[0]}! Redirecting...`);
       setTimeout(() => {
-        router.push("/");
+        router.push(redirectTo);
       }, 1200);
     }
   }
@@ -237,7 +240,7 @@ export default function SignupPage() {
     setStatus("loading");
     const { error } = await signIn.social({
       provider: "google",
-      callbackURL: "/",
+      callbackURL: redirectTo,
     });
     if (error) {
       setStatus("error");
@@ -620,7 +623,7 @@ export default function SignupPage() {
             <p className="text-center text-sm text-zinc-600 mt-5">
               Already have an account?{" "}
               <Link
-                href="/signin"
+                href={`/signin?redirect=${redirectTo}`}
                 className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
               >
                 Sign in

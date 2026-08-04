@@ -105,11 +105,6 @@ const DashboardSidebar = () => {
     ],
   };
 
-  const ACCOUNT_MENU = [
-    { label: "Profile", href: "/dashboard/profile", icon: User },
-    { label: "Settings", href: "/dashboard/settings", icon: Settings },
-  ];
-
   return (
     <aside className="w-60 bg-[#080E1C] border-r border-slate-800 flex flex-col h-screen sticky top-0">
       <div className="flex h-20 items-center px-6 border-b border-slate-800/50">
@@ -151,27 +146,6 @@ const DashboardSidebar = () => {
                       {link.badge}
                     </span>
                   )}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-
-        <div>
-          <h3 className="mb-3 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-            Account
-          </h3>
-          <nav className="space-y-1.5">
-            {ACCOUNT_MENU.map((link) => {
-              const Icon = link.icon;
-              return (
-                <Link
-                  key={link.label}
-                  href={link.href}
-                  className="flex items-center space-x-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-[#1A1D27] hover:text-slate-200"
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{link.label}</span>
                 </Link>
               );
             })}

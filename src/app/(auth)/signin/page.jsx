@@ -11,7 +11,7 @@ import ArrowRight from "@gravity-ui/icons/ArrowRight";
 import CircleXmark from "@gravity-ui/icons/CircleXmark";
 import { User, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "@/lib/auth-client";
 
 function GoogleIcon({ size = 18 }) {
@@ -104,6 +104,9 @@ export default function SigninPage() {
   const [status, setStatus] = useState("idle");
   const [statusMessage, setStatusMessage] = useState("");
 
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/";
+
   function set(key, value) {
     setForm((f) => ({ ...f, [key]: value }));
     if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }));
@@ -141,7 +144,7 @@ export default function SigninPage() {
       setStatus("success");
       setStatusMessage("Signed in successfully! Redirecting...");
       setTimeout(() => {
-        router.push("/");
+        router.push(redirectTo);
       }, 1000);
     }
   }
@@ -150,7 +153,7 @@ export default function SigninPage() {
     setStatus("loading");
     const { error } = await signIn.social({
       provider: "google",
-      callbackURL: "/",
+      callbackURL: redirectTo,
     });
 
     if (error) {
@@ -340,7 +343,7 @@ export default function SigninPage() {
             <p className="text-center text-sm text-zinc-600 mt-5">
               {"Don't have an account? "}
               <Link
-                href="/signup"
+                href={`/signup?redirect=${redirectTo}`}
                 className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
               >
                 Sign up

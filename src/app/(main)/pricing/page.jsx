@@ -19,6 +19,80 @@ import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@heroui/react";
 
 // -----------------------------------------------------------------------------
+// PRICING PLANS DATA (WITH plan_id)
+// -----------------------------------------------------------------------------
+const PRICING_PLANS = [
+  {
+    plan_id: "plan_free_starter_01",
+    name: "Free",
+    tagline: "Starter",
+    description:
+      "Ideal for early-stage founders launching their first concept.",
+    price: "$0",
+    period: "/ month",
+    billingNote: "No credit card required",
+    badgeColor: "text-slate-500",
+    buttonVariant: "outline",
+    buttonText: "Get Started Free",
+    href: "/signup?redirect=/dashboard/founder",
+    features: [
+      { text: "1 Active Startup Listing", included: true },
+      { text: "Up to 3 Open Team Roles", included: true },
+      { text: "Basic Candidate Applications", included: true },
+      { text: "Standard In-App Messaging", included: true },
+      { text: "Priority Listing Placement", included: false },
+      { text: "Advanced Applicant Filtering", included: false },
+      { text: "Verified Founder Badge", included: false },
+    ],
+  },
+  {
+    plan_id: "plan_premium_founder_02",
+    name: "Premium Founder",
+    tagline: "Accelerate",
+    description: "For ambitious founders building dedicated core teams fast.",
+    price: "$29",
+    period: "/ month",
+    billingNote: "Billed monthly • Cancel anytime",
+    isPopular: true,
+    popularTag: "Most Popular",
+    badgeColor: "text-indigo-400",
+    buttonVariant: "indigo",
+    buttonText: "Upgrade to Premium — $29/mo",
+    features: [
+      { text: "Everything in Free", included: true, isBold: true },
+      { text: "Unlimited Startup Posts & Roles", included: true, isBold: true },
+      { text: "Priority Listing Placement", included: true, isBold: true },
+      { text: "Advanced Applicant Search & Filters", included: true },
+      { text: "Full Recruitment Dashboard", included: true },
+      { text: "Candidate Portfolio & Resume Preview", included: true },
+      { text: "One-Click Accept/Reject Workflow", included: true },
+      { text: "Verified Founder Badge", included: true, isBold: true },
+    ],
+  },
+  {
+    plan_id: "plan_enterprise_scale_03",
+    name: "Enterprise",
+    tagline: "Scale & Studio",
+    description: "For venture studios, incubators, and multi-team scaleups.",
+    price: "$99",
+    period: "/ month",
+    billingNote: "Billed monthly • Cancel anytime",
+    badgeColor: "text-purple-400",
+    buttonVariant: "purple",
+    buttonText: "Get Enterprise — $99/mo",
+    features: [
+      { text: "Everything in Premium Founder", included: true, isBold: true },
+      { text: "Multi-User Team Access (Up to 10 Seats)", included: true },
+      { text: "Custom White-Label Talent Portal", included: true },
+      { text: "API Access & ATS Syncing", included: true },
+      { text: "Dedicated Account Strategist", included: true },
+      { text: "Custom Legal & Equity Agreements", included: true },
+      { text: "24/7 Priority Support (SLA)", included: true },
+    ],
+  },
+];
+
+// -----------------------------------------------------------------------------
 // FAQ DATA
 // -----------------------------------------------------------------------------
 const FAQ_ITEMS = [
@@ -38,9 +112,9 @@ const FAQ_ITEMS = [
       "We support all major global debit and credit cards, including Visa, Mastercard, American Express, and Discover through secure Stripe payment infrastructure.",
   },
   {
-    question: "How does annual billing discount work?",
+    question: "How does monthly billing work?",
     answer:
-      "When you choose yearly billing, you are billed once annually at a discounted rate, saving you 15% to 20% compared to paying monthly.",
+      "You are billed on a month-to-month basis with complete flexibility. You can pause, upgrade, or cancel your plan whenever your recruitment needs change.",
   },
   {
     question: "Can I upgrade my plan as my team grows?",
@@ -97,8 +171,91 @@ const FEATURE_HIGHLIGHTS = [
   },
 ];
 
+// -----------------------------------------------------------------------------
+// COMPARISON TABLE DATA
+// -----------------------------------------------------------------------------
+const COMPARISON_ROWS = [
+  {
+    feature: "Active Startup Listings",
+    free: "1 Active",
+    premium: "Unlimited",
+    enterprise: "Unlimited",
+  },
+  {
+    feature: "Open Team Roles",
+    free: "Up to 3",
+    premium: "Unlimited",
+    enterprise: "Unlimited",
+  },
+  {
+    feature: "Priority Search Placement",
+    free: "—",
+    premium: "Included",
+    enterprise: "Top Tier",
+  },
+  {
+    feature: "Advanced Candidate Filtering",
+    free: "—",
+    premium: "Included",
+    enterprise: "Included",
+  },
+  {
+    feature: "Recruitment Analytics",
+    free: "Basic",
+    premium: "Full Dashboard",
+    enterprise: "Advanced Custom",
+  },
+  {
+    feature: "Verified Founder Badge",
+    free: "—",
+    premium: "Included",
+    enterprise: "Verified Studio",
+  },
+  {
+    feature: "Team Seats",
+    free: "1 Seat",
+    premium: "1 Seat",
+    enterprise: "Up to 10 Seats",
+  },
+  {
+    feature: "Support Tier",
+    free: "Community",
+    premium: "Priority Email",
+    enterprise: "24/7 SLA + Manager",
+  },
+];
+
+// -----------------------------------------------------------------------------
+// TESTIMONIALS DATA
+// -----------------------------------------------------------------------------
+const TESTIMONIALS = [
+  {
+    quote:
+      "The priority listing placement doubled our inbound candidate flow in 48 hours. We connected with an exceptional Full-Stack Lead who is now our technical co-founder.",
+    author: "Alex Rivera",
+    role: "Founder @ NexusAI",
+    avatar:
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80",
+  },
+  {
+    quote:
+      "Filtering by tech stack and weekly time commitment helped us recruit 3 developers in under a week. StartupForge saved us months of searching on generic job boards.",
+    author: "Sarah Kim",
+    role: "Founder @ EcoGrid",
+    avatar:
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+  },
+  {
+    quote:
+      "The one-click application review board simplified candidate evaluation completely, and the Verified Founder badge added immediate trust to our pitch.",
+    author: "David Miller",
+    role: "Founder @ HealthSphere",
+    avatar:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
+  },
+];
+
 export default function FounderPricingPage() {
-  const [isYearly, setIsYearly] = useState(true);
   const [openFaq, setOpenFaq] = useState(null);
 
   const toggleFaq = (index) => {
@@ -129,257 +286,125 @@ export default function FounderPricingPage() {
             placement, advanced candidate filtering, and scaling recruitment
             tools.
           </p>
-
-          {/* Monthly / Yearly Toggle */}
-          <div className="mt-8 flex justify-center">
-            <div className="flex items-center rounded-full border border-[#1E212B] bg-[#12141D] p-1.5">
-              <button
-                onClick={() => setIsYearly(false)}
-                className={`rounded-full px-5 py-2 text-xs font-bold transition-all ${
-                  !isYearly
-                    ? "bg-indigo-600 text-white shadow-md"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setIsYearly(true)}
-                className={`flex items-center space-x-2 rounded-full px-5 py-2 text-xs font-bold transition-all ${
-                  isYearly
-                    ? "bg-indigo-600 text-white shadow-md"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                <span>Yearly</span>
-                <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
-                  Save 15%
-                </span>
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* =================================------------------------------------
-            2. PRICING CARDS (Free, Premium Founder, Enterprise)
+            2. PRICING CARDS (MAPPED FROM PRICING_PLANS OBJECT)
         ================================------------------------------------- */}
-
         <div className="mx-auto mt-12 grid max-w-7xl gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {/* FREE PLAN */}
-          <div className="flex flex-col justify-between rounded-3xl border border-[#1E212B] bg-[#12141D] p-8 transition-all hover:border-[#2A2E3D]">
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Starter
-                </span>
-              </div>
+          {PRICING_PLANS.map((plan) => {
+            const isPopular = plan.isPopular;
 
-              <h3 className="mt-3 text-2xl font-bold text-white">Free</h3>
-              <p className="mt-1 text-xs text-slate-400">
-                Ideal for early-stage founders launching their first concept.
-              </p>
-
-              <div className="mt-6 flex items-baseline">
-                <span className="text-4xl font-extrabold text-white">$0</span>
-                <span className="ml-2 text-xs text-slate-500">/ month</span>
-              </div>
-              <p className="mt-1 text-[11px] text-slate-500">
-                No credit card required
-              </p>
-
-              <ul className="mt-8 space-y-3 text-xs text-slate-300">
-                <li className="flex items-center">
-                  <Check className="mr-3 h-4 w-4 text-indigo-400" /> 1 Active
-                  Startup Listing
-                </li>
-                <li className="flex items-center">
-                  <Check className="mr-3 h-4 w-4 text-indigo-400" /> Up to 3
-                  Open Team Roles
-                </li>
-                <li className="flex items-center">
-                  <Check className="mr-3 h-4 w-4 text-indigo-400" /> Basic
-                  Candidate Applications
-                </li>
-                <li className="flex items-center">
-                  <Check className="mr-3 h-4 w-4 text-indigo-400" /> Standard
-                  In-App Messaging
-                </li>
-                <li className="flex items-center text-slate-600 line-through">
-                  <X className="mr-3 h-4 w-4 text-slate-600" /> Priority Listing
-                  Placement
-                </li>
-                <li className="flex items-center text-slate-600 line-through">
-                  <X className="mr-3 h-4 w-4 text-slate-600" /> Advanced
-                  Applicant Filtering
-                </li>
-                <li className="flex items-center text-slate-600 line-through">
-                  <X className="mr-3 h-4 w-4 text-slate-600" /> Verified Founder
-                  Badge
-                </li>
-              </ul>
-            </div>
-
-            <Link
-              href="/register?role=founder"
-              className="mt-8 flex w-full items-center justify-center rounded-xl border border-[#232634] bg-[#151722] py-3 text-xs font-bold text-slate-200 transition-colors hover:bg-[#1E2130]"
-            >
-              Get Started Free
-            </Link>
-          </div>
-
-          {/* PREMIUM FOUNDER PLAN (Highlighted Card) */}
-          <div className="relative flex flex-col justify-between rounded-3xl border-2 border-indigo-500 bg-[#12141D] p-8 shadow-2xl shadow-indigo-500/10">
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-indigo-600 px-4 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow">
-              Most Popular
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
-                  Accelerate
-                </span>
-              </div>
-
-              <h3 className="mt-3 text-2xl font-bold text-white">
-                Premium Founder
-              </h3>
-              <p className="mt-1 text-xs text-slate-400">
-                For ambitious founders building dedicated core teams fast.
-              </p>
-
-              <div className="mt-6 flex items-baseline">
-                <span className="text-4xl font-extrabold text-white">
-                  ${isYearly ? "24" : "29"}
-                </span>
-                <span className="ml-2 text-xs text-slate-500">/ month</span>
-              </div>
-              <p className="mt-1 text-[11px] text-slate-500">
-                {isYearly
-                  ? "Billed annually ($288/yr)"
-                  : "Billed monthly • Cancel anytime"}
-              </p>
-
-              <ul className="mt-8 space-y-3 text-xs text-slate-200">
-                <li className="flex items-center font-semibold text-white">
-                  <Check className="mr-3 h-4 w-4 text-indigo-400" /> Everything
-                  in Free
-                </li>
-                <li className="flex items-center">
-                  <Check className="mr-3 h-4 w-4 text-indigo-400" />{" "}
-                  <strong>Unlimited</strong> Startup Posts & Roles
-                </li>
-                <li className="flex items-center">
-                  <Check className="mr-3 h-4 w-4 text-indigo-400" />{" "}
-                  <strong>Priority Listing Placement</strong>
-                </li>
-                <li className="flex items-center">
-                  <Check className="mr-3 h-4 w-4 text-indigo-400" /> Advanced
-                  Applicant Search & Filters
-                </li>
-                <li className="flex items-center">
-                  <Check className="mr-3 h-4 w-4 text-indigo-400" /> Full
-                  Recruitment Dashboard
-                </li>
-                <li className="flex items-center">
-                  <Check className="mr-3 h-4 w-4 text-indigo-400" /> Candidate
-                  Portfolio & Resume Preview
-                </li>
-                <li className="flex items-center">
-                  <Check className="mr-3 h-4 w-4 text-indigo-400" /> One-Click
-                  Accept/Reject Workflow
-                </li>
-                <li className="flex items-center">
-                  <Check className="mr-3 h-4 w-4 text-indigo-400" />{" "}
-                  <strong>Verified Founder Badge</strong>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <form method="POST" action={"/api/payments"}>
-                <Button
-                  type="submit"
-                  className="mt-8 flex w-full items-center justify-center rounded-xl bg-indigo-600 py-3.5 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 transition-all hover:bg-indigo-500"
-                >
-                  Upgrade to Premium — ${isYearly ? "24" : "29"}/mo
-                </Button>
-              </form>
-              <p className="mt-2 text-center text-[10px] text-slate-500">
-                🔒 Secure Stripe checkout | Cancel anytime
-              </p>
-            </div>
-          </div>
-
-          {/* ENTERPRISE / SCALE PLAN */}
-          <div className="flex flex-col justify-between rounded-3xl border border-[#1E212B] bg-[#12141D] p-8 transition-all hover:border-[#2A2E3D]">
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-purple-400">
-                  Scale & Studio
-                </span>
-              </div>
-
-              <h3 className="mt-3 text-2xl font-bold text-white">Enterprise</h3>
-              <p className="mt-1 text-xs text-slate-400">
-                For venture studios, incubators, and multi-team scaleups.
-              </p>
-
-              <div className="mt-6 flex items-baseline">
-                <span className="text-4xl font-extrabold text-white">
-                  ${isYearly ? "79" : "99"}
-                </span>
-                <span className="ml-2 text-xs text-slate-500">/ month</span>
-              </div>
-              <p className="mt-1 text-[11px] text-slate-500">
-                {isYearly
-                  ? "Billed annually ($948/yr)"
-                  : "Billed monthly • Cancel anytime"}
-              </p>
-
-              <ul className="mt-8 space-y-3 text-xs text-slate-300">
-                <li className="flex items-center font-semibold text-white">
-                  <Check className="mr-3 h-4 w-4 text-purple-400" /> Everything
-                  in Premium Founder
-                </li>
-                <li className="flex items-center">
-                  <Check className="mr-3 h-4 w-4 text-purple-400" /> Multi-User
-                  Team Access (Up to 10 Seats)
-                </li>
-                <li className="flex items-center">
-                  <Check className="mr-3 h-4 w-4 text-purple-400" /> Custom
-                  White-Label Talent Portal
-                </li>
-                <li className="flex items-center">
-                  <Check className="mr-3 h-4 w-4 text-purple-400" /> API Access
-                  & ATS Syncing
-                </li>
-                <li className="flex items-center">
-                  <Check className="mr-3 h-4 w-4 text-purple-400" /> Dedicated
-                  Account Strategist
-                </li>
-                <li className="flex items-center">
-                  <Check className="mr-3 h-4 w-4 text-purple-400" /> Custom
-                  Legal & Equity Agreements
-                </li>
-                <li className="flex items-center">
-                  <Check className="mr-3 h-4 w-4 text-purple-400" /> 24/7
-                  Priority Support (SLA)
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <Link
-                href="/register?role=founder&plan=enterprise"
-                className="mt-8 flex w-full items-center justify-center rounded-xl bg-purple-600 py-3.5 text-xs font-bold text-white shadow-lg shadow-purple-600/30 transition-all hover:bg-purple-500"
+            return (
+              <div
+                key={plan.plan_id}
+                className={`relative flex flex-col justify-between rounded-3xl bg-[#12141D] p-8 transition-all ${
+                  isPopular
+                    ? "border-2 border-indigo-500 shadow-2xl shadow-indigo-500/10"
+                    : "border border-[#1E212B] hover:border-[#2A2E3D]"
+                }`}
               >
-                Get Enterprise — ${isYearly ? "79" : "99"}/mo
-              </Link>
-              <p className="mt-2 text-center text-[10px] text-slate-500">
-                🔒 Instant account activation | Cancel anytime
-              </p>
-            </div>
-          </div>
+                {isPopular && plan.popularTag && (
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-indigo-600 px-4 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow">
+                    {plan.popularTag}
+                  </div>
+                )}
+
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={`text-xs font-bold uppercase tracking-wider ${plan.badgeColor}`}
+                    >
+                      {plan.tagline}
+                    </span>
+                  </div>
+
+                  <h3 className="mt-3 text-2xl font-bold text-white">
+                    {plan.name}
+                  </h3>
+                  <p className="mt-1 text-xs text-slate-400">
+                    {plan.description}
+                  </p>
+
+                  <div className="mt-6 flex items-baseline">
+                    <span className="text-4xl font-extrabold text-white">
+                      {plan.price}
+                    </span>
+                    <span className="ml-2 text-xs text-slate-500">
+                      {plan.period}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[11px] text-slate-500">
+                    {plan.billingNote}
+                  </p>
+
+                  <ul className="mt-8 space-y-3 text-xs text-slate-300">
+                    {plan.features.map((feature, fIdx) => (
+                      <li
+                        key={`${plan.plan_id}-feat-${fIdx}`}
+                        className={`flex items-center ${
+                          !feature.included
+                            ? "text-slate-600 line-through"
+                            : feature.isBold
+                              ? "font-semibold text-white"
+                              : ""
+                        }`}
+                      >
+                        {feature.included ? (
+                          <Check
+                            className={`mr-3 h-4 w-4 ${
+                              plan.buttonVariant === "purple"
+                                ? "text-purple-400"
+                                : "text-indigo-400"
+                            }`}
+                          />
+                        ) : (
+                          <X className="mr-3 h-4 w-4 text-slate-600" />
+                        )}
+                        <span>{feature.text}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div>
+                  {/* REDIRECT FREE PLAN TO SIGNUP, POST PAID PLANS TO STRIPE */}
+                  {plan.href ? (
+                    <Link
+                      href={plan.href}
+                      className="mt-8 flex w-full items-center justify-center rounded-xl border border-[#232634] bg-[#151722] py-3.5 text-xs font-bold text-slate-200 transition-colors hover:bg-[#1E2130]"
+                    >
+                      {plan.buttonText}
+                    </Link>
+                  ) : (
+                    <form method="POST" action="/api/subscription">
+                      <input
+                        type="hidden"
+                        name="plan_id"
+                        value={plan.plan_id}
+                      />
+                      <Button
+                        type="submit"
+                        className={`mt-8 flex w-full items-center justify-center rounded-xl py-3.5 text-xs font-bold transition-all ${
+                          plan.buttonVariant === "purple"
+                            ? "bg-purple-600 text-white shadow-lg shadow-purple-600/30 hover:bg-purple-500"
+                            : "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500"
+                        }`}
+                      >
+                        {plan.buttonText}
+                      </Button>
+                    </form>
+                  )}
+
+                  <p className="mt-2 text-center text-[10px] text-slate-500">
+                    {plan.price === "$0"
+                      ? "Instant access • No credit card required"
+                      : "🔒 Secure Stripe checkout | Cancel anytime"}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* =================================------------------------------------
@@ -452,56 +477,7 @@ export default function FounderPricingPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#1E212B]">
-                {[
-                  {
-                    feature: "Active Startup Listings",
-                    free: "1 Active",
-                    premium: "Unlimited",
-                    enterprise: "Unlimited",
-                  },
-                  {
-                    feature: "Open Team Roles",
-                    free: "Up to 3",
-                    premium: "Unlimited",
-                    enterprise: "Unlimited",
-                  },
-                  {
-                    feature: "Priority Search Placement",
-                    free: "—",
-                    premium: "Included",
-                    enterprise: "Top Tier",
-                  },
-                  {
-                    feature: "Advanced Candidate Filtering",
-                    free: "—",
-                    premium: "Included",
-                    enterprise: "Included",
-                  },
-                  {
-                    feature: "Recruitment Analytics",
-                    free: "Basic",
-                    premium: "Full Dashboard",
-                    enterprise: "Advanced Custom",
-                  },
-                  {
-                    feature: "Verified Founder Badge",
-                    free: "—",
-                    premium: "Included",
-                    enterprise: "Verified Studio",
-                  },
-                  {
-                    feature: "Team Seats",
-                    free: "1 Seat",
-                    premium: "1 Seat",
-                    enterprise: "Up to 10 Seats",
-                  },
-                  {
-                    feature: "Support Tier",
-                    free: "Community",
-                    premium: "Priority Email",
-                    enterprise: "24/7 SLA + Manager",
-                  },
-                ].map((row, i) => (
+                {COMPARISON_ROWS.map((row, i) => (
                   <tr key={i} className="hover:bg-[#151722]">
                     <td className="px-6 py-4 font-semibold text-white">
                       {row.feature}
@@ -536,32 +512,7 @@ export default function FounderPricingPage() {
           </div>
 
           <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {[
-              {
-                quote:
-                  "The priority listing placement doubled our inbound candidate flow in 48 hours. We connected with an exceptional Full-Stack Lead who is now our technical co-founder.",
-                author: "Alex Rivera",
-                role: "Founder @ NexusAI",
-                avatar:
-                  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80",
-              },
-              {
-                quote:
-                  "Filtering by tech stack and weekly time commitment helped us recruit 3 developers in under a week. StartupForge saved us months of searching on generic job boards.",
-                author: "Sarah Kim",
-                role: "Founder @ EcoGrid",
-                avatar:
-                  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
-              },
-              {
-                quote:
-                  "The one-click application review board simplified candidate evaluation completely, and the Verified Founder badge added immediate trust to our pitch.",
-                author: "David Miller",
-                role: "Founder @ HealthSphere",
-                avatar:
-                  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
-              },
-            ].map((t, i) => (
+            {TESTIMONIALS.map((t, i) => (
               <div
                 key={i}
                 className="flex flex-col justify-between rounded-2xl border border-[#1E212B] bg-[#12141D] p-6"
@@ -644,7 +595,7 @@ export default function FounderPricingPage() {
             7. BOTTOM CTA BANNER
         ================================------------------------------------- */}
         <div className="mt-28">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-900 via-indigo-950 to-[#0F111A] p-10 text-center shadow-2xl border border-indigo-500/20 md:p-16">
+          <div className="relative overflow-hidden rounded-3xl border border-indigo-500/20 bg-gradient-to-br from-indigo-900 via-indigo-950 to-[#0F111A] p-10 text-center shadow-2xl md:p-16">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/20 text-indigo-400">
               <Crown className="h-6 w-6" />
             </div>
@@ -658,12 +609,20 @@ export default function FounderPricingPage() {
             </p>
 
             <div className="mt-8 flex flex-wrap justify-center gap-4">
-              <Link
-                href="/register?role=founder&plan=premium"
-                className="rounded-xl bg-white px-8 py-3.5 text-xs font-bold text-indigo-950 shadow-lg transition-transform hover:scale-105"
-              >
-                Upgrade to Premium — ${isYearly ? "24" : "29"}/mo
-              </Link>
+              <form method="POST" action="/api/subscription">
+                <input
+                  type="hidden"
+                  name="plan_id"
+                  value="plan_premium_founder_02"
+                />
+                <button
+                  type="submit"
+                  className="rounded-xl bg-white px-8 py-3.5 text-xs font-bold text-indigo-950 shadow-lg transition-transform hover:scale-105"
+                >
+                  Upgrade to Premium — $29/mo
+                </button>
+              </form>
+
               <Link
                 href="/register?role=founder"
                 className="rounded-xl border border-indigo-400/30 bg-indigo-950/50 px-8 py-3.5 text-xs font-bold text-indigo-200 transition-colors hover:bg-indigo-900/50"
