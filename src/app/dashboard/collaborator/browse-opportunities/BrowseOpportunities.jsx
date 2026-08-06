@@ -189,6 +189,7 @@ export default function BrowseOpportunities({
   const [selected, setSelected] = useState(null);
   const [applyModal, setApplyModal] = useState(null);
   const [showIncompleteModal, setShowIncompleteModal] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
 
   const [form, setForm] = useState({
     email: fullUser?.email || "",
@@ -203,7 +204,7 @@ export default function BrowseOpportunities({
   }, [fullUser, form.email]);
 
   // =========================================================================
-  // PROFILE COMPLETION CALCULATOR
+  // 1. PROFILE COMPLETION CALCULATOR
   // =========================================================================
   const getProfileCompletion = (userData) => {
     if (!userData) return { percentage: 0, isComplete: false };
@@ -226,23 +227,49 @@ export default function BrowseOpportunities({
   const { percentage: completionPercentage, isComplete: isProfileComplete } =
     getProfileCompletion(fullUser);
 
+  // =========================================================================
+  // 2. COLLABORATOR PLAN APPLICATION QUOTA CALCULATOR
+  // =========================================================================
+  const planInfo = useMemo(() => {
+    const activePlanKey = String(
+      fullUser?.plan || fullUser?.plan_id || "collaborator_free",
+    ).toLowerCase();
+
+    if (activePlanKey.includes("enterprise")) {
+      return { name: "Enterprise", limit: 100 };
+    }
+    if (activePlanKey.includes("premium")) {
+      return { name: "Premium Collaborator", limit: 10 };
+    }
+    return { name: "Free", limit: 3 };
+  }, [fullUser]);
+
+  const appliedCount = submitted.length;
+  const isApplicationLimitReached = appliedCount >= planInfo.limit;
+
+  // =========================================================================
+  // 3. APPLICATION GATEKEEPER (PROFILE 100% CHECK + PLAN LIMIT CHECK)
+  // =========================================================================
   const handleInitiateApply = (opportunity) => {
     if (!isProfileComplete) {
       setShowIncompleteModal(true);
+      return;
+    }
+    if (isApplicationLimitReached) {
+      setShowLimitModal(true);
       return;
     }
     setApplyModal(opportunity);
   };
 
   // =========================================================================
-  // BOOKMARK TOGGLE HANDLER (SAVING FULL OPPORTUNITY METADATA TO DB)
+  // BOOKMARK TOGGLE HANDLER
   // =========================================================================
   const toggleBookmark = async (id) => {
     if (!id || !activeUserId) return;
     const targetId = String(id);
     const isBookmarked = bookmarks.includes(targetId);
 
-    // Optimistic UI update
     setBookmarks((prev) =>
       isBookmarked ? prev.filter((b) => b !== targetId) : [...prev, targetId],
     );
@@ -251,13 +278,13 @@ export default function BrowseOpportunities({
       if (isBookmarked) {
         await deleteBookmark(targetId, activeUserId);
       } else {
-        // Find opportunity object from state
         const targetOpp = opportunities.find(
           (o) => String(o._id || o.id) === targetId,
         );
 
         await createBookmark({
           opportunityId: targetId,
+          startupId: String(targetOpp?.startupId || ""),
           userId: String(activeUserId),
           roleTitle: targetOpp?.roleTitle || "Collaborator Role",
           startupName: targetOpp?.startupName || "Startup",
@@ -269,7 +296,6 @@ export default function BrowseOpportunities({
       }
     } catch (err) {
       console.error("Failed to toggle bookmark:", err);
-      // Revert state on failure
       setBookmarks((prev) =>
         isBookmarked ? [...prev, targetId] : prev.filter((b) => b !== targetId),
       );
@@ -307,6 +333,7 @@ export default function BrowseOpportunities({
     if (!form.email || !form.motivation || !applyModal) return;
 
     const targetOpportunityId = String(applyModal._id || applyModal.id);
+    const targetStartupId = String(applyModal.startupId || "");
     setIsSubmitting(true);
 
     try {
@@ -315,6 +342,7 @@ export default function BrowseOpportunities({
         portfolioLink: form.portfolio,
         motivationMessage: form.motivation,
         opportunityId: targetOpportunityId,
+        startupId: targetStartupId,
         opportunityTitle:
           applyModal.roleTitle || applyModal.title || "Collaborator Role",
         startupName: applyModal.startupName || "Startup",
@@ -662,6 +690,61 @@ export default function BrowseOpportunities({
         </Modal>
       )}
 
+      {/* Application Quota Limit Reached Modal */}
+      {showLimitModal && (
+        <Modal
+          title="Application Limit Reached"
+          onClose={() => setShowLimitModal(false)}
+        >
+          <div className="space-y-4 text-center py-2">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center text-2xl mx-auto font-bold">
+              🔒
+            </div>
+
+            <div>
+              <h3 className="text-lg font-bold text-slate-100">
+                Monthly Application Limit Reached
+              </h3>
+              <p className="text-xs text-slate-400 mt-1.5 max-w-sm mx-auto leading-relaxed">
+                You have submitted{" "}
+                <span className="text-amber-500 font-bold font-mono">
+                  {appliedCount} / {planInfo.limit}
+                </span>{" "}
+                applications this month on your{" "}
+                <span className="text-slate-200 font-semibold">
+                  {planInfo.name}
+                </span>{" "}
+                plan. Upgrade your membership to unlock more applications.
+              </p>
+            </div>
+
+            {/* Quota Progress Line */}
+            <div className="w-full bg-slate-900 border border-slate-800 rounded-full h-2 overflow-hidden my-3">
+              <div className="bg-red-500 h-full rounded-full w-full" />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <Btn
+                fullWidth
+                onClick={() => {
+                  setShowLimitModal(false);
+                  router.push("/dashboard/collaborator/premium");
+                }}
+              >
+                ⚡ Upgrade Plan →
+              </Btn>
+              <Btn
+                variant="ghost"
+                fullWidth
+                onClick={() => setShowLimitModal(false)}
+              >
+                Cancel
+              </Btn>
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {/* Apply Modal */}
       {applyModal && (
         <Modal
@@ -673,6 +756,13 @@ export default function BrowseOpportunities({
               <Label>Opportunity ID</Label>
               <Input value={applyModal._id || applyModal.id} disabled />
             </div>
+
+            {applyModal.startupId && (
+              <div>
+                <Label>Startup ID</Label>
+                <Input value={applyModal.startupId} disabled />
+              </div>
+            )}
 
             <div>
               <Label>Your Email</Label>

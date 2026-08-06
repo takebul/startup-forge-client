@@ -12,6 +12,16 @@ import {
 import { subscription } from "@/lib/actions/subscriptions";
 import { getUserSession } from "@/lib/core/session";
 
+// Friendly plan display name lookup
+const PLAN_NAME_MAP = {
+  collaborator_free: "Collaborator Free",
+  collaborator_premium: "Premium Collaborator",
+  collaborator_enterprise: "Collaborator Enterprise",
+  founder_free: "Founder Free",
+  founder_premium: "Founder Premium",
+  founder_enterprise: "Founder Enterprise",
+};
+
 export default async function SuccessSubscriptionPage({ searchParams }) {
   const { session_id } = await searchParams;
 
@@ -33,7 +43,8 @@ export default async function SuccessSubscriptionPage({ searchParams }) {
     metadata,
     payment_status,
   } = payment_session;
-  const customerEmail = customer_details?.email;
+
+  const customerEmail = customer_details?.email || user?.email;
 
   if (status === "open") {
     return redirect("/");
@@ -42,15 +53,26 @@ export default async function SuccessSubscriptionPage({ searchParams }) {
   if (status === "complete") {
     const subsInfo = {
       email: user?.email,
-      planId: metadata.planId,
+      planId: metadata?.planId,
       payment_status: payment_status,
       amount: amount_total,
       session_id: session_id,
       userId: user?.id,
     };
-    const payment_result = await subscription({ subsInfo, user });
 
-    console.log(payment_result);
+    const payment_result = await subscription({ subsInfo, user });
+    console.log("Subscription Process Result:", payment_result);
+
+    // Identify if the upgrade belongs to a Collaborator or Founder
+    const rawPlanId = String(
+      metadata?.planId || user?.plan || "",
+    ).toLowerCase();
+    const isCollaborator =
+      rawPlanId.includes("collaborator") || user?.role === "collaborator";
+
+    const planDisplayName =
+      PLAN_NAME_MAP[rawPlanId] ||
+      (isCollaborator ? "Premium Collaborator" : "Founder Premium");
 
     // Format amount paid
     const amountFormatted = amount_total
@@ -58,7 +80,7 @@ export default async function SuccessSubscriptionPage({ searchParams }) {
           style: "currency",
           currency: currency ? currency.toUpperCase() : "USD",
         }).format(amount_total / 100)
-      : "$24.00";
+      : "$19.00";
 
     return (
       <div className="min-h-screen bg-[#0A0C10] font-sans text-slate-300 transition-colors duration-200 flex items-center justify-center p-6">
@@ -81,12 +103,15 @@ export default async function SuccessSubscriptionPage({ searchParams }) {
               </span>
 
               <h1 className="mt-4 text-3xl font-black text-white sm:text-4xl">
-                Welcome to StartupForge Premium!
+                {isCollaborator
+                  ? "Welcome to Premium Collaborator!"
+                  : "Welcome to StartupForge Premium!"}
               </h1>
-              <p className="mt-2 text-sm text-slate-400">
-                Your founder account has been upgraded. You now have full access
-                to unlimited postings, priority search placement, and candidate
-                filtering.
+
+              <p className="mt-2 text-sm text-slate-400 leading-relaxed max-w-md mx-auto">
+                {isCollaborator
+                  ? "Your collaborator account has been upgraded! You now enjoy an expanded monthly application quota, priority placement in founder candidate review boards, and verified profile status."
+                  : "Your founder account has been upgraded. You now have full access to expanded role postings, priority search placement, and candidate filtering."}
               </p>
             </div>
 
@@ -106,7 +131,7 @@ export default async function SuccessSubscriptionPage({ searchParams }) {
                 <div className="flex justify-between">
                   <span className="text-slate-500">Plan:</span>
                   <span className="font-semibold text-white">
-                    Founder Premium
+                    {planDisplayName}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -149,28 +174,49 @@ export default async function SuccessSubscriptionPage({ searchParams }) {
               </p>
             </div>
 
-            {/* Next Steps CTA Actions */}
+            {/* Dynamic Next Steps CTA Actions */}
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Link
-                href="/dashboard"
-                className="flex flex-1 items-center justify-center space-x-2 rounded-xl bg-indigo-600 py-3.5 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 transition-all hover:bg-indigo-500"
-              >
-                <span>Go to Founder Dashboard</span>
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/founder/post-role"
-                className="flex flex-1 items-center justify-center space-x-2 rounded-xl border border-[#232634] bg-[#151722] py-3.5 text-xs font-bold text-slate-200 transition-colors hover:bg-[#1E2130]"
-              >
-                <span>+ Post Open Role</span>
-              </Link>
+              {isCollaborator ? (
+                <>
+                  <Link
+                    href="/dashboard/collaborator"
+                    className="flex flex-1 items-center justify-center space-x-2 rounded-xl bg-indigo-600 py-3.5 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 transition-all hover:bg-indigo-500"
+                  >
+                    <span>Go to Collaborator Dashboard</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <Link
+                    href="/dashboard/collaborator/browse-opportunities"
+                    className="flex flex-1 items-center justify-center space-x-2 rounded-xl border border-[#232634] bg-[#151722] py-3.5 text-xs font-bold text-slate-200 transition-colors hover:bg-[#1E2130]"
+                  >
+                    <span>Browse Opportunities</span>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/dashboard/founder"
+                    className="flex flex-1 items-center justify-center space-x-2 rounded-xl bg-indigo-600 py-3.5 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 transition-all hover:bg-indigo-500"
+                  >
+                    <span>Go to Founder Dashboard</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <Link
+                    href="/dashboard/founder/add-opportunity"
+                    className="flex flex-1 items-center justify-center space-x-2 rounded-xl border border-[#232634] bg-[#151722] py-3.5 text-xs font-bold text-slate-200 transition-colors hover:bg-[#1E2130]"
+                  >
+                    <span>+ Post Open Role</span>
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Bottom Security Footer */}
             <div className="mt-6 flex items-center justify-center space-x-1.5 text-[11px] text-slate-500">
               <ShieldCheck className="h-3.5 w-3.5 text-slate-400" />
               <span>
-                Encrypted Stripe Checkout • Verified Founder Status Activated
+                Encrypted Stripe Checkout • Verified{" "}
+                {isCollaborator ? "Collaborator" : "Founder"} Status Activated
               </span>
             </div>
           </div>
