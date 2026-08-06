@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { BadgeCheck, Sparkles } from "lucide-react";
 import {
   Btn,
   Input,
@@ -18,6 +20,13 @@ export default function ProfilePageWrapper({ initialUser }) {
   const { data: session } = authClient.useSession();
   const user = initialUser || session?.user;
   const activeUserId = user?.id || user?._id;
+
+  // Check if user has an upgraded plan (Premium or Enterprise)
+  const planKey = String(user?.plan || user?.plan_id || "").toLowerCase();
+  const isUpgraded =
+    planKey.includes("premium") ||
+    planKey.includes("enterprise") ||
+    (planKey !== "" && !planKey.includes("free"));
 
   // Initialize profile state (Handles empty skills and bio gracefully)
   const [profile, setProfile] = useState({
@@ -107,19 +116,16 @@ export default function ProfilePageWrapper({ initialUser }) {
     setError(null);
 
     try {
-      // 1. Update Database if activeUserId is available
       if (activeUserId) {
         const result = await updateUserProfile(activeUserId, editForm);
         if (result?.error) throw new Error(result.error);
       }
 
-      // 2. Update Local State & Close Modal
       setProfile(editForm);
       setIsModalOpen(false);
       setSaved(true);
       setTimeout(() => setSaved(false), 3500);
 
-      // Refresh Server Cache so navbar avatar updates
       router.refresh();
     } catch (err) {
       console.error("Failed to save profile:", err);
@@ -221,16 +227,48 @@ export default function ProfilePageWrapper({ initialUser }) {
       <div className="rounded-2xl p-6 bg-[#0D1528] border border-slate-800 space-y-6">
         <div className="flex items-start justify-between gap-4 pb-6 border-b border-slate-800">
           <div className="flex items-center gap-4">
-            <img
-              src={profile.image}
-              alt={profile.name}
-              className="w-20 h-20 rounded-full object-cover ring-2 ring-amber-500/30 bg-[#060C1A]"
-            />
+            <div className="relative">
+              <img
+                src={profile.image}
+                alt={profile.name}
+                className="w-20 h-20 rounded-full object-cover ring-2 ring-amber-500/30 bg-[#060C1A]"
+              />
+              {isUpgraded && (
+                <div
+                  className="absolute -bottom-1 -right-1 bg-amber-500 text-slate-950 p-1 rounded-full ring-2 ring-[#0D1528]"
+                  title="Verified Collaborator"
+                >
+                  <BadgeCheck className="w-4 h-4 fill-amber-500 text-slate-950" />
+                </div>
+              )}
+            </div>
+
             <div>
-              <h3 className="text-lg font-bold text-slate-100">
-                {profile.name}
-              </h3>
-              <p className="text-xs font-mono text-slate-500 mt-0.5 capitalize">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-lg font-bold text-slate-100">
+                  {profile.name}
+                </h3>
+
+                {/* VERIFIED BADGE OR UPGRADE LINK */}
+                {isUpgraded ? (
+                  <span
+                    className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full"
+                    title="Verified Collaborator Account"
+                  >
+                    <BadgeCheck className="h-3.5 w-3.5 text-amber-400 fill-amber-500/20" />
+                    <span>VERIFIED</span>
+                  </span>
+                ) : (
+                  <Link href="/dashboard/collaborator/premium">
+                    <span className="text-[10px] font-mono text-slate-400 bg-white/5 hover:bg-white/10 border border-slate-800 px-2.5 py-0.5 rounded-full transition-colors inline-flex items-center gap-1 cursor-pointer">
+                      <Sparkles className="h-3 w-3 text-amber-500" />
+                      <span>Get Verified Badge</span>
+                    </span>
+                  </Link>
+                )}
+              </div>
+
+              <p className="text-xs font-mono text-slate-500 mt-1 capitalize">
                 {user?.role || "Collaborator"} Account
               </p>
               {user?.email && (
