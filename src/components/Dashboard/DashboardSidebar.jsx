@@ -42,7 +42,7 @@ const DashboardSidebar = () => {
   const MAIN_MENU = {
     founder: [
       {
-        label: "Dashboard",
+        label: "Overview",
         href: "/dashboard/founder",
         icon: LayoutDashboard,
       },
@@ -69,7 +69,7 @@ const DashboardSidebar = () => {
     ],
     collaborator: [
       {
-        label: "Dashboard",
+        label: "Overview",
         href: "/dashboard/collaborator",
         icon: LayoutDashboard,
       },
@@ -102,7 +102,7 @@ const DashboardSidebar = () => {
     ],
     admin: [
       {
-        label: "Dashboard",
+        label: "Overview",
         href: "/dashboard/admin",
         icon: LayoutDashboard,
       },
@@ -120,12 +120,6 @@ const DashboardSidebar = () => {
         label: "Transactions",
         href: "/dashboard/admin/transactions",
         icon: CreditCard,
-      },
-      {
-        label: "Reports",
-        href: "/dashboard/admin/reports",
-        icon: BarChart3,
-        badge: 3,
       },
     ],
   };
