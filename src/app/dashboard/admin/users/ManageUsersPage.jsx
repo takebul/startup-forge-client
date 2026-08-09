@@ -331,7 +331,7 @@ export default function ManageUsersPage({ ALL_USERS = [], currentUser }) {
                               onClick={() => toggleUserStatus(u)}
                             >
                               {isProcessing
-                                ? "Saving..."
+                                ? "Processing..."
                                 : isBlocked
                                   ? "Unblock"
                                   : "Block"}
