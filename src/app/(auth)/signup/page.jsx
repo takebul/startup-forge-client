@@ -222,6 +222,7 @@ export default function SignupPage() {
       image: form.imageUrl || undefined,
       role: form.role,
       plan: plan,
+      status: "active",
     });
 
     console.log({ data, error });
