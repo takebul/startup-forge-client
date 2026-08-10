@@ -10,8 +10,15 @@ import {
   Info,
   Crown,
   Users,
+  Settings,
+  Sparkles,
+  LogOut,
+  Home,
+  Building2,
+  Briefcase,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 // Helper to format planId into readable plan title
 function formatPlanTitle(planId) {
@@ -59,9 +66,16 @@ export default function DashboardNavbar({
   const user = initialUser || session?.user;
   const role = user?.role || "collaborator";
 
-  const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
+
+  // Notification Popover State
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [readIds, setReadIds] = useState([]);
-  const popoverRef = useRef(null);
+  const notifRef = useRef(null);
+
+  // Avatar Dropdown Popover State
+  const [isAvatarOpen, setIsAvatarOpen] = useState(false);
+  const avatarRef = useRef(null);
 
   // Safely parse all datasets
   const parsedSubscriptions = useMemo(
@@ -87,9 +101,7 @@ export default function DashboardNavbar({
   const dynamicNotifications = useMemo(() => {
     const list = [];
 
-    // -----------------------------------------------------------------------
     // 1. FOUNDER NOTIFICATIONS
-    // -----------------------------------------------------------------------
     if (role === "founder") {
       const combinedFounderStartups =
         parsedFounderStartups.length > 0
@@ -128,9 +140,7 @@ export default function DashboardNavbar({
       });
     }
 
-    // -----------------------------------------------------------------------
     // 2. COLLABORATOR NOTIFICATIONS
-    // -----------------------------------------------------------------------
     if (role === "collaborator") {
       parsedApplications.forEach((app) => {
         if (app.status === "Accepted") {
@@ -147,9 +157,7 @@ export default function DashboardNavbar({
       });
     }
 
-    // -----------------------------------------------------------------------
     // 3. ADMIN NOTIFICATIONS
-    // -----------------------------------------------------------------------
     if (role === "admin") {
       parsedStartups.forEach((s) => {
         const isPending = s.status === "Pending" || s.status === false;
@@ -207,10 +215,14 @@ export default function DashboardNavbar({
     return dynamicNotifications.filter((n) => !readIds.includes(n.id)).length;
   }, [dynamicNotifications, readIds]);
 
+  // Outside Click Listener for both Notifications & Avatar Menu
   useEffect(() => {
     function handleClickOutside(event) {
-      if (popoverRef.current && !popoverRef.current.contains(event.target)) {
-        setIsOpen(false);
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setIsNotifOpen(false);
+      }
+      if (avatarRef.current && !avatarRef.current.contains(event.target)) {
+        setIsAvatarOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -219,6 +231,20 @@ export default function DashboardNavbar({
 
   const handleMarkAllRead = () => {
     setReadIds(dynamicNotifications.map((n) => n.id));
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            router.push("/signin");
+          },
+        },
+      });
+    } catch (err) {
+      console.error("Failed to sign out:", err);
+    }
   };
 
   const renderNotificationIcon = (type) => {
@@ -257,10 +283,15 @@ export default function DashboardNavbar({
       </div>
 
       <div className="flex items-center space-x-3">
-        {/* Notification Bell */}
-        <div ref={popoverRef} className="relative">
+        {/* ========================================================================= */}
+        {/* NOTIFICATION BELL WITH POPOVER                                            */}
+        {/* ========================================================================= */}
+        <div ref={notifRef} className="relative">
           <button
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={() => {
+              setIsNotifOpen(!isNotifOpen);
+              setIsAvatarOpen(false);
+            }}
             className="relative flex h-9 items-center justify-center space-x-2 rounded-xl bg-white/5 px-3.5 text-xs font-semibold text-slate-300 border border-slate-800 hover:bg-white/10 transition-colors cursor-pointer"
             title="Notifications"
           >
@@ -273,7 +304,7 @@ export default function DashboardNavbar({
           </button>
 
           {/* Notification Menu */}
-          {isOpen && (
+          {isNotifOpen && (
             <div className="absolute right-0 mt-3 w-80 sm:w-96 rounded-2xl bg-[#0D1528] border border-slate-800 shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
               <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800/80 bg-[#060C1A]">
                 <div className="flex items-center space-x-2">
@@ -345,7 +376,7 @@ export default function DashboardNavbar({
           )}
         </div>
 
-        {/* Dynamic Action Button (Admin / Founder / Collaborator) */}
+        {/* Dynamic Action Button */}
         {role === "admin" ? (
           <Link
             href="/dashboard/admin/users"
@@ -372,15 +403,128 @@ export default function DashboardNavbar({
           </Link>
         )}
 
-        {/* User Avatar */}
-        <img
-          src={
-            user?.image ||
-            "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80"
-          }
-          alt={user?.name || "User"}
-          className="h-9 w-9 rounded-full object-cover ring-2 ring-amber-500/30"
-        />
+        {/* ========================================================================= */}
+        {/* USER AVATAR WITH DROPDOWN MENU                                           */}
+        {/* ========================================================================= */}
+        <div ref={avatarRef} className="relative">
+          <button
+            onClick={() => {
+              setIsAvatarOpen(!isAvatarOpen);
+              setIsNotifOpen(false);
+            }}
+            className="flex items-center gap-1.5 rounded-full p-0.5 ring-2 ring-amber-500/30 hover:ring-amber-500/60 transition-all cursor-pointer outline-none"
+            title="User Profile Menu"
+          >
+            <img
+              src={
+                user?.image ||
+                "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80"
+              }
+              alt={user?.name || "User"}
+              className="h-9 w-9 rounded-full object-cover"
+            />
+          </button>
+
+          {/* AVATAR DROPDOWN MENU */}
+          {isAvatarOpen && (
+            <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-[#0D1528] border border-slate-800 p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+              {/* Account Summary Header */}
+              <div className="px-3 py-2.5 mb-1 rounded-xl bg-[#060C1A] border border-slate-800/80">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-bold text-slate-100 truncate">
+                    {user?.name || "User Account"}
+                  </p>
+                  <span
+                    className={`px-2 py-0.5 text-[10px] font-mono font-bold rounded-full uppercase shrink-0 ${
+                      role === "admin"
+                        ? "text-purple-400 bg-purple-500/10 border border-purple-500/20"
+                        : role === "founder"
+                          ? "text-amber-400 bg-amber-500/10 border border-amber-500/20"
+                          : "text-indigo-400 bg-indigo-500/10 border border-indigo-500/20"
+                    }`}
+                  >
+                    {role}
+                  </span>
+                </div>
+                <p className="text-[11px] font-mono text-slate-400 truncate mt-0.5">
+                  {user?.email || "user@example.com"}
+                </p>
+              </div>
+
+              <div className="h-px bg-slate-800/80 my-1" />
+
+              {/* Navigation Links */}
+              <Link
+                href="/"
+                onClick={() => setIsAvatarOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-300 rounded-xl hover:bg-white/5 transition-colors"
+              >
+                <Home className="h-4 w-4 text-slate-400 shrink-0" />
+                <span>Home</span>
+              </Link>
+
+              <Link
+                href="/startups"
+                onClick={() => setIsAvatarOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-300 rounded-xl hover:bg-white/5 transition-colors"
+              >
+                <Building2 className="h-4 w-4 text-slate-400 shrink-0" />
+                <span>Browse Startups</span>
+              </Link>
+
+              <Link
+                href="/opportunities"
+                onClick={() => setIsAvatarOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-300 rounded-xl hover:bg-white/5 transition-colors"
+              >
+                <Briefcase className="h-4 w-4 text-slate-400 shrink-0" />
+                <span>Browse Opportunities</span>
+              </Link>
+
+              <div className="h-px bg-slate-800/80 my-1" />
+
+              {/* Profile Settings Link */}
+              <Link
+                href="/profile"
+                onClick={() => setIsAvatarOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-300 rounded-xl hover:bg-white/5 transition-colors"
+              >
+                <Settings className="h-4 w-4 text-slate-400 shrink-0" />
+                <span>Profile Settings</span>
+              </Link>
+
+              {/* Upgrade Plan Link (Founders & Collaborators) */}
+              {role !== "admin" && (
+                <Link
+                  href={
+                    role === "founder"
+                      ? "/dashboard/founder/premium"
+                      : "/dashboard/collaborator/premium"
+                  }
+                  onClick={() => setIsAvatarOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-300 rounded-xl hover:bg-white/5 transition-colors"
+                >
+                  <Sparkles className="h-4 w-4 text-amber-400 shrink-0" />
+                  <span>Upgrade Plan</span>
+                </Link>
+              )}
+
+              <div className="h-px bg-slate-800/80 my-1" />
+
+              {/* Sign Out Action */}
+              <button
+                onClick={() => {
+                  setIsAvatarOpen(false);
+                  handleSignOut();
+                }}
+                className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-red-400 rounded-xl hover:bg-red-500/10 transition-colors w-full text-left cursor-pointer"
+              >
+                <LogOut className="h-4 w-4 text-red-400 shrink-0" />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
