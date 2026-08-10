@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   Users,
   Building2,
@@ -8,6 +8,7 @@ import {
   DollarSign,
   TrendingUp,
   Crown,
+  Calendar,
 } from "lucide-react";
 import {
   BarChart,
@@ -82,6 +83,9 @@ export default function AdminDashboardOverviewPage({
   opportunities = [],
   subscriptions = [],
 }) {
+  // Chart View State: "monthly" | "daily"
+  const [revenueView, setRevenueView] = useState("monthly");
+
   // 1. Safely Parse Input Datasets
   const usersList = useMemo(
     () => parseArrayData(userData, "userData"),
@@ -162,7 +166,7 @@ export default function AdminDashboardOverviewPage({
     totalRevenueDollars,
   ]);
 
-  // 3. Compute Monthly Revenue Growth Chart Data from Subscriptions
+  // 3A. Compute Monthly Revenue Growth Chart Data
   const monthlyRevenueChartData = useMemo(() => {
     const monthMap = {};
 
@@ -186,17 +190,59 @@ export default function AdminDashboardOverviewPage({
 
     const chartData = MONTH_NAMES.filter((m) => monthMap[m] !== undefined).map(
       (m) => ({
-        month: m,
+        label: m,
         Revenue: monthMap[m],
       }),
     );
 
     if (chartData.length === 0) {
-      return [{ month: "Aug", Revenue: totalRevenueDollars }];
+      return [{ label: "Aug", Revenue: totalRevenueDollars }];
     }
 
     return chartData;
   }, [subscriptionsList, totalRevenueDollars]);
+
+  // 3B. Compute Daily Revenue Growth Chart Data
+  const dailyRevenueChartData = useMemo(() => {
+    const dayMap = {};
+
+    subscriptionsList.forEach((sub) => {
+      if (
+        sub.payment_status === "paid" ||
+        sub.payment_status === "Completed" ||
+        sub.paymentStatus === "Completed"
+      ) {
+        const dateStr = sub.subscriptionAt || sub.createdAt || sub.date;
+        if (dateStr) {
+          const date = new Date(dateStr);
+          if (!isNaN(date.getTime())) {
+            // Format as "MMM DD" (e.g., "Aug 04", "Aug 06", "Aug 09")
+            const dayKey = date.toLocaleDateString("en-US", {
+              month: "short",
+              day: "2-digit",
+            });
+            const amountInDollars = (sub.amount || 0) / 100;
+            dayMap[dayKey] = (dayMap[dayKey] || 0) + amountInDollars;
+          }
+        }
+      }
+    });
+
+    const chartData = Object.keys(dayMap).map((day) => ({
+      label: day,
+      Revenue: dayMap[day],
+    }));
+
+    if (chartData.length === 0) {
+      return [{ label: "Today", Revenue: totalRevenueDollars }];
+    }
+
+    return chartData;
+  }, [subscriptionsList, totalRevenueDollars]);
+
+  // Active revenue dataset based on current toggle view
+  const activeRevenueData =
+    revenueView === "daily" ? dailyRevenueChartData : monthlyRevenueChartData;
 
   // 4. Compute User Role Distribution for Donut Chart
   const userRoleDistribution = useMemo(() => {
@@ -232,8 +278,8 @@ export default function AdminDashboardOverviewPage({
             </span>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Monitor real-time platform metrics, user distribution, and monthly
-            revenue performance.
+            Monitor real-time platform metrics, user distribution, and
+            daily/monthly revenue performance.
           </p>
         </div>
       </div>
@@ -269,26 +315,50 @@ export default function AdminDashboardOverviewPage({
 
       {/* Analytics Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Revenue Bar Chart */}
+        {/* Revenue Bar Chart Card with Monthly/Daily Toggle */}
         <div className="lg:col-span-2 rounded-2xl p-6 bg-[#0D1528] border border-slate-800/80 space-y-4 shadow-sm">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 className="text-sm font-bold text-slate-200 uppercase font-mono tracking-wider">
-                Monthly Revenue Growth
+              <h3 className="text-sm font-bold text-slate-200 uppercase font-mono tracking-wider flex items-center gap-2">
+                <span>
+                  {revenueView === "daily" ? "Daily" : "Monthly"} Revenue Growth
+                </span>
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
-                Real subscription payments accumulated per month
+                Real subscription payments accumulated{" "}
+                {revenueView === "daily" ? "per day" : "per month"}
               </p>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-mono font-semibold">
-              <TrendingUp className="w-4 h-4" /> Live Data
+
+            {/* View Mode Switcher (Monthly vs Daily) */}
+            <div className="flex items-center gap-1 bg-[#060C1A] p-1 rounded-xl border border-slate-800 self-start sm:self-auto">
+              <button
+                onClick={() => setRevenueView("monthly")}
+                className={`px-3 py-1 text-xs font-mono font-medium rounded-lg transition-all cursor-pointer ${
+                  revenueView === "monthly"
+                    ? "bg-amber-500 text-slate-950 font-bold shadow-sm"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setRevenueView("daily")}
+                className={`px-3 py-1 text-xs font-mono font-medium rounded-lg transition-all cursor-pointer ${
+                  revenueView === "daily"
+                    ? "bg-amber-500 text-slate-950 font-bold shadow-sm"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                Daily
+              </button>
             </div>
           </div>
 
           <div className="pt-2">
             <ResponsiveContainer width="100%" height={240}>
               <BarChart
-                data={monthlyRevenueChartData}
+                data={activeRevenueData}
                 barSize={32}
                 margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
               >
@@ -297,7 +367,7 @@ export default function AdminDashboardOverviewPage({
                   stroke="rgba(255,255,255,0.05)"
                 />
                 <XAxis
-                  dataKey="month"
+                  dataKey="label"
                   tick={{
                     fill: "#5A6480",
                     fontSize: 11,
