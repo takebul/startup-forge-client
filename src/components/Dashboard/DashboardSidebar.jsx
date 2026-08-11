@@ -97,7 +97,6 @@ const DashboardSidebar = () => {
         label: "Premium",
         href: "/dashboard/collaborator/premium",
         icon: Zap,
-        badge: 2,
       },
     ],
     admin: [
@@ -162,11 +161,6 @@ const DashboardSidebar = () => {
                     <Icon className="h-4 w-4" />
                     <span>{link.label}</span>
                   </div>
-                  {link.badge && (
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-slate-950">
-                      {link.badge}
-                    </span>
-                  )}
                 </Link>
               );
             })}
