@@ -9,7 +9,13 @@ import Eye from "@gravity-ui/icons/Eye";
 import EyeSlash from "@gravity-ui/icons/EyeSlash";
 import ArrowRight from "@gravity-ui/icons/ArrowRight";
 import CircleXmark from "@gravity-ui/icons/CircleXmark";
-import { User, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import {
+  User,
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+  ShieldAlert,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "@/lib/auth-client";
@@ -103,6 +109,7 @@ export default function SigninPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState("idle");
   const [statusMessage, setStatusMessage] = useState("");
+  const [banReason, setBanReason] = useState(null);
 
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/";
@@ -127,6 +134,7 @@ export default function SigninPage() {
       return;
     }
     setStatus("loading");
+    setBanReason(null);
 
     const { data, error } = await signIn.email({
       email: form.email,
@@ -137,11 +145,31 @@ export default function SigninPage() {
 
     if (error) {
       setStatus("error");
-      setStatusMessage(
-        error.message || "Invalid credentials. Please try again.",
-      );
+      const errLower = (error.message || "").toLowerCase();
+
+      // Check if the error indicates a banned/blocked account
+      if (
+        error.banReason ||
+        error.code === "USER_BANNED" ||
+        errLower.includes("banned") ||
+        errLower.includes("blocked") ||
+        errLower.includes("suspended")
+      ) {
+        setBanReason(
+          error.banReason ||
+            error.message ||
+            "Your account has been suspended by an administrator.",
+        );
+        setStatusMessage("Account Blocked");
+      } else {
+        setBanReason(null);
+        setStatusMessage(
+          error.message || "Invalid credentials. Please try again.",
+        );
+      }
     } else {
       setStatus("success");
+      setBanReason(null);
       setStatusMessage("Signed in successfully! Redirecting...");
       setTimeout(() => {
         router.push(redirectTo);
@@ -151,6 +179,8 @@ export default function SigninPage() {
 
   async function handleGoogleAuth() {
     setStatus("loading");
+    setBanReason(null);
+
     const { error } = await signIn.social({
       provider: "google",
       callbackURL: redirectTo,
@@ -158,14 +188,31 @@ export default function SigninPage() {
 
     if (error) {
       setStatus("error");
-      setStatusMessage(
-        error.message || "Google sign-in failed. Please try again.",
-      );
+      const errLower = (error.message || "").toLowerCase();
+
+      if (
+        error.banReason ||
+        errLower.includes("banned") ||
+        errLower.includes("blocked") ||
+        errLower.includes("suspended")
+      ) {
+        setBanReason(
+          error.banReason ||
+            error.message ||
+            "Your account has been suspended by an administrator.",
+        );
+        setStatusMessage("Account Blocked");
+      } else {
+        setBanReason(null);
+        setStatusMessage(
+          error.message || "Google sign-in failed. Please try again.",
+        );
+      }
     }
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4 relative overflow-hidden font-sans">
       {/* Ambient background */}
       <div className="absolute inset-0 pointer-events-none">
         <div
@@ -219,30 +266,57 @@ export default function SigninPage() {
             </div>
 
             <AnimatePresence>
-              {(status === "success" || status === "error") && (
+              {/* Account Blocked / Ban Reason Alert Card */}
+              {banReason ? (
                 <motion.div
-                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-                  animate={{ opacity: 1, height: "auto", marginBottom: 20 }}
-                  exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  initial={{ opacity: 0, y: -8, height: 0 }}
+                  animate={{ opacity: 1, y: 0, height: "auto" }}
+                  exit={{ opacity: 0, y: -8, height: 0 }}
                   transition={{ duration: 0.25 }}
-                  className={[
-                    "flex items-start gap-3 rounded-xl px-4 py-3 text-sm",
-                    status === "success"
-                      ? "bg-emerald-500/10 border border-emerald-500/25 text-emerald-300"
-                      : "bg-red-500/10 border border-red-500/25 text-red-300",
-                  ].join(" ")}
+                  className="mb-5 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 space-y-2 shadow-sm"
                 >
-                  {status === "success" ? (
-                    <CheckCircle2 size={16} className="flex-shrink-0 mt-0.5" />
-                  ) : (
-                    <CircleXmark
-                      width={16}
-                      height={16}
-                      className="flex-shrink-0 mt-0.5"
-                    />
-                  )}
-                  <span>{statusMessage}</span>
+                  <div className="flex items-center gap-2 text-red-400 font-bold text-sm">
+                    <ShieldAlert className="w-5 h-5 shrink-0 text-red-400" />
+                    <span>Account Suspended</span>
+                  </div>
+                  <p className="text-xs text-red-200/90 leading-relaxed">
+                    Reason: <span className="font-medium">{banReason}</span>
+                  </p>
+                  <div className="pt-1.5 border-t border-red-500/20 text-[11px] font-mono text-red-300/70">
+                    If you believe this is a mistake, please contact platform
+                    support.
+                  </div>
                 </motion.div>
+              ) : (
+                /* Standard Success / Error Banner */
+                (status === "success" || status === "error") && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                    animate={{ opacity: 1, height: "auto", marginBottom: 20 }}
+                    exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className={[
+                      "flex items-start gap-3 rounded-xl px-4 py-3 text-sm",
+                      status === "success"
+                        ? "bg-emerald-500/10 border border-emerald-500/25 text-emerald-300"
+                        : "bg-red-500/10 border border-red-500/25 text-red-300",
+                    ].join(" ")}
+                  >
+                    {status === "success" ? (
+                      <CheckCircle2
+                        size={16}
+                        className="flex-shrink-0 mt-0.5"
+                      />
+                    ) : (
+                      <CircleXmark
+                        width={16}
+                        height={16}
+                        className="flex-shrink-0 mt-0.5"
+                      />
+                    )}
+                    <span>{statusMessage}</span>
+                  </motion.div>
+                )
               )}
             </AnimatePresence>
 

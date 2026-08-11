@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Search, BadgeCheck, ShieldAlert, Crown } from "lucide-react";
 import { Table } from "@heroui/react";
 import { Btn, Badge } from "@/components/Dashboard/founder-dashboard-shared";
+import { authClient } from "@/lib/auth-client";
 import { updateUserStatus } from "@/lib/actions/users";
 
 // Helper function to format ISO date strings (e.g., 2026-08-04T12:39:44.194Z -> 2026-08-04)
@@ -62,7 +63,7 @@ export default function ManageUsersPage({ ALL_USERS = [], currentUser }) {
   }, [ALL_USERS]);
 
   // =========================================================================
-  // TOGGLE USER STATUS HANDLER (Active <-> Blocked)
+  // TOGGLE USER STATUS HANDLER (Better Auth Ban/Unban + DB Status Sync)
   // =========================================================================
   const toggleUserStatus = async (targetUser) => {
     const userId = String(targetUser.id || targetUser._id || "");
@@ -78,8 +79,11 @@ export default function ManageUsersPage({ ALL_USERS = [], currentUser }) {
       return;
     }
 
-    const currentStatus = targetUser.status || "active";
-    const nextStatus = currentStatus === "active" ? "blocked" : "active";
+    // Check if user is currently banned
+    const isBanned = Boolean(
+      targetUser.banned || targetUser.status === "blocked",
+    );
+    const nextStatus = isBanned ? "active" : "blocked";
 
     setLoadingId(userId);
     setError(null);
@@ -90,22 +94,48 @@ export default function ManageUsersPage({ ALL_USERS = [], currentUser }) {
       // 1. Optimistic Local UI Update
       setUsers((prev) =>
         prev.map((u) =>
-          String(u.id || u._id) === userId ? { ...u, status: nextStatus } : u,
+          String(u.id || u._id) === userId
+            ? {
+                ...u,
+                banned: !isBanned,
+                status: nextStatus,
+              }
+            : u,
         ),
       );
 
-      // 2. Call Server Action
-      const result = await updateUserStatus(userId, { status: nextStatus });
-
-      if (result?.error) {
-        throw new Error(result.error);
+      // 2. Execute Ban / Unban with Better Auth Admin API
+      let res;
+      if (isBanned) {
+        res = await authClient.admin.unbanUser({
+          userId: userId,
+        });
+      } else {
+        res = await authClient.admin.banUser({
+          userId: userId,
+          banReason: "Suspended by admin",
+        });
       }
 
-      // 3. Refresh Server Component Data
+      if (res?.error) {
+        throw new Error(
+          res.error.message || "Failed to update authentication ban status",
+        );
+      }
+
+      // 3. Update Database user status field ("active" <-> "blocked")
+      const dbRes = await updateUserStatus(userId, { status: nextStatus });
+      if (dbRes?.error) {
+        throw new Error(dbRes.error || "Failed to update database status");
+      }
+
+      // 4. Refresh Server Component Data
       router.refresh();
     } catch (err) {
       console.error("Failed to update user status:", err);
-      setError("Failed to update user status. Reverting changes.");
+      setError(
+        err?.message || "Failed to update user status. Reverting changes.",
+      );
       setUsers(previousUsers);
     } finally {
       setLoadingId(null);
@@ -240,7 +270,10 @@ export default function ManageUsersPage({ ALL_USERS = [], currentUser }) {
                     const userEmail = u.email || "N/A";
                     const userRole = u.role || "collaborator";
                     const joinedDate = formatDate(u.createdAt || u.joinedDate);
-                    const isBlocked = u.status === "blocked";
+
+                    const isBlocked = Boolean(
+                      u.banned || u.status === "blocked",
+                    );
 
                     // Check if the current row belongs to the logged-in admin user
                     const isSelf =
@@ -316,7 +349,7 @@ export default function ManageUsersPage({ ALL_USERS = [], currentUser }) {
                           </span>
                         </Table.Cell>
 
-                        {/* Actions: Show "Own Account" badge for self, otherwise Action Button */}
+                        {/* Actions */}
                         <Table.Cell className="px-6 py-4 text-right">
                           {isSelf ? (
                             <span className="px-2.5 py-1 rounded-xl text-[11px] font-mono font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20 inline-flex items-center gap-1.5 shadow-sm">
