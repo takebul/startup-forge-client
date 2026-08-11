@@ -387,11 +387,11 @@ export default function DashboardNavbar({
           </Link>
         ) : role === "founder" ? (
           <Link
-            href="/dashboard/founder/my-startup"
+            href="/dashboard/founder/add-opportunity"
             className="flex h-9 items-center justify-center space-x-1.5 rounded-xl bg-amber-500 px-4 text-xs font-bold text-slate-950 hover:bg-amber-600 transition-colors shadow-lg shadow-amber-500/10"
           >
             <Plus className="h-4 w-4" />
-            <span>New Startup</span>
+            <span>Add Opportunity</span>
           </Link>
         ) : (
           <Link
