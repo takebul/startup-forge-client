@@ -498,7 +498,7 @@ export default function DashboardNavbar({
                 <Link
                   href={
                     role === "founder"
-                      ? "/dashboard/founder/premium"
+                      ? "/pricing"
                       : "/dashboard/collaborator/premium"
                   }
                   onClick={() => setIsAvatarOpen(false)}
