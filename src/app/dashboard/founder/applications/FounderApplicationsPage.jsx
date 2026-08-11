@@ -10,6 +10,16 @@ import {
 } from "@/components/Dashboard/founder-dashboard-shared";
 import { updateApplication } from "@/lib/actions/applications";
 
+// Helper function to ensure portfolio URLs always open externally
+function formatUrl(url) {
+  if (!url) return "#";
+  const trimmed = url.trim();
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+  return `https://${trimmed}`;
+}
+
 export default function FounderApplicationsPage({ founderApplications }) {
   const router = useRouter();
 
@@ -241,12 +251,13 @@ export default function FounderApplicationsPage({ founderApplications }) {
                   </p>
                   {selected.portfolioLink ? (
                     <a
-                      href={selected.portfolioLink}
+                      href={formatUrl(selected.portfolioLink)}
                       target="_blank"
-                      rel="noreferrer"
-                      className="text-sm text-amber-500 underline hover:text-amber-400 break-all"
+                      rel="noopener noreferrer"
+                      className="text-sm text-amber-500 underline hover:text-amber-400 break-all inline-flex items-center gap-1 cursor-pointer"
                     >
-                      {selected.portfolioLink} ↗
+                      <span>{selected.portfolioLink}</span>
+                      <span>↗</span>
                     </a>
                   ) : (
                     <p className="text-sm text-slate-500 italic">
