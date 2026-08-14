@@ -8,10 +8,15 @@ import {
   getApplicationsByStartupId,
 } from "@/lib/api/applications";
 import {
+  getFeaturedOpportunities,
   getOpportunities,
   getOpportunitiesByUserId,
 } from "@/lib/api/opportunities";
-import { getFounderStartup, getStartups } from "@/lib/api/startups";
+import {
+  getFeaturedStartups,
+  getFounderStartup,
+  getStartups,
+} from "@/lib/api/startups";
 import { getUsersData } from "@/lib/api/users";
 import { getUserSession } from "@/lib/core/session";
 
@@ -28,6 +33,8 @@ export default async function Home() {
   const userData = await getUsersData();
   const startups = await getStartups();
   const collaboratorApplications = await getApplicationsById(user?.id);
+  const featuredStartups = await getFeaturedStartups();
+  const featuredOpportunities = await getFeaturedOpportunities();
 
   console.log({
     user,
@@ -53,7 +60,10 @@ export default async function Home() {
         userData={userData}
         startups={startups}
       />
-      <FeaturedStartups />
+      <FeaturedStartups
+        featuredStartups={featuredStartups}
+        featuredOpportunities={featuredOpportunities}
+      />
       <FeaturedOpportunities />
       <WhyJoinStartupForge />
       <Testimonials />

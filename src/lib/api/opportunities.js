@@ -8,6 +8,10 @@ export const getOpportunities = async () => {
   return serverFetch("/api/opportunities");
 };
 
+export const getFeaturedOpportunities = async () => {
+  return serverFetch("/api/featured/opportunities");
+};
+
 export const getOpportunityDetails = async (params) => {
   return serverFetch(`/api/opportunity/${params}`);
 };
