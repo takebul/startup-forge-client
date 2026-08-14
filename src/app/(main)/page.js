@@ -36,16 +36,16 @@ export default async function Home() {
   const featuredStartups = await getFeaturedStartups();
   const featuredOpportunities = await getFeaturedOpportunities();
 
-  console.log({
-    user,
-    founderApplications,
-    founderOpportunities,
-    founderStartup,
-    opportunities,
-    userData,
-    startups,
-    collaboratorApplications,
-  });
+  // console.log({
+  //   user,
+  //   founderApplications,
+  //   founderOpportunities,
+  //   founderStartup,
+  //   opportunities,
+  //   userData,
+  //   startups,
+  //   collaboratorApplications,
+  // });
 
   return (
     <>

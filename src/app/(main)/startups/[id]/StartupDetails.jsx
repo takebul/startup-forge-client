@@ -1,78 +1,158 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Briefcase,
+  Building2,
+  Calendar,
+  CheckCircle2,
+  Globe,
+  Mail,
+  MapPin,
+  Sparkles,
+  User,
+  ArrowRight,
+} from "lucide-react";
 
-// Mock server data for a single startup
-const STARTUP_DATA = {
-  id: "start-101",
-  startup_name: "NexusAI",
-  logo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80",
-  industry: "Artificial Intelligence",
-  funding_stage: "Seed",
-  status: "active",
-  founder_name: "Sarah Chen",
-  founder_email: "sarah@nexusai.io",
-  founder_avatar:
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-  tagline: "Autonomous AI Agents for Enterprise Workflow Automation",
-  description:
-    "NexusAI is building next-generation multi-agent systems designed to autonomously execute complex operational workflows across enterprise software suites. We are backed by early-stage tech investors and are actively expanding our core team.",
-  problem_statement:
-    "Enterprise teams waste thousands of hours manually copying data, managing routine approvals, and coordinating across fragmented SaaS tools. Current automation tools are brittle and break easily.",
-  solution_overview:
-    "NexusAI deploys fine-tuned AI agents that learn workflow logic, handle edge cases autonomously, and integrate via secure API endpoints.",
-  open_roles: [
-    {
-      id: "role-1",
-      title: "Senior Lead Frontend Engineer",
-      type: "Remote",
-      commitment: "Full-Time (40 hrs/wk)",
-      skills: ["React", "Next.js", "Tailwind CSS", "Motion"],
-      compensation: "Equity + Salary",
-    },
-    {
-      id: "role-2",
-      title: "UI/UX Product Designer",
-      type: "Remote / Hybrid",
-      commitment: "Part-Time (15-20 hrs/wk)",
-      skills: ["Figma", "Design Systems", "User Research"],
-      compensation: "Equity Share",
-    },
-  ],
-  team_members: [
-    {
-      name: "Sarah Chen",
-      role: "Founder & CEO",
-      avatar:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-    },
-    {
-      name: "Alex Rivera",
-      role: "Founding Engineer",
-      avatar:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-    },
-  ],
-};
+// Helper parser to safely extract array data regardless of API response wrapping
+function parseArrayData(data, key) {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.data)) return data.data;
+  if (key && Array.isArray(data?.[key])) return data[key];
+  return [];
+}
 
-const StartupDetails = () => {
+// Helper to normalize skills whether stored as a comma-separated string or an array
+function parseSkills(skills) {
+  if (!skills) return [];
+  if (Array.isArray(skills)) return skills.filter(Boolean);
+  if (typeof skills === "string") {
+    return skills
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+export default function StartupDetails({
+  startups,
+  opportunities = [],
+  userData = [],
+}) {
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedRole, setSelectedRole] = useState(null);
+  const [applicationForm, setApplicationForm] = useState({
+    portfolioLink: "",
+    motivationMessage: "",
+  });
+  const [submitting, setSubmitting] = useState(false);
   const [applicationSubmitted, setApplicationSubmitted] = useState(false);
+
+  // 1. Safely Extract Startup Document
+  const startup = useMemo(() => {
+    if (!startups) return null;
+    if (Array.isArray(startups)) return startups[0] || null;
+    if (startups?.data) {
+      return Array.isArray(startups.data) ? startups.data[0] : startups.data;
+    }
+    return startups;
+  }, [startups]);
+
+  // 2. Parse Related Datasets
+  const opportunitiesList = useMemo(
+    () => parseArrayData(opportunities, "opportunities"),
+    [opportunities],
+  );
+  const usersList = useMemo(
+    () => parseArrayData(userData, "userData"),
+    [userData],
+  );
+
+  // 3. Match Founder Profile from userData
+  const founder = useMemo(() => {
+    if (!startup) return null;
+    const founderEmail = (startup.founder_email || "").toLowerCase();
+    const startupId = String(startup.startupId || startup._id || "");
+
+    return (
+      usersList.find(
+        (u) =>
+          (u.email && u.email.toLowerCase() === founderEmail) ||
+          String(u._id || u.id) === startupId,
+      ) || null
+    );
+  }, [startup, usersList]);
+
+  // 4. Match and Filter Opportunities for this Startup
+  const startupRoles = useMemo(() => {
+    if (!startup) return [];
+    const sId = String(startup._id || startup.id || "");
+    const customStartupId = String(startup.startupId || "");
+    const sName = String(startup.startup_name || "").toLowerCase();
+
+    return opportunitiesList.filter((opp) => {
+      const oppStartupId = String(opp.startupId || "");
+      const oppStartupName = String(opp.startupName || "").toLowerCase();
+
+      return (
+        (oppStartupId &&
+          (oppStartupId === sId || oppStartupId === customStartupId)) ||
+        (oppStartupName && sName && oppStartupName === sName)
+      );
+    });
+  }, [startup, opportunitiesList]);
 
   const handleApply = (e) => {
     e.preventDefault();
-    setApplicationSubmitted(true);
+    setSubmitting(true);
+
+    // Simulate application dispatch
     setTimeout(() => {
-      setApplicationSubmitted(false);
-      setSelectedRole(null);
-    }, 2000);
+      setSubmitting(false);
+      setApplicationSubmitted(true);
+      setTimeout(() => {
+        setApplicationSubmitted(false);
+        setSelectedRole(null);
+        setApplicationForm({ portfolioLink: "", motivationMessage: "" });
+      }, 2000);
+    }, 800);
   };
 
+  if (!startup) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-center font-sans">
+        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200">
+          Startup Not Found
+        </h2>
+        <p className="text-sm text-slate-500 mt-2">
+          The requested startup profile could not be located.
+        </p>
+        <Link
+          href="/startups"
+          className="mt-5 px-5 py-2.5 rounded-xl bg-violet-600 text-white font-semibold text-xs hover:bg-violet-700 transition-colors"
+        >
+          ← Back to All Startups
+        </Link>
+      </div>
+    );
+  }
+
+  const startupName = startup.startup_name || "Untitled Startup";
+  const fundingStage = startup.funding_stage || "Seed Stage";
+  const industry = startup.industry || "Technology";
+  const founderName =
+    founder?.name || startup.founder_email?.split("@")[0] || "Founder";
+  const founderEmail = startup.founder_email || founder?.email || "N/A";
+  const founderAvatar =
+    founder?.image ||
+    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors duration-200 dark:bg-slate-950 dark:text-slate-100">
+    <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors duration-200 dark:bg-slate-950 dark:text-slate-100 font-sans">
       {/* -----------------------------------------------------------------------------
           HERO BANNER SECTION
       ----------------------------------------------------------------------------- */}
@@ -92,31 +172,49 @@ const StartupDetails = () => {
             transition={{ duration: 0.4 }}
             className="mt-6 flex flex-col gap-6 md:flex-row md:items-center md:justify-between"
           >
-            <div className="flex items-center space-x-5">
-              <img
-                src={STARTUP_DATA.logo}
-                alt={STARTUP_DATA.startup_name}
-                className="h-20 w-20 rounded-2xl object-cover ring-2 ring-slate-200 dark:ring-slate-800 shadow-md"
-              />
+            <div className="flex items-start sm:items-center space-x-5">
+              {startup.logo ? (
+                <img
+                  src={startup.logo}
+                  alt={startupName}
+                  className="h-20 w-20 rounded-2xl object-cover ring-2 ring-slate-200 dark:ring-slate-800 shadow-md shrink-0"
+                />
+              ) : (
+                <div className="h-20 w-20 rounded-2xl bg-violet-500/10 border border-violet-500/20 text-violet-600 dark:text-violet-400 font-bold flex items-center justify-center text-3xl shadow-md shrink-0">
+                  {startupName[0]}
+                </div>
+              )}
+
               <div>
-                <div className="flex items-center space-x-3">
+                <div className="flex flex-wrap items-center gap-3">
                   <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
-                    {STARTUP_DATA.startup_name}
+                    {startupName}
                   </h1>
-                  <span className="rounded-md bg-violet-100 px-2.5 py-1 text-xs font-bold text-violet-700 dark:bg-violet-500/10 dark:text-violet-300">
-                    {STARTUP_DATA.funding_stage}
+                  <span className="rounded-md bg-violet-100 px-2.5 py-1 text-xs font-mono font-bold text-violet-700 dark:bg-violet-500/10 dark:text-violet-300">
+                    {fundingStage}
                   </span>
                 </div>
-                <p className="mt-1 text-base font-medium text-slate-600 dark:text-slate-300">
-                  {STARTUP_DATA.tagline}
-                </p>
-                <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+
+                <div className="mt-2.5 flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                   <span>
-                    Industry: <strong>{STARTUP_DATA.industry}</strong>
+                    Industry:{" "}
+                    <strong className="text-slate-700 dark:text-slate-200">
+                      {industry}
+                    </strong>
                   </span>
                   <span>•</span>
                   <span>
-                    Founder: <strong>{STARTUP_DATA.founder_name}</strong>
+                    Founder:{" "}
+                    <strong className="text-slate-700 dark:text-slate-200 capitalize">
+                      {founderName}
+                    </strong>
+                  </span>
+                  <span>•</span>
+                  <span>
+                    Status:{" "}
+                    <strong className="text-emerald-500 dark:text-emerald-400">
+                      {startup.status || "Active"}
+                    </strong>
                   </span>
                 </div>
               </div>
@@ -126,9 +224,9 @@ const StartupDetails = () => {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => setActiveTab("roles")}
-              className="rounded-xl bg-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-600/20 transition-all hover:bg-violet-700 dark:hover:bg-violet-500"
+              className="rounded-xl bg-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-600/20 transition-all hover:bg-violet-700 dark:hover:bg-violet-500 cursor-pointer self-start md:self-auto shrink-0"
             >
-              View Open Roles ({STARTUP_DATA.open_roles.length})
+              View Open Roles ({startupRoles.length})
             </motion.button>
           </motion.div>
         </div>
@@ -139,19 +237,19 @@ const StartupDetails = () => {
       ----------------------------------------------------------------------------- */}
       <section className="container mx-auto px-6 py-10 lg:px-12">
         {/* Navigation Tabs */}
-        <div className="flex space-x-4 border-b border-slate-200 dark:border-slate-800">
+        <div className="flex space-x-6 border-b border-slate-200 dark:border-slate-800">
           {[
-            { id: "overview", label: "Overview & Pitch" },
+            { id: "overview", label: "Overview & Description" },
             {
               id: "roles",
-              label: `Open Roles (${STARTUP_DATA.open_roles.length})`,
+              label: `Open Roles (${startupRoles.length})`,
             },
-            { id: "team", label: "Team Members" },
+            { id: "team", label: "Founder & Team" },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative pb-3 text-sm font-bold transition-colors ${
+              className={`relative space-x-6 pb-3 text-sm font-bold transition-colors cursor-pointer ${
                 activeTab === tab.id
                   ? "text-violet-600 dark:text-violet-400"
                   : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
@@ -182,52 +280,57 @@ const StartupDetails = () => {
                 className="grid gap-8 lg:grid-cols-3"
               >
                 <div className="space-y-6 lg:col-span-2">
-                  <div className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                  <div className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900 shadow-sm">
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                       About the Startup
                     </h2>
                     <p className="mt-3 leading-relaxed text-slate-600 dark:text-slate-300">
-                      {STARTUP_DATA.description}
+                      {startup.description ||
+                        "No detailed description provided."}
                     </p>
                   </div>
 
-                  <div className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                  <div className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900 shadow-sm">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                      The Problem
+                      Mission & Objective
                     </h3>
-                    <p className="mt-2 text-slate-600 dark:text-slate-300">
-                      {STARTUP_DATA.problem_statement}
-                    </p>
-                    <h3 className="mt-6 text-lg font-bold text-slate-900 dark:text-white">
-                      The Solution
-                    </h3>
-                    <p className="mt-2 text-slate-600 dark:text-slate-300">
-                      {STARTUP_DATA.solution_overview}
+                    <p className="mt-2 text-slate-600 dark:text-slate-300 leading-relaxed">
+                      {startupName} is currently operating in the{" "}
+                      <strong>{industry}</strong> space at the{" "}
+                      <strong>{fundingStage}</strong> level, actively seeking
+                      dedicated collaborators and team members to expand
+                      platform capabilities.
                     </p>
                   </div>
                 </div>
 
-                {/* Sidebar Details */}
+                {/* Sidebar Founder Summary Card */}
                 <div className="space-y-6">
-                  <div className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                      Founder Details
+                  <div className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900 shadow-sm">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">
+                      Founder Profile
                     </h3>
                     <div className="mt-4 flex items-center space-x-3">
                       <img
-                        src={STARTUP_DATA.founder_avatar}
-                        className="h-12 w-12 rounded-full object-cover"
-                        alt=""
+                        src={founderAvatar}
+                        className="h-12 w-12 rounded-full object-cover ring-2 ring-violet-500/20"
+                        alt={founderName}
                       />
-                      <div>
-                        <p className="font-bold text-slate-900 dark:text-white">
-                          {STARTUP_DATA.founder_name}
+                      <div className="min-w-0">
+                        <p className="font-bold text-slate-900 dark:text-white truncate capitalize">
+                          {founderName}
                         </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                          {STARTUP_DATA.founder_email}
+                        <p className="text-xs font-mono text-slate-500 dark:text-slate-400 truncate">
+                          {founderEmail}
                         </p>
                       </div>
                     </div>
+
+                    {founder?.bio && (
+                      <p className="mt-3 text-xs text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-slate-800 pt-3">
+                        {founder.bio}
+                      </p>
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -243,49 +346,65 @@ const StartupDetails = () => {
                 transition={{ duration: 0.25 }}
                 className="space-y-4"
               >
-                {STARTUP_DATA.open_roles.map((role) => (
-                  <motion.div
-                    key={role.id}
-                    whileHover={{ x: 4 }}
-                    className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-center"
-                  >
-                    <div>
-                      <div className="flex items-center space-x-3">
-                        <span className="rounded-md bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
-                          {role.type}
-                        </span>
-                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                          {role.commitment}
-                        </span>
-                      </div>
-                      <h3 className="mt-2 text-xl font-bold text-slate-900 dark:text-white">
-                        {role.title}
-                      </h3>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {role.skills.map((skill, idx) => (
-                          <span
-                            key={idx}
-                            className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300"
-                          >
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
+                {startupRoles.length === 0 ? (
+                  <div className="p-12 text-center rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 italic text-sm">
+                    No open opportunity roles posted for this startup right now.
+                  </div>
+                ) : (
+                  startupRoles.map((role) => {
+                    const roleId = String(role._id || role.id);
+                    const skillsList = parseSkills(role.requiredSkills);
 
-                    <div className="mt-4 flex items-center justify-between md:mt-0 md:flex-col md:items-end md:space-y-2">
-                      <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                        {role.compensation}
-                      </span>
-                      <button
-                        onClick={() => setSelectedRole(role)}
-                        className="rounded-lg bg-violet-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-violet-700"
+                    return (
+                      <motion.div
+                        key={roleId}
+                        whileHover={{ x: 4 }}
+                        className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-center gap-4 transition-all"
                       >
-                        Apply for Role
-                      </button>
-                    </div>
-                  </motion.div>
-                ))}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2 mb-1">
+                            <span className="rounded-md bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 font-mono">
+                              {role.workType || "Remote"}
+                            </span>
+                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                              {role.commitmentLevel || "Contract"}
+                            </span>
+                            {role.deadline && (
+                              <span className="text-[11px] font-mono text-slate-400">
+                                • Deadline: {role.deadline}
+                              </span>
+                            )}
+                          </div>
+
+                          <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-1">
+                            {role.roleTitle}
+                          </h3>
+
+                          <div className="mt-3 flex flex-wrap gap-1.5">
+                            {skillsList.map((skill, idx) => (
+                              <span
+                                key={idx}
+                                className="rounded-md bg-slate-100 px-2.5 py-0.5 text-xs font-medium font-mono text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                              >
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="mt-2 md:mt-0 flex items-center md:flex-col md:items-end gap-3 shrink-0">
+                          <button
+                            onClick={() => setSelectedRole(role)}
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-violet-600 px-5 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-500 shadow-md shadow-violet-600/15 cursor-pointer"
+                          >
+                            <span>Apply for Role</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </motion.div>
+                    );
+                  })
+                )}
               </motion.div>
             )}
 
@@ -299,26 +418,24 @@ const StartupDetails = () => {
                 transition={{ duration: 0.25 }}
                 className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
               >
-                {STARTUP_DATA.team_members.map((member, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center space-x-4 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
-                  >
-                    <img
-                      src={member.avatar}
-                      alt={member.name}
-                      className="h-14 w-14 rounded-full object-cover"
-                    />
-                    <div>
-                      <h4 className="font-bold text-slate-900 dark:text-white">
-                        {member.name}
-                      </h4>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {member.role}
-                      </p>
-                    </div>
+                <div className="flex items-center space-x-4 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 shadow-sm">
+                  <img
+                    src={founderAvatar}
+                    alt={founderName}
+                    className="h-14 w-14 rounded-full object-cover ring-2 ring-violet-500/20 shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-slate-900 dark:text-white capitalize truncate">
+                      {founderName}
+                    </h4>
+                    <p className="text-xs text-violet-600 dark:text-violet-400 font-medium">
+                      Founder & Creator
+                    </p>
+                    <p className="text-[11px] font-mono text-slate-400 truncate mt-0.5">
+                      {founderEmail}
+                    </p>
                   </div>
-                ))}
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -349,14 +466,15 @@ const StartupDetails = () => {
               className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
             >
               <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                Apply for {selectedRole.title}
+                Apply for {selectedRole.roleTitle}
               </h3>
               <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                Submit your pitch to @{STARTUP_DATA.startup_name}
+                Submit your pitch to @{startupName}
               </p>
 
               {applicationSubmitted ? (
-                <div className="my-8 text-center">
+                <div className="my-8 text-center space-y-2">
+                  <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto" />
                   <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
                     Application Sent Successfully!
                   </p>
@@ -368,29 +486,57 @@ const StartupDetails = () => {
                 <form onSubmit={handleApply} className="mt-6 space-y-4">
                   <div>
                     <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                      Why are you a fit for this team?
+                      Portfolio / GitHub / Website Link
+                    </label>
+                    <input
+                      type="url"
+                      required
+                      value={applicationForm.portfolioLink}
+                      onChange={(e) =>
+                        setApplicationForm({
+                          ...applicationForm,
+                          portfolioLink: e.target.value,
+                        })
+                      }
+                      placeholder="https://yourportfolio.com"
+                      className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm outline-none transition-colors focus:border-violet-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Why are you a great fit for this role?
                     </label>
                     <textarea
                       required
                       rows={4}
-                      placeholder="Highlight relevant experience or projects..."
-                      className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm outline-none transition-colors focus:border-violet-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                      value={applicationForm.motivationMessage}
+                      onChange={(e) =>
+                        setApplicationForm({
+                          ...applicationForm,
+                          motivationMessage: e.target.value,
+                        })
+                      }
+                      placeholder="Highlight your experience, background, and what you will build..."
+                      className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm outline-none transition-colors focus:border-violet-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 resize-none"
                     />
                   </div>
 
                   <div className="flex justify-end space-x-3 pt-2">
                     <button
                       type="button"
+                      disabled={submitting}
                       onClick={() => setSelectedRole(null)}
-                      className="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:text-slate-300"
+                      className="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:text-slate-300 cursor-pointer"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="rounded-lg bg-violet-600 px-5 py-2 text-xs font-semibold text-white hover:bg-violet-700"
+                      disabled={submitting}
+                      className="rounded-lg bg-violet-600 px-5 py-2 text-xs font-semibold text-white hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-500 disabled:opacity-50 cursor-pointer"
                     >
-                      Submit Application
+                      {submitting ? "Submitting..." : "Submit Application"}
                     </button>
                   </div>
                 </form>
@@ -401,6 +547,4 @@ const StartupDetails = () => {
       </AnimatePresence>
     </div>
   );
-};
-
-export default StartupDetails;
+}
