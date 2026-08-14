@@ -13,18 +13,15 @@ function parseArrayData(data, key) {
   return [];
 }
 
-const FeaturedStartups = ({
-  featuredStartups = [],
-  featuredOpportunities = [],
-}) => {
+const FeaturedStartups = ({ featuredStartups = [], opportunities = [] }) => {
   // 1. Safely Parse Input Datasets
   const rawStartups = useMemo(
     () => parseArrayData(featuredStartups, "featuredStartups"),
     [featuredStartups],
   );
   const rawOpportunities = useMemo(
-    () => parseArrayData(featuredOpportunities, "featuredOpportunities"),
-    [featuredOpportunities],
+    () => parseArrayData(opportunities, "featuredOpportunities"),
+    [opportunities],
   );
 
   // 2. Filter Active / Approved Startups

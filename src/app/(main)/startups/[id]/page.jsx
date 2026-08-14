@@ -7,16 +7,16 @@ const StartupDetailsPage = async ({ params }) => {
   const { id } = await params;
   const opportunities = await getOpportunities();
   const userData = await getUsersData();
-  const startups = await getStartupDetails(id);
+  const startup = await getStartupDetails(id);
 
-  console.log({ opportunities, userData, startups });
+  console.log({ opportunities, userData, startup });
 
   return (
     <div>
       <StartupDetails
         opportunities={opportunities}
         userData={userData}
-        startups={startups}
+        startups={startup}
       />
     </div>
   );

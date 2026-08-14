@@ -62,9 +62,12 @@ export default async function Home() {
       />
       <FeaturedStartups
         featuredStartups={featuredStartups}
-        featuredOpportunities={featuredOpportunities}
+        opportunities={opportunities}
       />
-      <FeaturedOpportunities />
+      <FeaturedOpportunities
+        featuredOpportunities={featuredOpportunities}
+        startups={startups}
+      />
       <WhyJoinStartupForge />
       <Testimonials />
     </>
