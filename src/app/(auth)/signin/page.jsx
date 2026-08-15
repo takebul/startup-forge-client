@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@heroui/react";
 import Envelope from "@gravity-ui/icons/Envelope";
@@ -102,7 +102,7 @@ function TextInput({
   );
 }
 
-export default function SigninPage() {
+function SigninContent() {
   const router = useRouter();
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
@@ -141,13 +141,10 @@ export default function SigninPage() {
       password: form.password,
     });
 
-    console.log({ data, error });
-
     if (error) {
       setStatus("error");
       const errLower = (error.message || "").toLowerCase();
 
-      // Check if the error indicates a banned/blocked account
       if (
         error.banReason ||
         error.code === "USER_BANNED" ||
@@ -212,6 +209,194 @@ export default function SigninPage() {
   }
 
   return (
+    <div className="relative rounded-2xl border border-zinc-800/80 bg-zinc-900/80 backdrop-blur-xl shadow-2xl overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
+
+      <div className="px-7 pt-8 pb-7">
+        <div className="mb-7">
+          <div className="flex items-center gap-2.5 mb-5">
+            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+              <div className="w-3.5 h-3.5 rounded-[3px] bg-indigo-400" />
+            </div>
+            <span className="text-xs font-semibold tracking-[0.2em] text-zinc-500 uppercase">
+              Launchpad
+            </span>
+          </div>
+          <h1 className="text-2xl font-bold text-zinc-50 tracking-tight leading-none mb-1.5">
+            Welcome back
+          </h1>
+          <p className="text-sm text-zinc-500">
+            Sign in to your account to continue.
+          </p>
+        </div>
+
+        <AnimatePresence>
+          {banReason ? (
+            <motion.div
+              initial={{ opacity: 0, y: -8, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: "auto" }}
+              exit={{ opacity: 0, y: -8, height: 0 }}
+              transition={{ duration: 0.25 }}
+              className="mb-5 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 space-y-2 shadow-sm"
+            >
+              <div className="flex items-center gap-2 text-red-400 font-bold text-sm">
+                <ShieldAlert className="w-5 h-5 shrink-0 text-red-400" />
+                <span>Account Suspended</span>
+              </div>
+              <p className="text-xs text-red-200/90 leading-relaxed">
+                Reason: <span className="font-medium">{banReason}</span>
+              </p>
+              <div className="pt-1.5 border-t border-red-500/20 text-[11px] font-mono text-red-300/70">
+                If you believe this is a mistake, please contact platform
+                support.
+              </div>
+            </motion.div>
+          ) : (
+            (status === "success" || status === "error") && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                animate={{ opacity: 1, height: "auto", marginBottom: 20 }}
+                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                transition={{ duration: 0.25 }}
+                className={[
+                  "flex items-start gap-3 rounded-xl px-4 py-3 text-sm",
+                  status === "success"
+                    ? "bg-emerald-500/10 border border-emerald-500/25 text-emerald-300"
+                    : "bg-red-500/10 border border-red-500/25 text-red-300",
+                ].join(" ")}
+              >
+                {status === "success" ? (
+                  <CheckCircle2 size={16} className="flex-shrink-0 mt-0.5" />
+                ) : (
+                  <CircleXmark
+                    width={16}
+                    height={16}
+                    className="flex-shrink-0 mt-0.5"
+                  />
+                )}
+                <span>{statusMessage}</span>
+              </motion.div>
+            )
+          )}
+        </AnimatePresence>
+
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="flex flex-col gap-4"
+        >
+          <Field label="Email" error={errors.email}>
+            <TextInput
+              value={form.email}
+              onChange={(v) => set("email", v)}
+              placeholder="alex@company.com"
+              type="email"
+              icon={<Envelope width={15} height={15} />}
+              hasError={!!errors.email}
+              autoComplete="email"
+            />
+          </Field>
+
+          <Field label="Password" error={errors.password}>
+            <TextInput
+              value={form.password}
+              onChange={(v) => set("password", v)}
+              placeholder="Your password"
+              type={showPassword ? "text" : "password"}
+              icon={<Lock width={15} height={15} />}
+              hasError={!!errors.password}
+              autoComplete="current-password"
+              suffix={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  className="text-zinc-500 hover:text-zinc-300 p-0.5 transition-colors cursor-pointer"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeSlash width={15} height={15} />
+                  ) : (
+                    <Eye width={15} height={15} />
+                  )}
+                </button>
+              }
+            />
+          </Field>
+
+          <div className="text-right -mt-1">
+            <button
+              type="button"
+              className="text-xs text-zinc-500 hover:text-indigo-400 transition-colors cursor-pointer"
+            >
+              Forgot password?
+            </button>
+          </div>
+
+          <Button
+            type="submit"
+            isDisabled={status === "loading" || status === "success"}
+            className="mt-1 w-full h-11 rounded-xl font-semibold text-sm bg-indigo-600 hover:bg-indigo-500 text-white transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            {status === "loading" ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                Signing in…
+              </>
+            ) : status === "success" ? (
+              <>
+                <CheckCircle2 size={16} />
+                Signed in!
+              </>
+            ) : (
+              <>
+                Sign in
+                <ArrowRight width={15} height={15} />
+              </>
+            )}
+          </Button>
+        </form>
+
+        <div className="flex items-center gap-3 my-5">
+          <div className="flex-1 h-px bg-zinc-800" />
+          <span className="text-xs text-zinc-600">or continue with</span>
+          <div className="flex-1 h-px bg-zinc-800" />
+        </div>
+
+        <button
+          type="button"
+          onClick={handleGoogleAuth}
+          disabled={status === "loading"}
+          className="w-full h-11 flex items-center justify-center gap-2.5 rounded-xl border border-zinc-700 hover:border-zinc-600 bg-zinc-900 hover:bg-zinc-800 text-sm text-zinc-200 font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        >
+          <GoogleIcon />
+          Continue with Google
+        </button>
+
+        <p className="text-center text-sm text-zinc-600 mt-5">
+          {"Don't have an account? "}
+          <Link
+            href={`/signup?redirect=${redirectTo}`}
+            className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+          >
+            Sign up
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function SigninFallback() {
+  return (
+    <div className="relative rounded-2xl border border-zinc-800/80 bg-zinc-900/80 backdrop-blur-xl shadow-2xl p-12 text-center flex flex-col items-center justify-center">
+      <Loader2 size={24} className="animate-spin text-indigo-500 mb-3" />
+      <p className="text-xs font-mono text-zinc-500">Loading sign in...</p>
+    </div>
+  );
+}
+
+export default function SigninPage() {
+  return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4 relative overflow-hidden font-sans">
       {/* Ambient background */}
       <div className="absolute inset-0 pointer-events-none">
@@ -244,187 +429,9 @@ export default function SigninPage() {
         transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
         className="relative w-full max-w-[440px]"
       >
-        <div className="relative rounded-2xl border border-zinc-800/80 bg-zinc-900/80 backdrop-blur-xl shadow-2xl overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
-
-          <div className="px-7 pt-8 pb-7">
-            <div className="mb-7">
-              <div className="flex items-center gap-2.5 mb-5">
-                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                  <div className="w-3.5 h-3.5 rounded-[3px] bg-indigo-400" />
-                </div>
-                <span className="text-xs font-semibold tracking-[0.2em] text-zinc-500 uppercase">
-                  Launchpad
-                </span>
-              </div>
-              <h1 className="text-2xl font-bold text-zinc-50 tracking-tight leading-none mb-1.5">
-                Welcome back
-              </h1>
-              <p className="text-sm text-zinc-500">
-                Sign in to your account to continue.
-              </p>
-            </div>
-
-            <AnimatePresence>
-              {/* Account Blocked / Ban Reason Alert Card */}
-              {banReason ? (
-                <motion.div
-                  initial={{ opacity: 0, y: -8, height: 0 }}
-                  animate={{ opacity: 1, y: 0, height: "auto" }}
-                  exit={{ opacity: 0, y: -8, height: 0 }}
-                  transition={{ duration: 0.25 }}
-                  className="mb-5 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 space-y-2 shadow-sm"
-                >
-                  <div className="flex items-center gap-2 text-red-400 font-bold text-sm">
-                    <ShieldAlert className="w-5 h-5 shrink-0 text-red-400" />
-                    <span>Account Suspended</span>
-                  </div>
-                  <p className="text-xs text-red-200/90 leading-relaxed">
-                    Reason: <span className="font-medium">{banReason}</span>
-                  </p>
-                  <div className="pt-1.5 border-t border-red-500/20 text-[11px] font-mono text-red-300/70">
-                    If you believe this is a mistake, please contact platform
-                    support.
-                  </div>
-                </motion.div>
-              ) : (
-                /* Standard Success / Error Banner */
-                (status === "success" || status === "error") && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-                    animate={{ opacity: 1, height: "auto", marginBottom: 20 }}
-                    exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                    transition={{ duration: 0.25 }}
-                    className={[
-                      "flex items-start gap-3 rounded-xl px-4 py-3 text-sm",
-                      status === "success"
-                        ? "bg-emerald-500/10 border border-emerald-500/25 text-emerald-300"
-                        : "bg-red-500/10 border border-red-500/25 text-red-300",
-                    ].join(" ")}
-                  >
-                    {status === "success" ? (
-                      <CheckCircle2
-                        size={16}
-                        className="flex-shrink-0 mt-0.5"
-                      />
-                    ) : (
-                      <CircleXmark
-                        width={16}
-                        height={16}
-                        className="flex-shrink-0 mt-0.5"
-                      />
-                    )}
-                    <span>{statusMessage}</span>
-                  </motion.div>
-                )
-              )}
-            </AnimatePresence>
-
-            <form
-              onSubmit={handleSubmit}
-              noValidate
-              className="flex flex-col gap-4"
-            >
-              <Field label="Email" error={errors.email}>
-                <TextInput
-                  value={form.email}
-                  onChange={(v) => set("email", v)}
-                  placeholder="alex@company.com"
-                  type="email"
-                  icon={<Envelope width={15} height={15} />}
-                  hasError={!!errors.email}
-                  autoComplete="email"
-                />
-              </Field>
-
-              <Field label="Password" error={errors.password}>
-                <TextInput
-                  value={form.password}
-                  onChange={(v) => set("password", v)}
-                  placeholder="Your password"
-                  type={showPassword ? "text" : "password"}
-                  icon={<Lock width={15} height={15} />}
-                  hasError={!!errors.password}
-                  autoComplete="current-password"
-                  suffix={
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((s) => !s)}
-                      className="text-zinc-500 hover:text-zinc-300 p-0.5 transition-colors"
-                      aria-label={
-                        showPassword ? "Hide password" : "Show password"
-                      }
-                    >
-                      {showPassword ? (
-                        <EyeSlash width={15} height={15} />
-                      ) : (
-                        <Eye width={15} height={15} />
-                      )}
-                    </button>
-                  }
-                />
-              </Field>
-
-              <div className="text-right -mt-1">
-                <button
-                  type="button"
-                  className="text-xs text-zinc-500 hover:text-indigo-400 transition-colors"
-                >
-                  Forgot password?
-                </button>
-              </div>
-
-              <Button
-                type="submit"
-                isDisabled={status === "loading" || status === "success"}
-                className="mt-1 w-full h-11 rounded-xl font-semibold text-sm bg-indigo-600 hover:bg-indigo-500 text-white transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {status === "loading" ? (
-                  <>
-                    <Loader2 size={16} className="animate-spin" />
-                    Signing in…
-                  </>
-                ) : status === "success" ? (
-                  <>
-                    <CheckCircle2 size={16} />
-                    Signed in!
-                  </>
-                ) : (
-                  <>
-                    Sign in
-                    <ArrowRight width={15} height={15} />
-                  </>
-                )}
-              </Button>
-            </form>
-
-            <div className="flex items-center gap-3 my-5">
-              <div className="flex-1 h-px bg-zinc-800" />
-              <span className="text-xs text-zinc-600">or continue with</span>
-              <div className="flex-1 h-px bg-zinc-800" />
-            </div>
-
-            <button
-              type="button"
-              onClick={handleGoogleAuth}
-              disabled={status === "loading"}
-              className="w-full h-11 flex items-center justify-center gap-2.5 rounded-xl border border-zinc-700 hover:border-zinc-600 bg-zinc-900 hover:bg-zinc-800 text-sm text-zinc-200 font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <GoogleIcon />
-              Continue with Google
-            </button>
-
-            <p className="text-center text-sm text-zinc-600 mt-5">
-              {"Don't have an account? "}
-              <Link
-                href={`/signup?redirect=${redirectTo}`}
-                className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
-              >
-                Sign up
-              </Link>
-            </p>
-          </div>
-        </div>
+        <Suspense fallback={<SigninFallback />}>
+          <SigninContent />
+        </Suspense>
 
         <p className="text-center text-xs text-zinc-700 mt-4">
           <User size={11} className="inline mr-1" />
