@@ -1,9 +1,9 @@
 import { getOpportunities } from "@/lib/api/opportunities";
-import StartupDetails from "./StartupDetails";
 import { getUsersData } from "@/lib/api/users";
 import { getStartupDetails } from "@/lib/api/startups";
 import { getApplicationsById } from "@/lib/api/applications";
 import { getUserSession } from "@/lib/core/session";
+import StartupDetails from "@/components/Startups/StartupDetails";
 
 const StartupDetailsPage = async ({ params }) => {
   const { id } = await params;

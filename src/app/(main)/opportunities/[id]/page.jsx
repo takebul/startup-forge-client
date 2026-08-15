@@ -1,9 +1,9 @@
 import { getOpportunityDetails } from "@/lib/api/opportunities";
-import OpportunityDetailsPage from "./OpportunityDetailsPage";
 import { getStartups } from "@/lib/api/startups";
 import { getUsersData } from "@/lib/api/users";
 import { getApplicationsById } from "@/lib/api/applications";
 import { getUserSession } from "@/lib/core/session";
+import OpportunityDetailsPage from "@/components/Opportunities/OpportunityDetailsPage";
 
 const OpportunityDetailsPageWrapper = async ({ params }) => {
   const { id } = await params;
