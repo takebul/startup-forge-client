@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Briefcase,
@@ -14,7 +15,15 @@ import {
   Sparkles,
   User,
   ArrowRight,
+  ExternalLink,
+  Inbox,
+  XCircle,
+  ShieldAlert,
+  LogIn,
 } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
+import { createApplication } from "@/lib/actions/applications";
+import ApplyModal from "@/components/ApplyModal/ApplyModal";
 
 // Helper parser to safely extract array data regardless of API response wrapping
 function parseArrayData(data, key) {
@@ -38,19 +47,54 @@ function parseSkills(skills) {
   return [];
 }
 
+// Helper to check if a specific deadline date has expired
+function checkIsDeadlinePassed(deadlineStr) {
+  if (!deadlineStr || deadlineStr === "N/A") return false;
+  const deadlineDate = new Date(deadlineStr);
+  if (isNaN(deadlineDate.getTime())) return false;
+  deadlineDate.setHours(23, 59, 59, 999);
+  return new Date() > deadlineDate;
+}
+
 export default function StartupDetails({
   startups,
   opportunities = [],
   userData = [],
+  initialAppliedOppIds = [],
 }) {
+  const router = useRouter();
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+  const role = user?.role;
+  const isCollaborator = role === "collaborator";
+  const isAuthenticated = !!user;
+
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedRole, setSelectedRole] = useState(null);
-  const [applicationForm, setApplicationForm] = useState({
-    portfolioLink: "",
-    motivationMessage: "",
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+
+  // Track applied opportunity IDs (supports initial array + newly submitted applications)
+  const [appliedOppIds, setAppliedOppIds] = useState(() =>
+    Array.isArray(initialAppliedOppIds) ? initialAppliedOppIds.map(String) : [],
+  );
+
+  // Success dialog modal states
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [submittedRoleInfo, setSubmittedRoleInfo] = useState(null);
+
+  const [form, setForm] = useState({
+    email: user?.email || "",
+    portfolio: "",
+    motivation: "",
   });
-  const [submitting, setSubmitting] = useState(false);
-  const [applicationSubmitted, setApplicationSubmitted] = useState(false);
+
+  // Sync user email into form state when session loads
+  useEffect(() => {
+    if (user?.email && !form.email) {
+      setForm((prev) => ({ ...prev, email: user.email }));
+    }
+  }, [user, form.email]);
 
   // 1. Safely Extract Startup Document
   const startup = useMemo(() => {
@@ -92,11 +136,15 @@ export default function StartupDetails({
     if (!startup) return [];
     const sId = String(startup._id || startup.id || "");
     const customStartupId = String(startup.startupId || "");
-    const sName = String(startup.startup_name || "").toLowerCase();
+    const sName = String(startup.startup_name || "")
+      .toLowerCase()
+      .trim();
 
     return opportunitiesList.filter((opp) => {
       const oppStartupId = String(opp.startupId || "");
-      const oppStartupName = String(opp.startupName || "").toLowerCase();
+      const oppStartupName = String(opp.startupName || "")
+        .toLowerCase()
+        .trim();
 
       return (
         (oppStartupId &&
@@ -106,20 +154,70 @@ export default function StartupDetails({
     });
   }, [startup, opportunitiesList]);
 
-  const handleApply = (e) => {
+  // =========================================================================
+  // SUBMIT APPLICATION HANDLER
+  // =========================================================================
+  const handleSubmitApplication = async (e) => {
     e.preventDefault();
-    setSubmitting(true);
+    if (!selectedRole || !isCollaborator) return;
 
-    // Simulate application dispatch
-    setTimeout(() => {
-      setSubmitting(false);
-      setApplicationSubmitted(true);
-      setTimeout(() => {
-        setApplicationSubmitted(false);
-        setSelectedRole(null);
-        setApplicationForm({ portfolioLink: "", motivationMessage: "" });
-      }, 2000);
-    }, 800);
+    const roleDeadlinePassed = checkIsDeadlinePassed(selectedRole.deadline);
+    const targetOpportunityId = String(
+      selectedRole._id || selectedRole.id || "",
+    );
+    if (roleDeadlinePassed || appliedOppIds.includes(targetOpportunityId))
+      return;
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    const targetStartupId = String(
+      selectedRole.startupId || startup?._id || startup?.startupId || "",
+    );
+
+    try {
+      const payload = {
+        applicantEmail: form.email || user?.email || "",
+        portfolioLink: form.portfolio,
+        motivationMessage: form.motivation,
+        opportunityId: targetOpportunityId,
+        startupId: targetStartupId,
+        opportunityTitle:
+          selectedRole.roleTitle || selectedRole.title || "Collaborator Role",
+        startupName:
+          startup?.startup_name || selectedRole.startupName || "Startup",
+        applicantName: user?.name || "Collaborator",
+        collaboratorId: user?.id || user?._id || "",
+      };
+
+      const result = await createApplication(payload);
+
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+
+      // 1. Mark this role as applied in local state
+      setAppliedOppIds((prev) =>
+        Array.from(new Set([...prev, targetOpportunityId])),
+      );
+
+      // 2. Set submitted role info for the success dialog
+      setSubmittedRoleInfo(selectedRole);
+
+      // 3. Close the apply modal and open success modal
+      setSelectedRole(null);
+      setForm({
+        email: user?.email || "",
+        portfolio: "",
+        motivation: "",
+      });
+      setShowSuccessModal(true);
+    } catch (err) {
+      console.error("Failed to submit application:", err);
+      setSubmitError(err?.message || "Failed to submit application");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!startup) {
@@ -354,6 +452,10 @@ export default function StartupDetails({
                   startupRoles.map((role) => {
                     const roleId = String(role._id || role.id);
                     const skillsList = parseSkills(role.requiredSkills);
+                    const isAlreadyApplied = appliedOppIds.includes(roleId);
+                    const isRoleDeadlinePassed = checkIsDeadlinePassed(
+                      role.deadline,
+                    );
 
                     return (
                       <motion.div
@@ -374,6 +476,11 @@ export default function StartupDetails({
                                 • Deadline: {role.deadline}
                               </span>
                             )}
+                            {isRoleDeadlinePassed && (
+                              <span className="rounded-md bg-red-100 px-2.5 py-0.5 text-[11px] font-bold text-red-700 dark:bg-red-500/10 dark:text-red-400 font-mono border border-red-500/20">
+                                Deadline Passed
+                              </span>
+                            )}
                           </div>
 
                           <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-1">
@@ -392,14 +499,55 @@ export default function StartupDetails({
                           </div>
                         </div>
 
+                        {/* Role-based Action Guards */}
                         <div className="mt-2 md:mt-0 flex items-center md:flex-col md:items-end gap-3 shrink-0">
-                          <button
-                            onClick={() => setSelectedRole(role)}
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-violet-600 px-5 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-500 shadow-md shadow-violet-600/15 cursor-pointer"
-                          >
-                            <span>Apply for Role</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </button>
+                          {isRoleDeadlinePassed ? (
+                            <button
+                              type="button"
+                              disabled
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-2.5 text-xs font-semibold text-red-400 font-mono cursor-not-allowed opacity-90 shadow-sm"
+                            >
+                              <XCircle className="w-3.5 h-3.5" />
+                              <span>Closed</span>
+                            </button>
+                          ) : isAlreadyApplied ? (
+                            <button
+                              type="button"
+                              disabled
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 px-4 py-2.5 text-xs font-semibold text-emerald-400 font-mono cursor-not-allowed opacity-90 shadow-sm"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                              <span>✓ Applied</span>
+                            </button>
+                          ) : !isAuthenticated ? (
+                            <Link
+                              href={`/login?redirect=/startups/${startup._id || startup.id}`}
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-500 shadow-md shadow-violet-600/15"
+                            >
+                              <LogIn className="w-3.5 h-3.5" />
+                              <span>Sign In to Apply</span>
+                            </Link>
+                          ) : !isCollaborator ? (
+                            <div
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 px-3.5 py-2 text-xs font-mono font-bold text-amber-400"
+                              title="Only collaborator accounts can apply for opportunity roles"
+                            >
+                              <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+                              <span>Collaborator Account Required</span>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedRole(role);
+                                setSubmitError(null);
+                              }}
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-violet-600 px-5 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-500 shadow-md shadow-violet-600/15 cursor-pointer"
+                            >
+                              <span>Apply for Role</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </motion.div>
                     );
@@ -443,17 +591,34 @@ export default function StartupDetails({
       </section>
 
       {/* -----------------------------------------------------------------------------
-          APPLICATION MODAL WITH MOTION
+          APPLY MODAL (Opens strictly when a role is selected and user is collaborator)
+      ----------------------------------------------------------------------------- */}
+      {selectedRole && (
+        <ApplyModal
+          opportunity={selectedRole}
+          onClose={() => {
+            setSelectedRole(null);
+            setSubmitError(null);
+          }}
+          form={form}
+          setForm={setForm}
+          onSubmit={handleSubmitApplication}
+          isSubmitting={isSubmitting}
+        />
+      )}
+
+      {/* -----------------------------------------------------------------------------
+          SUCCESS DIALOG MODAL (Go to Dashboard or Stay)
       ----------------------------------------------------------------------------- */}
       <AnimatePresence>
-        {selectedRole && (
+        {showSuccessModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setSelectedRole(null)}
+              onClick={() => setShowSuccessModal(false)}
               className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             />
 
@@ -463,84 +628,45 @@ export default function StartupDetails({
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
               transition={{ type: "spring", duration: 0.3 }}
-              className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+              className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900 text-center font-sans"
             >
+              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 className="w-8 h-8" />
+              </div>
+
               <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                Apply for {selectedRole.roleTitle}
+                Application Submitted!
               </h3>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                Submit your pitch to @{startupName}
+
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                Your pitch for{" "}
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  {submittedRoleInfo?.roleTitle || "this role"}
+                </span>{" "}
+                at{" "}
+                <span className="font-semibold text-violet-600 dark:text-violet-400">
+                  @{startupName}
+                </span>{" "}
+                has been sent to the founder.
               </p>
 
-              {applicationSubmitted ? (
-                <div className="my-8 text-center space-y-2">
-                  <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto" />
-                  <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                    Application Sent Successfully!
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    The founder will review your application shortly.
-                  </p>
-                </div>
-              ) : (
-                <form onSubmit={handleApply} className="mt-6 space-y-4">
-                  <div>
-                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                      Portfolio / GitHub / Website Link
-                    </label>
-                    <input
-                      type="url"
-                      required
-                      value={applicationForm.portfolioLink}
-                      onChange={(e) =>
-                        setApplicationForm({
-                          ...applicationForm,
-                          portfolioLink: e.target.value,
-                        })
-                      }
-                      placeholder="https://yourportfolio.com"
-                      className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm outline-none transition-colors focus:border-violet-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-                    />
-                  </div>
+              <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                <Link
+                  href="/dashboard/collaborator/my-applications"
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-violet-600/20 hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-500 transition-colors"
+                >
+                  <Inbox className="w-4 h-4" />
+                  <span>Go to Applications</span>
+                </Link>
 
-                  <div>
-                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                      Why are you a great fit for this role?
-                    </label>
-                    <textarea
-                      required
-                      rows={4}
-                      value={applicationForm.motivationMessage}
-                      onChange={(e) =>
-                        setApplicationForm({
-                          ...applicationForm,
-                          motivationMessage: e.target.value,
-                        })
-                      }
-                      placeholder="Highlight your experience, background, and what you will build..."
-                      className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm outline-none transition-colors focus:border-violet-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 resize-none"
-                    />
-                  </div>
-
-                  <div className="flex justify-end space-x-3 pt-2">
-                    <button
-                      type="button"
-                      disabled={submitting}
-                      onClick={() => setSelectedRole(null)}
-                      className="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:text-slate-300 cursor-pointer"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className="rounded-lg bg-violet-600 px-5 py-2 text-xs font-semibold text-white hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-500 disabled:opacity-50 cursor-pointer"
-                    >
-                      {submitting ? "Submitting..." : "Submit Application"}
-                    </button>
-                  </div>
-                </form>
-              )}
+                <button
+                  type="button"
+                  onClick={() => setShowSuccessModal(false)}
+                  className="flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/80 transition-colors cursor-pointer"
+                >
+                  Stay on This Page
+                </button>
+              </div>
             </motion.div>
           </div>
         )}

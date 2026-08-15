@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Briefcase,
@@ -16,7 +17,15 @@ import {
   Sparkles,
   User,
   ArrowRight,
+  Inbox,
+  AlertTriangle,
+  XCircle,
+  ShieldAlert,
+  LogIn,
 } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
+import { createApplication } from "@/lib/actions/applications";
+import ApplyModal from "@/components/ApplyModal/ApplyModal";
 
 // Helper parser to safely extract array data regardless of API response wrapping
 function parseArrayData(data, key) {
@@ -56,12 +65,36 @@ export default function OpportunityDetailsPage({
   opportunity,
   startups = [],
   userData = [],
+  initialAppliedOppIds = [],
 }) {
+  const router = useRouter();
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+  const role = user?.role;
+  const isCollaborator = role === "collaborator";
+  const isAuthenticated = !!user;
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [portfolioUrl, setPortfolioUrl] = useState("");
-  const [coverNote, setCoverNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Track applied opportunity IDs
+  const [appliedOppIds, setAppliedOppIds] = useState(() =>
+    Array.isArray(initialAppliedOppIds) ? initialAppliedOppIds.map(String) : [],
+  );
+
+  const [form, setForm] = useState({
+    email: user?.email || "",
+    portfolio: "",
+    motivation: "",
+  });
+
+  // Sync user email when session loads
+  useEffect(() => {
+    if (user?.email && !form.email) {
+      setForm((prev) => ({ ...prev, email: user.email }));
+    }
+  }, [user, form.email]);
 
   // 1. Safely Extract Opportunity Document
   const opp = useMemo(() => {
@@ -75,7 +108,22 @@ export default function OpportunityDetailsPage({
     return opportunity;
   }, [opportunity]);
 
-  // 2. Parse Related Datasets
+  const oppId = String(opp?._id || opp?.id || "");
+
+  // 2. Deadline Over / Expiration Check (Fixed dependency array to [opp] for React Compiler)
+  const isDeadlinePassed = useMemo(() => {
+    if (!opp?.deadline) return false;
+    const deadlineDate = new Date(opp.deadline);
+    if (isNaN(deadlineDate.getTime())) return false;
+    // Set to the end of the deadline day
+    deadlineDate.setHours(23, 59, 59, 999);
+    return new Date() > deadlineDate;
+  }, [opp]);
+
+  // Check if current user already submitted to this opportunity
+  const isAlreadyApplied = appliedOppIds.includes(oppId);
+
+  // 3. Parse Related Datasets
   const startupsList = useMemo(
     () => parseArrayData(startups, "startups"),
     [startups],
@@ -85,7 +133,7 @@ export default function OpportunityDetailsPage({
     [userData],
   );
 
-  // 3. Match Associated Startup Document
+  // 4. Match Associated Startup Document
   const matchedStartup = useMemo(() => {
     if (!opp) return null;
     const oppStartupId = String(opp.startupId || "");
@@ -110,7 +158,7 @@ export default function OpportunityDetailsPage({
     );
   }, [opp, startupsList]);
 
-  // 4. Match Founder Profile from Users Data
+  // 5. Match Founder Profile from Users Data
   const founder = useMemo(() => {
     if (!matchedStartup && !opp) return null;
     const founderEmail = (matchedStartup?.founder_email || "").toLowerCase();
@@ -125,7 +173,7 @@ export default function OpportunityDetailsPage({
     );
   }, [matchedStartup, opp, usersList]);
 
-  // 5. Normalization Values
+  // 6. Normalized Opportunity Display Values
   const roleTitle = opp?.roleTitle || opp?.role_title || "Untitled Role";
   const startupName =
     matchedStartup?.startup_name || opp?.startupName || "Startup Team";
@@ -148,20 +196,54 @@ export default function OpportunityDetailsPage({
     founder?.image ||
     "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
 
-  const handleSubmitApplication = (e) => {
+  // =========================================================================
+  // SUBMIT APPLICATION HANDLER
+  // =========================================================================
+  const handleSubmitApplication = async (e) => {
     e.preventDefault();
+    if (!opp || isDeadlinePassed || isAlreadyApplied || !isCollaborator) return;
+
     setIsSubmitting(true);
 
-    setTimeout(() => {
+    const targetStartupId = String(
+      opp.startupId || matchedStartup?._id || matchedStartup?.startupId || "",
+    );
+
+    try {
+      const payload = {
+        applicantEmail: form.email || user?.email || "",
+        portfolioLink: form.portfolio,
+        motivationMessage: form.motivation,
+        opportunityId: oppId,
+        startupId: targetStartupId,
+        opportunityTitle: roleTitle,
+        startupName: startupName,
+        applicantName: user?.name || "Collaborator",
+        collaboratorId: user?.id || user?._id || "",
+      };
+
+      const result = await createApplication(payload);
+
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+
+      // Mark as applied
+      setAppliedOppIds((prev) => Array.from(new Set([...prev, oppId])));
+
+      // Close apply modal & open success dialog
+      setIsModalOpen(false);
+      setForm({
+        email: user?.email || "",
+        portfolio: "",
+        motivation: "",
+      });
+      setShowSuccessModal(true);
+    } catch (err) {
+      console.error("Failed to submit application:", err);
+    } finally {
       setIsSubmitting(false);
-      setIsSubmitted(true);
-      setTimeout(() => {
-        setIsSubmitted(false);
-        setIsModalOpen(false);
-        setPortfolioUrl("");
-        setCoverNote("");
-      }, 2200);
-    }, 800);
+    }
   };
 
   if (!opp) {
@@ -171,7 +253,7 @@ export default function OpportunityDetailsPage({
           Opportunity Not Found
         </h2>
         <p className="text-sm text-slate-500 mt-2">
-          The requested opportunity role could not be located or has expired.
+          The requested opportunity role could not be located.
         </p>
         <Link
           href="/opportunities"
@@ -225,6 +307,11 @@ export default function OpportunityDetailsPage({
                   <span className="rounded-md bg-violet-100 px-2.5 py-0.5 text-xs font-semibold text-violet-700 dark:bg-violet-500/10 dark:text-violet-300 font-mono">
                     {commitmentLevel}
                   </span>
+                  {isDeadlinePassed && (
+                    <span className="rounded-md bg-red-100 px-2.5 py-0.5 text-xs font-bold text-red-700 dark:bg-red-500/10 dark:text-red-400 font-mono border border-red-500/20">
+                      Deadline Passed
+                    </span>
+                  )}
                 </div>
 
                 <h1 className="mt-2 text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
@@ -250,16 +337,52 @@ export default function OpportunityDetailsPage({
               </div>
             </div>
 
-            {/* Apply Button */}
+            {/* Apply Button in Hero Header */}
             <div className="flex items-center space-x-4">
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setIsModalOpen(true)}
-                className="rounded-xl bg-violet-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-violet-600/25 transition-all hover:bg-violet-700 dark:hover:bg-violet-500 cursor-pointer"
-              >
-                Apply for this Position
-              </motion.button>
+              {isDeadlinePassed ? (
+                <button
+                  type="button"
+                  disabled
+                  className="inline-flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-6 py-3.5 text-sm font-semibold text-red-400 font-mono cursor-not-allowed opacity-90 shadow-sm"
+                >
+                  <XCircle className="w-4 h-4" />
+                  <span>Applications Closed</span>
+                </button>
+              ) : isAlreadyApplied ? (
+                <button
+                  type="button"
+                  disabled
+                  className="inline-flex items-center gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 px-6 py-3.5 text-sm font-semibold text-emerald-400 font-mono cursor-not-allowed opacity-90 shadow-sm"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>✓ Already Applied</span>
+                </button>
+              ) : !isAuthenticated ? (
+                <Link
+                  href={`/signin?redirect=/opportunities/${oppId}`}
+                  className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-violet-600/25 hover:bg-violet-700 dark:hover:bg-violet-500 transition-colors"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Sign In to Apply</span>
+                </Link>
+              ) : !isCollaborator ? (
+                <div
+                  className="inline-flex items-center gap-2 rounded-xl bg-amber-500/10 border border-amber-500/20 px-5 py-3 text-xs font-mono font-bold text-amber-400"
+                  title="Only collaborator accounts can apply for opportunity roles"
+                >
+                  <ShieldAlert className="w-4 h-4 shrink-0" />
+                  <span>Collaborator Account Required</span>
+                </div>
+              ) : (
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setIsModalOpen(true)}
+                  className="rounded-xl bg-violet-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-violet-600/25 transition-all hover:bg-violet-700 dark:hover:bg-violet-500 cursor-pointer"
+                >
+                  Apply for this Position
+                </motion.button>
+              )}
             </div>
           </motion.div>
         </div>
@@ -306,7 +429,7 @@ export default function OpportunityDetailsPage({
               </div>
             </div>
 
-            {/* Key Deliverables & Scope */}
+            {/* Key Expectations */}
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                 Key Expectations
@@ -368,20 +491,60 @@ export default function OpportunityDetailsPage({
 
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500 dark:text-slate-400">
-                    Deadline:
+                    Apply By:
                   </span>
-                  <span className="font-bold text-violet-600 dark:text-violet-400 font-mono">
-                    {deadlineFormatted}
+                  <span
+                    className={`font-bold font-mono ${
+                      isDeadlinePassed
+                        ? "text-red-500"
+                        : "text-violet-600 dark:text-violet-400"
+                    }`}
+                  >
+                    {deadlineFormatted} {isDeadlinePassed && "(Closed)"}
                   </span>
                 </div>
               </div>
 
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="mt-6 w-full rounded-xl bg-violet-600 py-3 text-xs font-bold text-white transition-colors hover:bg-violet-700 dark:hover:bg-violet-500 cursor-pointer shadow-md shadow-violet-600/10"
-              >
-                Apply Now
-              </button>
+              {/* Sidebar Action Area */}
+              {isDeadlinePassed ? (
+                <div className="mt-6 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-center text-xs font-mono text-red-400 font-semibold">
+                  ⚠️ Applications are closed as the deadline has passed.
+                </div>
+              ) : isAlreadyApplied ? (
+                <button
+                  type="button"
+                  disabled
+                  className="mt-6 w-full rounded-xl bg-emerald-500/10 border border-emerald-500/20 py-3 text-xs font-mono font-bold text-emerald-400 cursor-not-allowed opacity-90"
+                >
+                  ✓ Already Applied
+                </button>
+              ) : !isAuthenticated ? (
+                <Link
+                  href={`/signin?redirect=/opportunities/${oppId}`}
+                  className="mt-6 block text-center w-full rounded-xl bg-violet-600 py-3 text-xs font-bold text-white hover:bg-violet-700 dark:hover:bg-violet-500 transition-colors shadow-md shadow-violet-600/10"
+                >
+                  Sign In as Collaborator to Apply
+                </Link>
+              ) : !isCollaborator ? (
+                <div className="mt-6 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center text-xs font-mono text-amber-400 space-y-1">
+                  <div className="flex items-center justify-center gap-1.5 font-bold">
+                    <ShieldAlert className="w-3.5 h-3.5" />
+                    <span>Role Restricted</span>
+                  </div>
+                  <p className="text-[11px] text-amber-300/80">
+                    Logged in as{" "}
+                    <strong className="capitalize">{role || "User"}</strong>.
+                    Only collaborator accounts can apply.
+                  </p>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="mt-6 w-full rounded-xl bg-violet-600 py-3 text-xs font-bold text-white transition-colors hover:bg-violet-700 dark:hover:bg-violet-500 cursor-pointer shadow-md shadow-violet-600/10"
+                >
+                  Apply Now
+                </button>
+              )}
             </div>
 
             {/* Founder Profile Card */}
@@ -422,98 +585,79 @@ export default function OpportunityDetailsPage({
       </section>
 
       {/* -----------------------------------------------------------------------------
-          APPLICATION MODAL WITH MOTION
+          APPLY MODAL
+      ----------------------------------------------------------------------------- */}
+      {isModalOpen && (
+        <ApplyModal
+          opportunity={opp}
+          onClose={() => setIsModalOpen(false)}
+          form={form}
+          setForm={setForm}
+          onSubmit={handleSubmitApplication}
+          isSubmitting={isSubmitting}
+        />
+      )}
+
+      {/* -----------------------------------------------------------------------------
+          SUCCESS DIALOG MODAL (Go to Dashboard or Stay)
       ----------------------------------------------------------------------------- */}
       <AnimatePresence>
-        {isModalOpen && (
+        {showSuccessModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setIsModalOpen(false)}
+              onClick={() => setShowSuccessModal(false)}
               className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             />
 
-            {/* Modal Box */}
+            {/* Modal Card */}
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
               transition={{ type: "spring", duration: 0.3 }}
-              className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900 font-sans"
+              className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900 text-center font-sans"
             >
+              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 className="w-8 h-8" />
+              </div>
+
               <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                Apply for {roleTitle}
+                Application Submitted!
               </h3>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                Direct application pitch to @{startupName}
+
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                Your pitch for{" "}
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  {roleTitle}
+                </span>{" "}
+                at{" "}
+                <span className="font-semibold text-violet-600 dark:text-violet-400">
+                  @{startupName}
+                </span>{" "}
+                has been sent to the founder.
               </p>
 
-              {isSubmitted ? (
-                <div className="my-10 text-center space-y-2">
-                  <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-500" />
-                  <p className="mt-3 text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                    Application Pitch Submitted!
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    The founder has received your pitch and will review it in
-                    their Dashboard.
-                  </p>
-                </div>
-              ) : (
-                <form
-                  onSubmit={handleSubmitApplication}
-                  className="mt-6 space-y-4"
+              <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                <Link
+                  href="/dashboard/collaborator/my-applications"
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-violet-600/20 hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-500 transition-colors"
                 >
-                  <div>
-                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                      Portfolio / GitHub / Work Sample URL
-                    </label>
-                    <input
-                      type="url"
-                      required
-                      placeholder="https://github.com/yourusername or portfolio link"
-                      value={portfolioUrl}
-                      onChange={(e) => setPortfolioUrl(e.target.value)}
-                      className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-800 outline-none transition-colors focus:border-violet-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-                    />
-                  </div>
+                  <Inbox className="w-4 h-4" />
+                  <span>Go to Applications</span>
+                </Link>
 
-                  <div>
-                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                      Why are you interested in joining @{startupName}?
-                    </label>
-                    <textarea
-                      required
-                      rows={4}
-                      value={coverNote}
-                      onChange={(e) => setCoverNote(e.target.value)}
-                      placeholder="Briefly describe your background with these skills and why this role excites you..."
-                      className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-800 outline-none transition-colors focus:border-violet-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 resize-none"
-                    />
-                  </div>
-
-                  <div className="flex justify-end space-x-3 pt-2">
-                    <button
-                      type="button"
-                      disabled={isSubmitting}
-                      onClick={() => setIsModalOpen(false)}
-                      className="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 cursor-pointer"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="rounded-lg bg-violet-600 px-5 py-2 text-xs font-semibold text-white transition-colors hover:bg-violet-700 dark:hover:bg-violet-500 disabled:opacity-50 cursor-pointer"
-                    >
-                      {isSubmitting ? "Submitting..." : "Submit Application"}
-                    </button>
-                  </div>
-                </form>
-              )}
+                <button
+                  type="button"
+                  onClick={() => setShowSuccessModal(false)}
+                  className="flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/80 transition-colors cursor-pointer"
+                >
+                  Stay on This Page
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
