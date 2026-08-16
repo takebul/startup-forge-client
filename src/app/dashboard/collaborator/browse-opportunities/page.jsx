@@ -1,6 +1,6 @@
 import { getOpportunities } from "@/lib/api/opportunities";
 import { getBookmarksById } from "@/lib/api/bookmarks";
-import { getApplicationsById } from "@/lib/api/applications";
+import { getApplicationsByCollaboratorId } from "@/lib/api/applications";
 import { getUserSession } from "@/lib/core/session";
 import { getProfileData } from "@/lib/api/users";
 import BrowseOpportunities from "./BrowseOpportunities";
@@ -14,7 +14,7 @@ const BrowseOpportunitiesPage = async () => {
     await Promise.all([
       getOpportunities(),
       userId ? getBookmarksById(userId) : [],
-      userId ? getApplicationsById(userId) : [],
+      userId ? getApplicationsByCollaboratorId(userId) : [],
       userId ? getProfileData(userId) : null,
     ]);
 
