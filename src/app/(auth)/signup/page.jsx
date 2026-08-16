@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@heroui/react";
 import Person from "@gravity-ui/icons/Person";
@@ -19,6 +19,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Loader2,
+  User,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -154,7 +155,7 @@ function TextInput({
   );
 }
 
-export default function SignupPage() {
+function SignupContent() {
   const router = useRouter();
   const [form, setForm] = useState({
     name: "",
@@ -214,7 +215,6 @@ export default function SignupPage() {
     }
     setStatus("loading");
 
-    // Sign up with Better Auth
     const { data, error } = await signUp.email({
       name: form.name,
       email: form.email,
@@ -259,7 +259,364 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="relative rounded-2xl border border-zinc-800/80 bg-zinc-900/80 backdrop-blur-xl shadow-2xl overflow-hidden font-sans">
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
+
+      <div className="px-7 pt-8 pb-7">
+        <div className="mb-7">
+          <div className="flex items-center gap-2.5 mb-5">
+            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+              <div className="w-3.5 h-3.5 rounded-[3px] bg-indigo-400" />
+            </div>
+            <span className="text-xs font-semibold tracking-[0.2em] text-zinc-500 uppercase">
+              Launchpad
+            </span>
+          </div>
+          <h1 className="text-2xl font-bold text-zinc-50 tracking-tight leading-none mb-1.5">
+            Create your account
+          </h1>
+          <p className="text-sm text-zinc-500">
+            Join the network of founders and collaborators.
+          </p>
+        </div>
+
+        <AnimatePresence>
+          {(status === "success" || status === "error") && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: "auto", marginBottom: 20 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              transition={{ duration: 0.25 }}
+              className={[
+                "flex items-start gap-3 rounded-xl px-4 py-3 text-sm",
+                status === "success"
+                  ? "bg-emerald-500/10 border border-emerald-500/25 text-emerald-300"
+                  : "bg-red-500/10 border border-red-500/25 text-red-300",
+              ].join(" ")}
+            >
+              {status === "success" ? (
+                <CheckCircle2 size={16} className="flex-shrink-0 mt-0.5" />
+              ) : (
+                <CircleXmark
+                  width={16}
+                  height={16}
+                  className="flex-shrink-0 mt-0.5"
+                />
+              )}
+              <span>{statusMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="flex flex-col gap-4"
+        >
+          <Field label="Full Name" error={errors.name}>
+            <TextInput
+              value={form.name}
+              onChange={(v) => set("name", v)}
+              placeholder="Alex Johnson"
+              icon={<Person width={15} height={15} />}
+              hasError={!!errors.name}
+              autoComplete="name"
+            />
+          </Field>
+
+          <Field label="Email" error={errors.email}>
+            <TextInput
+              value={form.email}
+              onChange={(v) => set("email", v)}
+              placeholder="alex@company.com"
+              type="email"
+              icon={<Envelope width={15} height={15} />}
+              hasError={!!errors.email}
+              autoComplete="email"
+            />
+          </Field>
+
+          <Field label="Password" error={errors.password}>
+            <TextInput
+              value={form.password}
+              onChange={(v) => set("password", v)}
+              placeholder="Min. 6 chars, Aa..."
+              type={showPassword ? "text" : "password"}
+              icon={<Lock width={15} height={15} />}
+              hasError={!!errors.password}
+              autoComplete="new-password"
+              suffix={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  className="text-zinc-500 hover:text-zinc-300 transition-colors p-0.5"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeSlash width={15} height={15} />
+                  ) : (
+                    <Eye width={15} height={15} />
+                  )}
+                </button>
+              }
+            />
+            {form.password.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex items-center gap-2 mt-0.5"
+              >
+                <div className="flex gap-0.5 flex-1">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div
+                      key={i}
+                      className="h-0.5 flex-1 rounded-full transition-all duration-300"
+                      style={{
+                        backgroundColor:
+                          i <= strength.score ? strength.color : "#27272a",
+                      }}
+                    />
+                  ))}
+                </div>
+                <span
+                  className="text-[11px] font-medium"
+                  style={{ color: strength.color }}
+                >
+                  {strength.label}
+                </span>
+              </motion.div>
+            )}
+          </Field>
+
+          <Field label="Profile Image" error={uploadError ?? undefined}>
+            <div className="flex items-center gap-2 mb-2">
+              <button
+                type="button"
+                onClick={() => setImageMode("url")}
+                className={[
+                  "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all",
+                  imageMode === "url"
+                    ? "bg-indigo-500/15 border-indigo-500/40 text-indigo-300"
+                    : "bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:border-zinc-600",
+                ].join(" ")}
+              >
+                <LinkIcon width={12} height={12} />
+                URL
+              </button>
+              <button
+                type="button"
+                onClick={() => setImageMode("file")}
+                className={[
+                  "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all",
+                  imageMode === "file"
+                    ? "bg-indigo-500/15 border-indigo-500/40 text-indigo-300"
+                    : "bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:border-zinc-600",
+                ].join(" ")}
+              >
+                <Upload size={12} />
+                Upload
+              </button>
+            </div>
+
+            {imageMode === "url" ? (
+              <TextInput
+                value={form.imageUrl}
+                onChange={(v) => {
+                  set("imageUrl", v);
+                  setImagePreview(v || null);
+                }}
+                placeholder="https://example.com/avatar.jpg"
+                icon={<Camera width={15} height={15} />}
+              />
+            ) : (
+              <div>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className="w-full h-11 flex items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-700 hover:border-indigo-500/50 bg-zinc-900 hover:bg-indigo-500/5 text-sm text-zinc-500 hover:text-indigo-300 transition-all duration-200"
+                >
+                  {uploading ? (
+                    <Loader2 size={15} className="animate-spin" />
+                  ) : (
+                    <Upload size={15} />
+                  )}
+                  {uploading ? "Uploading…" : "Choose image file"}
+                </button>
+              </div>
+            )}
+
+            <AnimatePresence>
+              {imagePreview && !uploading && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="flex items-center gap-3 mt-2.5"
+                >
+                  <div className="w-10 h-10 rounded-full overflow-hidden border border-zinc-700 bg-zinc-800 flex-shrink-0">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                      onError={() => setImagePreview(null)}
+                    />
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-emerald-400">
+                    <CircleCheckFill width={13} height={13} />
+                    Image ready
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </Field>
+
+          <Field label="Role" error={errors.role}>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setRoleOpen((o) => !o)}
+                className={[
+                  "flex items-center justify-between w-full h-11 px-3.5 rounded-xl border bg-zinc-900 text-sm transition-all duration-200",
+                  "focus:outline-none focus:ring-2 focus:ring-indigo-500/30",
+                  roleOpen
+                    ? "border-indigo-500/50 ring-2 ring-indigo-500/20"
+                    : "",
+                  errors.role
+                    ? "border-red-500/60"
+                    : "border-zinc-800 hover:border-zinc-700",
+                  form.role ? "text-zinc-100" : "text-zinc-600",
+                ].join(" ")}
+              >
+                <span>
+                  {form.role ? roleLabels[form.role] : "Select your role…"}
+                </span>
+                <motion.span
+                  animate={{ rotate: roleOpen ? 180 : 0 }}
+                  transition={{ duration: 0.18 }}
+                  className="text-zinc-500"
+                >
+                  <ChevronDown size={15} />
+                </motion.span>
+              </button>
+
+              <AnimatePresence>
+                {roleOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.97 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute top-[calc(100%+6px)] left-0 right-0 z-20 rounded-xl border border-zinc-800 bg-zinc-900 shadow-2xl overflow-hidden"
+                  >
+                    {["founder", "collaborator"].map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => {
+                          set("role", r);
+                          setRoleOpen(false);
+                        }}
+                        className={[
+                          "w-full text-left px-3.5 py-2.5 text-sm transition-colors",
+                          form.role === r
+                            ? "bg-indigo-500/15 text-indigo-300"
+                            : "text-zinc-300 hover:bg-zinc-800",
+                        ].join(" ")}
+                      >
+                        <span className="font-medium">{roleLabels[r]}</span>
+                        <span className="ml-2 text-zinc-600 text-xs">
+                          {r === "founder"
+                            ? "— building something new"
+                            : "— joining a team"}
+                        </span>
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </Field>
+
+          <Button
+            type="submit"
+            isDisabled={status === "loading" || status === "success"}
+            className={[
+              "mt-1 w-full h-11 rounded-xl font-semibold text-sm transition-all duration-200",
+              "bg-indigo-600 hover:bg-indigo-500 text-white",
+              "disabled:opacity-50 disabled:cursor-not-allowed",
+              "focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:ring-offset-2 focus:ring-offset-zinc-900",
+              "flex items-center justify-center gap-2",
+            ].join(" ")}
+          >
+            {status === "loading" ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                Creating account…
+              </>
+            ) : status === "success" ? (
+              <>
+                <CheckCircle2 size={16} />
+                Account created!
+              </>
+            ) : (
+              <>
+                Create account
+                <ArrowRight width={15} height={15} />
+              </>
+            )}
+          </Button>
+        </form>
+
+        <div className="flex items-center gap-3 my-5">
+          <div className="flex-1 h-px bg-zinc-800" />
+          <span className="text-xs text-zinc-600">or continue with</span>
+          <div className="flex-1 h-px bg-zinc-800" />
+        </div>
+
+        <button
+          type="button"
+          onClick={handleGoogleAuth}
+          disabled={status === "loading"}
+          className="w-full h-11 flex items-center justify-center gap-2.5 rounded-xl border border-zinc-700 hover:border-zinc-600 bg-zinc-900 hover:bg-zinc-800 text-sm text-zinc-200 font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <GoogleIcon />
+          Continue with Google
+        </button>
+
+        <p className="text-center text-sm text-zinc-600 mt-5">
+          Already have an account?{" "}
+          <Link
+            href={`/signin?redirect=${redirectTo}`}
+            className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+          >
+            Sign in
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function SignupFallback() {
+  return (
+    <div className="relative rounded-2xl border border-zinc-800/80 bg-zinc-900/80 backdrop-blur-xl shadow-2xl p-12 text-center flex flex-col items-center justify-center font-sans">
+      <Loader2 size={24} className="animate-spin text-indigo-500 mb-3" />
+      <p className="text-xs font-mono text-zinc-500">Loading sign up...</p>
+    </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4 relative overflow-hidden font-sans">
+      {/* Ambient background */}
       <div className="absolute inset-0 pointer-events-none">
         <div
           className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full opacity-[0.07]"
@@ -290,350 +647,14 @@ export default function SignupPage() {
         transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
         className="relative w-full max-w-[440px]"
       >
-        <div className="relative rounded-2xl border border-zinc-800/80 bg-zinc-900/80 backdrop-blur-xl shadow-2xl overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
+        <Suspense fallback={<SignupFallback />}>
+          <SignupContent />
+        </Suspense>
 
-          <div className="px-7 pt-8 pb-7">
-            <div className="mb-7">
-              <div className="flex items-center gap-2.5 mb-5">
-                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                  <div className="w-3.5 h-3.5 rounded-[3px] bg-indigo-400" />
-                </div>
-                <span className="text-xs font-semibold tracking-[0.2em] text-zinc-500 uppercase">
-                  Launchpad
-                </span>
-              </div>
-              <h1 className="text-2xl font-bold text-zinc-50 tracking-tight leading-none mb-1.5">
-                Create your account
-              </h1>
-              <p className="text-sm text-zinc-500">
-                Join the network of founders and collaborators.
-              </p>
-            </div>
-
-            <AnimatePresence>
-              {(status === "success" || status === "error") && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-                  animate={{ opacity: 1, height: "auto", marginBottom: 20 }}
-                  exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                  transition={{ duration: 0.25 }}
-                  className={[
-                    "flex items-start gap-3 rounded-xl px-4 py-3 text-sm",
-                    status === "success"
-                      ? "bg-emerald-500/10 border border-emerald-500/25 text-emerald-300"
-                      : "bg-red-500/10 border border-red-500/25 text-red-300",
-                  ].join(" ")}
-                >
-                  {status === "success" ? (
-                    <CheckCircle2 size={16} className="flex-shrink-0 mt-0.5" />
-                  ) : (
-                    <CircleXmark
-                      width={16}
-                      height={16}
-                      className="flex-shrink-0 mt-0.5"
-                    />
-                  )}
-                  <span>{statusMessage}</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <form
-              onSubmit={handleSubmit}
-              noValidate
-              className="flex flex-col gap-4"
-            >
-              <Field label="Full Name" error={errors.name}>
-                <TextInput
-                  value={form.name}
-                  onChange={(v) => set("name", v)}
-                  placeholder="Alex Johnson"
-                  icon={<Person width={15} height={15} />}
-                  hasError={!!errors.name}
-                  autoComplete="name"
-                />
-              </Field>
-
-              <Field label="Email" error={errors.email}>
-                <TextInput
-                  value={form.email}
-                  onChange={(v) => set("email", v)}
-                  placeholder="alex@company.com"
-                  type="email"
-                  icon={<Envelope width={15} height={15} />}
-                  hasError={!!errors.email}
-                  autoComplete="email"
-                />
-              </Field>
-
-              <Field label="Password" error={errors.password}>
-                <TextInput
-                  value={form.password}
-                  onChange={(v) => set("password", v)}
-                  placeholder="Min. 6 chars, Aa..."
-                  type={showPassword ? "text" : "password"}
-                  icon={<Lock width={15} height={15} />}
-                  hasError={!!errors.password}
-                  autoComplete="new-password"
-                  suffix={
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((s) => !s)}
-                      className="text-zinc-500 hover:text-zinc-300 transition-colors p-0.5"
-                      aria-label={
-                        showPassword ? "Hide password" : "Show password"
-                      }
-                    >
-                      {showPassword ? (
-                        <EyeSlash width={15} height={15} />
-                      ) : (
-                        <Eye width={15} height={15} />
-                      )}
-                    </button>
-                  }
-                />
-                {form.password.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex items-center gap-2 mt-0.5"
-                  >
-                    <div className="flex gap-0.5 flex-1">
-                      {[1, 2, 3, 4, 5, 6].map((i) => (
-                        <div
-                          key={i}
-                          className="h-0.5 flex-1 rounded-full transition-all duration-300"
-                          style={{
-                            backgroundColor:
-                              i <= strength.score ? strength.color : "#27272a",
-                          }}
-                        />
-                      ))}
-                    </div>
-                    <span
-                      className="text-[11px] font-medium"
-                      style={{ color: strength.color }}
-                    >
-                      {strength.label}
-                    </span>
-                  </motion.div>
-                )}
-              </Field>
-
-              <Field label="Profile Image" error={uploadError ?? undefined}>
-                <div className="flex items-center gap-2 mb-2">
-                  <button
-                    type="button"
-                    onClick={() => setImageMode("url")}
-                    className={[
-                      "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all",
-                      imageMode === "url"
-                        ? "bg-indigo-500/15 border-indigo-500/40 text-indigo-300"
-                        : "bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:border-zinc-600",
-                    ].join(" ")}
-                  >
-                    <LinkIcon width={12} height={12} />
-                    URL
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setImageMode("file")}
-                    className={[
-                      "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all",
-                      imageMode === "file"
-                        ? "bg-indigo-500/15 border-indigo-500/40 text-indigo-300"
-                        : "bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:border-zinc-600",
-                    ].join(" ")}
-                  >
-                    <Upload size={12} />
-                    Upload
-                  </button>
-                </div>
-
-                {imageMode === "url" ? (
-                  <TextInput
-                    value={form.imageUrl}
-                    onChange={(v) => {
-                      set("imageUrl", v);
-                      setImagePreview(v || null);
-                    }}
-                    placeholder="https://example.com/avatar.jpg"
-                    icon={<Camera width={15} height={15} />}
-                  />
-                ) : (
-                  <div>
-                    <input
-                      ref={fileRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleFileChange}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => fileRef.current?.click()}
-                      className="w-full h-11 flex items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-700 hover:border-indigo-500/50 bg-zinc-900 hover:bg-indigo-500/5 text-sm text-zinc-500 hover:text-indigo-300 transition-all duration-200"
-                    >
-                      {uploading ? (
-                        <Loader2 size={15} className="animate-spin" />
-                      ) : (
-                        <Upload size={15} />
-                      )}
-                      {uploading ? "Uploading…" : "Choose image file"}
-                    </button>
-                  </div>
-                )}
-
-                <AnimatePresence>
-                  {imagePreview && !uploading && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      className="flex items-center gap-3 mt-2.5"
-                    >
-                      <div className="w-10 h-10 rounded-full overflow-hidden border border-zinc-700 bg-zinc-800 flex-shrink-0">
-                        <img
-                          src={imagePreview}
-                          alt="Preview"
-                          className="w-full h-full object-cover"
-                          onError={() => setImagePreview(null)}
-                        />
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs text-emerald-400">
-                        <CircleCheckFill width={13} height={13} />
-                        Image ready
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </Field>
-
-              <Field label="Role" error={errors.role}>
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setRoleOpen((o) => !o)}
-                    className={[
-                      "flex items-center justify-between w-full h-11 px-3.5 rounded-xl border bg-zinc-900 text-sm transition-all duration-200",
-                      "focus:outline-none focus:ring-2 focus:ring-indigo-500/30",
-                      roleOpen
-                        ? "border-indigo-500/50 ring-2 ring-indigo-500/20"
-                        : "",
-                      errors.role
-                        ? "border-red-500/60"
-                        : "border-zinc-800 hover:border-zinc-700",
-                      form.role ? "text-zinc-100" : "text-zinc-600",
-                    ].join(" ")}
-                  >
-                    <span>
-                      {form.role ? roleLabels[form.role] : "Select your role…"}
-                    </span>
-                    <motion.span
-                      animate={{ rotate: roleOpen ? 180 : 0 }}
-                      transition={{ duration: 0.18 }}
-                      className="text-zinc-500"
-                    >
-                      <ChevronDown size={15} />
-                    </motion.span>
-                  </button>
-
-                  <AnimatePresence>
-                    {roleOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -6, scale: 0.97 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -6, scale: 0.97 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute top-[calc(100%+6px)] left-0 right-0 z-20 rounded-xl border border-zinc-800 bg-zinc-900 shadow-2xl overflow-hidden"
-                      >
-                        {["founder", "collaborator"].map((r) => (
-                          <button
-                            key={r}
-                            type="button"
-                            onClick={() => {
-                              set("role", r);
-                              setRoleOpen(false);
-                            }}
-                            className={[
-                              "w-full text-left px-3.5 py-2.5 text-sm transition-colors",
-                              form.role === r
-                                ? "bg-indigo-500/15 text-indigo-300"
-                                : "text-zinc-300 hover:bg-zinc-800",
-                            ].join(" ")}
-                          >
-                            <span className="font-medium">{roleLabels[r]}</span>
-                            <span className="ml-2 text-zinc-600 text-xs">
-                              {r === "founder"
-                                ? "— building something new"
-                                : "— joining a team"}
-                            </span>
-                          </button>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </Field>
-
-              <Button
-                type="submit"
-                isDisabled={status === "loading" || status === "success"}
-                className={[
-                  "mt-1 w-full h-11 rounded-xl font-semibold text-sm transition-all duration-200",
-                  "bg-indigo-600 hover:bg-indigo-500 text-white",
-                  "disabled:opacity-50 disabled:cursor-not-allowed",
-                  "focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:ring-offset-2 focus:ring-offset-zinc-900",
-                  "flex items-center justify-center gap-2",
-                ].join(" ")}
-              >
-                {status === "loading" ? (
-                  <>
-                    <Loader2 size={16} className="animate-spin" />
-                    Creating account…
-                  </>
-                ) : status === "success" ? (
-                  <>
-                    <CheckCircle2 size={16} />
-                    Account created!
-                  </>
-                ) : (
-                  <>
-                    Create account
-                    <ArrowRight width={15} height={15} />
-                  </>
-                )}
-              </Button>
-            </form>
-
-            <div className="flex items-center gap-3 my-5">
-              <div className="flex-1 h-px bg-zinc-800" />
-              <span className="text-xs text-zinc-600">or continue with</span>
-              <div className="flex-1 h-px bg-zinc-800" />
-            </div>
-
-            <button
-              type="button"
-              onClick={handleGoogleAuth}
-              disabled={status === "loading"}
-              className="w-full h-11 flex items-center justify-center gap-2.5 rounded-xl border border-zinc-700 hover:border-zinc-600 bg-zinc-900 hover:bg-zinc-800 text-sm text-zinc-200 font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <GoogleIcon />
-              Continue with Google
-            </button>
-
-            <p className="text-center text-sm text-zinc-600 mt-5">
-              Already have an account?{" "}
-              <Link
-                href={`/signin?redirect=${redirectTo}`}
-                className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
-              >
-                Sign in
-              </Link>
-            </p>
-          </div>
-        </div>
+        <p className="text-center text-xs text-zinc-700 mt-4">
+          <User size={11} className="inline mr-1" />
+          Launchpad Auth System
+        </p>
       </motion.div>
     </div>
   );
