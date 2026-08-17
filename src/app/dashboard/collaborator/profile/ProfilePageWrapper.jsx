@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BadgeCheck, Sparkles } from "lucide-react";
+import { BadgeCheck, Sparkles, User, ShieldCheck } from "lucide-react";
 import {
   Btn,
   Input,
@@ -15,11 +15,25 @@ import {
 import { authClient } from "@/lib/auth-client";
 import { updateUserProfile } from "@/lib/actions/users";
 
+// Helper to resolve user persona / role
+function getUserPersona(u) {
+  if (!u) return "collaborator";
+  const role = String(u.role || "").toLowerCase();
+  const accountType = String(u.accountType || "").toLowerCase();
+
+  if (role === "admin") return "admin";
+  if (accountType === "founder" || role === "founder") return "founder";
+  return "collaborator";
+}
+
 export default function ProfilePageWrapper({ initialUser }) {
   const router = useRouter();
   const { data: session } = authClient.useSession();
   const user = initialUser || session?.user;
-  const activeUserId = user?.id || user?._id;
+  const activeUserId = String(user?.id || user?._id || "");
+
+  // Resolve active persona (collaborator, founder, admin)
+  const persona = useMemo(() => getUserPersona(user), [user]);
 
   // Check if user has an upgraded plan (Premium or Enterprise)
   const planKey = String(user?.plan || user?.plan_id || "").toLowerCase();
@@ -28,9 +42,9 @@ export default function ProfilePageWrapper({ initialUser }) {
     planKey.includes("enterprise") ||
     (planKey !== "" && !planKey.includes("free"));
 
-  // Initialize profile state (Handles empty skills and bio gracefully)
+  // Initialize profile state
   const [profile, setProfile] = useState({
-    name: user?.name || "Collaborator",
+    name: user?.name || "",
     image:
       user?.image || "https://i.ibb.co/FkYm90bc/IMG-20251010-WA0001-1-1.png",
     skills: Array.isArray(user?.skills)
@@ -129,7 +143,7 @@ export default function ProfilePageWrapper({ initialUser }) {
       router.refresh();
     } catch (err) {
       console.error("Failed to save profile:", err);
-      setError(err.message || "Failed to update profile. Please try again.");
+      setError(err?.message || "Failed to update profile. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -142,14 +156,19 @@ export default function ProfilePageWrapper({ initialUser }) {
         .filter(Boolean)
     : [];
 
+  const upgradeUrl =
+    persona === "founder"
+      ? "/dashboard/founder/pricing"
+      : "/dashboard/collaborator/premium";
+
   return (
-    <div className="p-8 space-y-6 max-w-3xl">
+    <div className="p-8 space-y-6 max-w-3xl font-sans">
       {/* Header & Update Action */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-slate-100">Profile Settings</h2>
           <p className="text-xs text-slate-400 mt-1">
-            View and manage your public collaborator profile and skill set.
+            View and manage your public {persona} profile and account details.
           </p>
         </div>
         <Btn onClick={handleOpenModal} variant="primary">
@@ -159,7 +178,7 @@ export default function ProfilePageWrapper({ initialUser }) {
 
       {/* Success Banner */}
       {saved && (
-        <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono flex items-center justify-between">
+        <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono flex items-center justify-between shadow-sm">
           <span>✓ Profile updated and saved successfully!</span>
         </div>
       )}
@@ -167,7 +186,7 @@ export default function ProfilePageWrapper({ initialUser }) {
       {/* ========================================================================= */}
       {/* PROFILE COMPLETION CARD */}
       {/* ========================================================================= */}
-      <div className="rounded-2xl p-5 bg-[#0D1528] border border-slate-800 space-y-3">
+      <div className="rounded-2xl p-5 bg-[#0D1528] border border-slate-800 space-y-3 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
             <h4 className="text-sm font-semibold text-slate-200">
@@ -175,8 +194,8 @@ export default function ProfilePageWrapper({ initialUser }) {
             </h4>
             <p className="text-xs text-slate-400 mt-0.5">
               {completionPercentage === 100
-                ? "🎉 Your profile is 100% complete! You're ready to stand out to founders."
-                : `Complete your profile to increase visibility with startup founders.`}
+                ? `🎉 Your profile is 100% complete! Ready to stand out on the platform.`
+                : `Complete your profile to increase your credibility and platform visibility.`}
             </p>
           </div>
           <span
@@ -224,19 +243,19 @@ export default function ProfilePageWrapper({ initialUser }) {
       </div>
 
       {/* Main Profile View Card */}
-      <div className="rounded-2xl p-6 bg-[#0D1528] border border-slate-800 space-y-6">
+      <div className="rounded-2xl p-6 bg-[#0D1528] border border-slate-800 space-y-6 shadow-sm">
         <div className="flex items-start justify-between gap-4 pb-6 border-b border-slate-800">
           <div className="flex items-center gap-4">
             <div className="relative">
               <img
                 src={profile.image}
-                alt={profile.name}
+                alt={profile.name || "User Avatar"}
                 className="w-20 h-20 rounded-full object-cover ring-2 ring-amber-500/30 bg-[#060C1A]"
               />
               {isUpgraded && (
                 <div
                   className="absolute -bottom-1 -right-1 bg-amber-500 text-slate-950 p-1 rounded-full ring-2 ring-[#0D1528]"
-                  title="Verified Collaborator"
+                  title={`Verified ${persona}`}
                 >
                   <BadgeCheck className="w-4 h-4 fill-amber-500 text-slate-950" />
                 </div>
@@ -246,38 +265,41 @@ export default function ProfilePageWrapper({ initialUser }) {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-lg font-bold text-slate-100">
-                  {profile.name}
+                  {profile.name || "User"}
                 </h3>
 
-                {/* VERIFIED BADGE OR UPGRADE LINK */}
+                {/* Verified Badge or Upgrade Link */}
                 {isUpgraded ? (
                   <span
                     className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full"
-                    title="Verified Collaborator Account"
+                    title={`Verified ${persona} Account`}
                   >
                     <BadgeCheck className="h-3.5 w-3.5 text-amber-400 fill-amber-500/20" />
                     <span>VERIFIED</span>
                   </span>
                 ) : (
-                  <Link href="/dashboard/collaborator/premium">
+                  <Link href={upgradeUrl}>
                     <span className="text-[10px] font-mono text-slate-400 bg-white/5 hover:bg-white/10 border border-slate-800 px-2.5 py-0.5 rounded-full transition-colors inline-flex items-center gap-1 cursor-pointer">
                       <Sparkles className="h-3 w-3 text-amber-500" />
-                      <span>Get Verified Badge</span>
+                      <span>Upgrade Plan</span>
                     </span>
                   </Link>
                 )}
               </div>
 
-              <p className="text-xs font-mono text-slate-500 mt-1 capitalize">
-                {user?.role || "Collaborator"} Account
+              <p className="text-xs font-mono text-slate-400 mt-1 capitalize flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                <span>{persona} Account</span>
               </p>
+
               {user?.email && (
-                <p className="text-xs font-mono text-slate-400 mt-0.5">
+                <p className="text-xs font-mono text-slate-500 mt-0.5">
                   {user.email}
                 </p>
               )}
             </div>
           </div>
+
           <Btn onClick={handleOpenModal} variant="outline" size="sm">
             Edit Profile
           </Btn>
@@ -286,7 +308,7 @@ export default function ProfilePageWrapper({ initialUser }) {
         {/* Skills Section */}
         <div>
           <p className="text-xs font-mono uppercase tracking-wider text-slate-500 mb-2">
-            Skills
+            Skills &amp; Expertise
           </p>
           {skillsList.length > 0 ? (
             <div className="flex flex-wrap gap-2">
@@ -301,8 +323,8 @@ export default function ProfilePageWrapper({ initialUser }) {
             </div>
           ) : (
             <p className="text-xs text-slate-500 italic">
-              No skills added yet. Click "Update Profile" to add your skills
-              (+25%).
+              No skills added yet. Click &quot;Update Profile&quot; to add your
+              skills (+25%).
             </p>
           )}
         </div>
@@ -318,7 +340,8 @@ export default function ProfilePageWrapper({ initialUser }) {
             </p>
           ) : (
             <p className="text-xs text-slate-500 italic">
-              No bio added yet. Click "Update Profile" to add a bio (+25%).
+              No bio added yet. Click &quot;Update Profile&quot; to introduce
+              yourself (+25%).
             </p>
           )}
         </div>
@@ -327,7 +350,7 @@ export default function ProfilePageWrapper({ initialUser }) {
       {/* Update Profile Modal */}
       {isModalOpen && (
         <Modal title="Update Profile" onClose={handleCloseModal}>
-          <form onSubmit={handleSave} className="space-y-4">
+          <form onSubmit={handleSave} className="space-y-4 font-sans">
             {error && (
               <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
                 ⚠️ {error}
@@ -357,7 +380,7 @@ export default function ProfilePageWrapper({ initialUser }) {
               <Input
                 value={editForm.skills}
                 onChange={(v) => setEditForm({ ...editForm, skills: v })}
-                placeholder="React, TypeScript, Node.js, Python"
+                placeholder="React, TypeScript, Node.js, Python, UI/UX"
               />
             </div>
 
@@ -366,7 +389,11 @@ export default function ProfilePageWrapper({ initialUser }) {
               <Textarea
                 value={editForm.bio}
                 onChange={(v) => setEditForm({ ...editForm, bio: v })}
-                placeholder="Tell startup founders about your background and experience..."
+                placeholder={
+                  persona === "founder"
+                    ? "Share your mission, startup vision, and background..."
+                    : "Tell startup founders about your technical background and experience..."
+                }
                 rows={4}
               />
             </div>

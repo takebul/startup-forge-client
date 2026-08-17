@@ -13,6 +13,23 @@ function parseArrayData(data, key) {
   return [];
 }
 
+// Helper to calculate collaborator profile completion
+function calculateProfileStrength(userData) {
+  if (!userData) return 0;
+  let score = 0;
+  if (userData.name && String(userData.name).trim().length > 0) score += 25;
+  if (userData.image && String(userData.image).trim().length > 0) score += 25;
+  if (
+    userData.skills &&
+    (Array.isArray(userData.skills)
+      ? userData.skills.length > 0
+      : String(userData.skills).trim().length > 0)
+  )
+    score += 25;
+  if (userData.bio && String(userData.bio).trim().length > 0) score += 25;
+  return score || 25; // default minimum baseline
+}
+
 // -----------------------------------------------------------------------------
 // ANIMATION VARIANTS
 // -----------------------------------------------------------------------------
@@ -95,7 +112,7 @@ const GuestBanner = () => (
       >
         <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
           <Link
-            href="/register?role=founder"
+            href="/signup"
             className="inline-block rounded-xl px-7 py-3.5 text-sm font-semibold text-white bg-violet-600 shadow-lg shadow-violet-600/25 hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-500 transition-colors"
           >
             Post your startup idea
@@ -326,6 +343,8 @@ const CollaboratorBanner = ({
     [appsList],
   );
 
+  const profileStrength = useMemo(() => calculateProfileStrength(user), [user]);
+
   return (
     <section className="py-16 transition-colors duration-300 bg-[#f0f0f8] dark:bg-[#0c0c16] font-sans">
       <div className="mx-auto max-w-6xl px-6 lg:px-12">
@@ -415,15 +434,15 @@ const CollaboratorBanner = ({
                 },
                 {
                   label: "Profile completeness",
-                  value: "85%",
+                  value: `${profileStrength}%`,
                   valueClass:
                     "text-sm font-semibold font-mono text-emerald-600 dark:text-emerald-400",
                 },
                 {
-                  label: "Team invites",
-                  value: "1 New invite",
+                  label: "Account Status",
+                  value: user?.status || "Active",
                   valueClass:
-                    "text-sm font-semibold font-mono text-slate-900 dark:text-white",
+                    "text-sm font-semibold font-mono capitalize text-slate-900 dark:text-white",
                 },
               ].map(({ label, value, valueClass }, i) => (
                 <motion.div
@@ -442,7 +461,7 @@ const CollaboratorBanner = ({
               ))}
             </div>
 
-            {/* Progress Bar */}
+            {/* Dynamic Progress Bar */}
             <motion.div
               variants={fadeUp}
               initial="hidden"
@@ -455,14 +474,14 @@ const CollaboratorBanner = ({
                   Profile strength
                 </span>
                 <span className="text-xs font-semibold font-mono text-emerald-600 dark:text-emerald-400">
-                  85%
+                  {profileStrength}%
                 </span>
               </div>
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                 <motion.div
                   className="h-full rounded-full bg-emerald-500"
                   initial={{ width: 0 }}
-                  animate={{ width: "85%" }}
+                  animate={{ width: `${profileStrength}%` }}
                   transition={{
                     duration: 1,
                     delay: 0.5,
@@ -640,7 +659,17 @@ export default function BannerPage({
   startups = [],
   userData = [],
 }) {
-  const activeRole = overrideRole || user?.role;
+  // Resolves persona: 1. Admin, 2. overrideRole, 3. user.accountType, 4. user.role fallback
+  const activeRole = useMemo(() => {
+    if (!user) return null;
+    if (user?.role === "admin") return "admin";
+    if (overrideRole && overrideRole !== "user") return overrideRole;
+    return (
+      user?.accountType ||
+      (user?.role !== "user" ? user?.role : null) ||
+      "collaborator"
+    );
+  }, [user, overrideRole]);
 
   if (!user) return <GuestBanner />;
 

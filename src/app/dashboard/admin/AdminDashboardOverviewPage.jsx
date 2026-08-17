@@ -50,7 +50,7 @@ const MONTH_NAMES = [
 const CustomBarTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl px-3.5 py-2.5 bg-[#0D1528] border border-slate-800 text-xs shadow-xl space-y-1">
+    <div className="rounded-xl px-3.5 py-2.5 bg-[#0D1528] border border-slate-800 text-xs shadow-xl space-y-1 font-sans">
       <p className="font-semibold text-slate-200">{label}</p>
       <p className="text-amber-400 font-mono font-bold">
         Revenue: $
@@ -66,7 +66,7 @@ const CustomBarTooltip = ({ active, payload, label }) => {
 const CustomPieTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl px-3 py-2 bg-[#0D1528] border border-slate-800 text-xs shadow-xl">
+    <div className="rounded-xl px-3 py-2 bg-[#0D1528] border border-slate-800 text-xs shadow-xl font-sans">
       <p className="text-slate-200">
         {payload[0].name}:{" "}
         <span className="font-mono font-bold text-amber-400">
@@ -113,12 +113,16 @@ export default function AdminDashboardOverviewPage({
 
   const totalRevenueDollars = useMemo(() => {
     return subscriptionsList
-      .filter(
-        (s) =>
-          s.payment_status === "paid" ||
-          s.payment_status === "Completed" ||
-          s.paymentStatus === "Completed",
-      )
+      .filter((s) => {
+        const pStatus = String(
+          s.payment_status || s.paymentStatus || s.status || "",
+        ).toLowerCase();
+        return (
+          pStatus === "paid" ||
+          pStatus === "completed" ||
+          pStatus === "succeeded"
+        );
+      })
       .reduce((sum, s) => sum + (s.amount || 0) / 100, 0);
   }, [subscriptionsList]);
 
@@ -171,10 +175,13 @@ export default function AdminDashboardOverviewPage({
     const monthMap = {};
 
     subscriptionsList.forEach((sub) => {
+      const pStatus = String(
+        sub.payment_status || sub.paymentStatus || sub.status || "",
+      ).toLowerCase();
       if (
-        sub.payment_status === "paid" ||
-        sub.payment_status === "Completed" ||
-        sub.paymentStatus === "Completed"
+        pStatus === "paid" ||
+        pStatus === "completed" ||
+        pStatus === "succeeded"
       ) {
         const dateStr = sub.subscriptionAt || sub.createdAt || sub.date;
         if (dateStr) {
@@ -202,36 +209,49 @@ export default function AdminDashboardOverviewPage({
     return chartData;
   }, [subscriptionsList, totalRevenueDollars]);
 
-  // 3B. Compute Daily Revenue Growth Chart Data
+  // 3B. Compute Daily Revenue Growth Chart Data with Chronological Sorting
   const dailyRevenueChartData = useMemo(() => {
     const dayMap = {};
 
     subscriptionsList.forEach((sub) => {
+      const pStatus = String(
+        sub.payment_status || sub.paymentStatus || sub.status || "",
+      ).toLowerCase();
       if (
-        sub.payment_status === "paid" ||
-        sub.payment_status === "Completed" ||
-        sub.paymentStatus === "Completed"
+        pStatus === "paid" ||
+        pStatus === "completed" ||
+        pStatus === "succeeded"
       ) {
         const dateStr = sub.subscriptionAt || sub.createdAt || sub.date;
         if (dateStr) {
           const date = new Date(dateStr);
           if (!isNaN(date.getTime())) {
-            // Format as "MMM DD" (e.g., "Aug 04", "Aug 06", "Aug 09")
             const dayKey = date.toLocaleDateString("en-US", {
               month: "short",
               day: "2-digit",
             });
             const amountInDollars = (sub.amount || 0) / 100;
-            dayMap[dayKey] = (dayMap[dayKey] || 0) + amountInDollars;
+
+            if (!dayMap[dayKey]) {
+              dayMap[dayKey] = {
+                label: dayKey,
+                Revenue: 0,
+                timestamp: new Date(
+                  date.getFullYear(),
+                  date.getMonth(),
+                  date.getDate(),
+                ).getTime(),
+              };
+            }
+            dayMap[dayKey].Revenue += amountInDollars;
           }
         }
       }
     });
 
-    const chartData = Object.keys(dayMap).map((day) => ({
-      label: day,
-      Revenue: dayMap[day],
-    }));
+    const chartData = Object.values(dayMap)
+      .sort((a, b) => a.timestamp - b.timestamp)
+      .map(({ label, Revenue }) => ({ label, Revenue }));
 
     if (chartData.length === 0) {
       return [{ label: "Today", Revenue: totalRevenueDollars }];
@@ -244,7 +264,7 @@ export default function AdminDashboardOverviewPage({
   const activeRevenueData =
     revenueView === "daily" ? dailyRevenueChartData : monthlyRevenueChartData;
 
-  // 4. Compute User Role Distribution for Donut Chart
+  // 4. Compute User Persona Distribution (Reads role and accountType)
   const userRoleDistribution = useMemo(() => {
     let collaborators = 0;
     let founders = 0;
@@ -252,9 +272,16 @@ export default function AdminDashboardOverviewPage({
 
     usersList.forEach((u) => {
       const role = String(u.role || "").toLowerCase();
-      if (role === "collaborator") collaborators++;
-      else if (role === "founder") founders++;
-      else if (role === "admin") admins++;
+      const accountType = String(u.accountType || "").toLowerCase();
+
+      if (role === "admin") {
+        admins++;
+      } else if (accountType === "founder" || role === "founder") {
+        founders++;
+      } else {
+        // Defaults to collaborator for collaborator accounts or general members
+        collaborators++;
+      }
     });
 
     return [
@@ -402,7 +429,7 @@ export default function AdminDashboardOverviewPage({
               User Distribution
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              Real breakdown by active ecosystem roles
+              Real breakdown by active ecosystem personas
             </p>
           </div>
 

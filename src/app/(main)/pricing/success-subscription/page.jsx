@@ -31,6 +31,7 @@ export default async function SuccessSubscriptionPage({ searchParams }) {
     throw new Error("Please provide a valid session_id (`cs_test_...`)");
   }
 
+  // Retrieve Stripe checkout session with expanded details
   const payment_session = await stripe.checkout.sessions.retrieve(session_id, {
     expand: ["line_items", "payment_intent"],
   });
@@ -51,24 +52,28 @@ export default async function SuccessSubscriptionPage({ searchParams }) {
   }
 
   if (status === "complete") {
+    const rawPlanId = String(
+      metadata?.planId || user?.plan || "",
+    ).toLowerCase();
+
+    // Accurately determine if the user is a Collaborator or Founder using accountType
+    const isCollaborator =
+      rawPlanId.includes("collaborator") ||
+      user?.accountType === "collaborator" ||
+      user?.role === "collaborator";
+
     const subsInfo = {
       email: user?.email,
-      planId: metadata?.planId,
+      planId: metadata?.planId || rawPlanId,
       payment_status: payment_status,
       amount: amount_total,
       session_id: session_id,
-      userId: user?.id,
+      userId: user?.id || user?._id,
+      accountType: isCollaborator ? "collaborator" : "founder",
     };
 
     const payment_result = await subscription({ subsInfo, user });
     console.log("Subscription Process Result:", payment_result);
-
-    // Identify if the upgrade belongs to a Collaborator or Founder
-    const rawPlanId = String(
-      metadata?.planId || user?.plan || "",
-    ).toLowerCase();
-    const isCollaborator =
-      rawPlanId.includes("collaborator") || user?.role === "collaborator";
 
     const planDisplayName =
       PLAN_NAME_MAP[rawPlanId] ||
@@ -97,7 +102,7 @@ export default async function SuccessSubscriptionPage({ searchParams }) {
 
             {/* Header Text */}
             <div className="mt-6 text-center">
-              <span className="inline-flex items-center space-x-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-bold text-emerald-400">
+              <span className="inline-flex items-center space-x-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-bold text-emerald-400 font-mono">
                 <Sparkles className="h-3.5 w-3.5" />
                 <span>Subscription Active</span>
               </span>
@@ -118,11 +123,11 @@ export default async function SuccessSubscriptionPage({ searchParams }) {
             {/* Receipt Summary Box */}
             <div className="mt-8 rounded-2xl border border-[#1E212B] bg-[#151722] p-5">
               <div className="flex items-center justify-between border-b border-[#1E212B] pb-3">
-                <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+                <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">
                   <Receipt className="h-4 w-4 text-indigo-400" />
                   <span>Payment Summary</span>
                 </div>
-                <span className="rounded bg-indigo-500/10 px-2 py-0.5 text-[10px] font-bold text-indigo-400">
+                <span className="rounded bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-bold font-mono text-emerald-400">
                   Paid
                 </span>
               </div>
@@ -136,7 +141,7 @@ export default async function SuccessSubscriptionPage({ searchParams }) {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Amount Charged:</span>
-                  <span className="font-bold text-emerald-400">
+                  <span className="font-bold text-emerald-400 font-mono">
                     {amountFormatted}
                   </span>
                 </div>

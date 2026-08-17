@@ -1,9 +1,9 @@
 "use client";
 
+import { useMemo } from "react";
 import { authClient } from "@/lib/auth-client";
 import {
   BadgeCheck,
-  BarChart3,
   Bookmark,
   Briefcase,
   Building2,
@@ -22,13 +22,27 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
-const DashboardSidebar = () => {
-  const pathname = usePathname();
-  const { data: session } = authClient.useSession();
-  const user = session?.user;
-  const router = useRouter();
+// Helper to resolve user persona (admin, founder, collaborator)
+function getUserPersona(u) {
+  if (!u) return "collaborator";
+  const role = String(u.role || "").toLowerCase();
+  const accountType = String(u.accountType || "").toLowerCase();
 
-  const role = user?.role || "founder";
+  if (role === "admin") return "admin";
+  if (accountType === "founder" || role === "founder") return "founder";
+  return "collaborator";
+}
+
+const DashboardSidebar = ({ initialUser }) => {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { data: session } = authClient.useSession();
+  const user = initialUser || session?.user;
+  const activeUserId = String(user?.id || user?._id || "");
+
+  // Resolve active persona (admin, founder, collaborator)
+  const persona = useMemo(() => getUserPersona(user), [user]);
+  const isAdmin = persona === "admin";
 
   // Check if user has an upgraded plan (Founder or Collaborator)
   const planKey = String(user?.plan || user?.plan_id || "").toLowerCase();
@@ -36,8 +50,6 @@ const DashboardSidebar = () => {
     planKey.includes("premium") ||
     planKey.includes("enterprise") ||
     (planKey !== "" && !planKey.includes("free"));
-
-  const isAdmin = role === "admin";
 
   const MAIN_MENU = {
     founder: [
@@ -58,13 +70,20 @@ const DashboardSidebar = () => {
       },
       {
         label: "Manage Opportunities",
-        href: `/dashboard/founder/manage-opportunities?startupId=${user?.id}`,
+        href: activeUserId
+          ? `/dashboard/founder/manage-opportunities?startupId=${activeUserId}`
+          : "/dashboard/founder/manage-opportunities",
         icon: Briefcase,
       },
       {
         label: "Applications",
         href: "/dashboard/founder/applications",
         icon: FileText,
+      },
+      {
+        label: "Pricing & Plans",
+        href: "/pricing",
+        icon: Zap,
       },
     ],
     collaborator: [
@@ -84,17 +103,17 @@ const DashboardSidebar = () => {
         icon: FileText,
       },
       {
-        label: "Profile",
+        label: "Saved Bookmarks",
+        href: "/dashboard/collaborator/bookmarks",
+        icon: Bookmark,
+      },
+      {
+        label: "Profile Settings",
         href: "/dashboard/collaborator/profile",
         icon: User,
       },
       {
-        label: "Bookmark",
-        href: "/dashboard/collaborator/bookmark",
-        icon: Bookmark,
-      },
-      {
-        label: "Premium",
+        label: "Premium Membership",
         href: "/dashboard/collaborator/premium",
         icon: Zap,
       },
@@ -123,12 +142,28 @@ const DashboardSidebar = () => {
     ],
   };
 
+  const activeLinks = MAIN_MENU[persona] || MAIN_MENU.collaborator;
+
+  const handleSignOut = async () => {
+    try {
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            router.push("/signin");
+          },
+        },
+      });
+    } catch (err) {
+      console.error("Failed to sign out:", err);
+    }
+  };
+
   return (
-    <aside className="w-60 bg-[#080E1C] border-r border-slate-800 flex flex-col h-screen sticky top-0">
+    <aside className="w-60 bg-[#080E1C] border-r border-slate-800 flex flex-col h-screen sticky top-0 font-sans z-30 select-none">
       {/* Brand Logo */}
       <div className="flex h-20 items-center px-6 border-b border-slate-800/50">
         <Link href="/" className="flex items-center space-x-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500 text-slate-950 font-bold">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500 text-slate-950 font-bold font-mono">
             SF
           </div>
           <span className="text-xl font-bold tracking-tight text-white">
@@ -140,11 +175,11 @@ const DashboardSidebar = () => {
       {/* Main Navigation Links */}
       <div className="flex-1 overflow-y-auto px-4 py-4">
         <div className="mb-6">
-          <h3 className="mb-3 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+          <h3 className="mb-3 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
             Main Menu
           </h3>
           <nav className="space-y-1.5">
-            {MAIN_MENU[role]?.map((link) => {
+            {activeLinks.map((link) => {
               const isActive = pathname === link.href;
               const Icon = link.icon;
               return (
@@ -158,7 +193,7 @@ const DashboardSidebar = () => {
                   }`}
                 >
                   <div className="flex items-center space-x-3">
-                    <Icon className="h-4 w-4" />
+                    <Icon className="h-4 w-4 shrink-0" />
                     <span>{link.label}</span>
                   </div>
                 </Link>
@@ -196,13 +231,13 @@ const DashboardSidebar = () => {
             <div className="flex flex-col min-w-0">
               <div className="flex items-center space-x-1">
                 <span className="text-xs font-bold text-white truncate">
-                  {user?.name || "Alex Rivera"}
+                  {user?.name || "User"}
                 </span>
                 {/* Verified Badge Icon next to name */}
                 {isAdmin && (
                   <Crown
                     className="h-3.5 w-3.5 text-purple-400 shrink-0"
-                    title="Unique Admin Status"
+                    title="Platform Administrator"
                   />
                 )}
                 {!isAdmin && isUpgraded && (
@@ -215,7 +250,7 @@ const DashboardSidebar = () => {
 
               <div className="flex items-center space-x-1 mt-0.5">
                 <span className="text-[10px] text-slate-500 capitalize">
-                  {role}
+                  {persona}
                 </span>
                 {isAdmin ? (
                   <span className="text-[9px] font-mono font-bold text-purple-400 bg-purple-500/10 px-1.5 rounded border border-purple-500/20">
@@ -231,16 +266,8 @@ const DashboardSidebar = () => {
           </div>
 
           <button
-            onClick={async () =>
-              await authClient.signOut({
-                fetchOptions: {
-                  onSuccess: () => {
-                    router.push("/");
-                  },
-                },
-              })
-            }
-            className="text-slate-500 hover:text-slate-300 ml-2"
+            onClick={handleSignOut}
+            className="text-slate-500 hover:text-slate-300 ml-2 transition-colors cursor-pointer"
             title="Sign Out"
           >
             <LogOut className="h-4 w-4" />

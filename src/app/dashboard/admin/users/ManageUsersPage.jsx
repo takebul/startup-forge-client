@@ -8,17 +8,17 @@ import { Btn, Badge } from "@/components/Dashboard/founder-dashboard-shared";
 import { authClient } from "@/lib/auth-client";
 import { updateUserStatus } from "@/lib/actions/users";
 
-// Helper function to format ISO date strings (e.g., 2026-08-04T12:39:44.194Z -> 2026-08-04)
+// Helper function to format ISO date strings (e.g., 2026-08-17T10:11:58.148Z -> 2026-08-17)
 function formatDate(dateStr) {
   if (!dateStr || dateStr === "N/A") return "N/A";
   if (typeof dateStr === "string" && dateStr.includes("T")) {
     return dateStr.split("T")[0];
   }
-  return dateStr;
+  return String(dateStr);
 }
 
 // Helper to resolve 3 distinct plan text badges (Free, Premium, Enterprise)
-function getPlanBadge(planStr, role) {
+function getPlanBadge(planStr, persona) {
   const str = String(planStr || "").toLowerCase();
 
   if (str.includes("enterprise")) {
@@ -27,12 +27,25 @@ function getPlanBadge(planStr, role) {
   if (str.includes("premium")) {
     return (
       <Badge
-        label={role === "founder" ? "Founder Premium" : "Collaborator Premium"}
+        label={
+          persona === "founder" ? "Founder Premium" : "Collaborator Premium"
+        }
         variant="amber"
       />
     );
   }
   return <Badge label="Free Plan" variant="gray" />;
+}
+
+// Helper to resolve a user's ecosystem persona
+function getUserPersona(u) {
+  if (!u) return "collaborator";
+  const role = String(u.role || "").toLowerCase();
+  const accountType = String(u.accountType || "").toLowerCase();
+
+  if (role === "admin") return "admin";
+  if (accountType === "founder" || role === "founder") return "founder";
+  return "collaborator";
 }
 
 export default function ManageUsersPage({ ALL_USERS = [], currentUser }) {
@@ -146,12 +159,12 @@ export default function ManageUsersPage({ ALL_USERS = [], currentUser }) {
     return users.filter((u) => {
       const name = String(u.name || "").toLowerCase();
       const email = String(u.email || "").toLowerCase();
-      const role = String(u.role || "").toLowerCase();
+      const persona = getUserPersona(u);
 
       const matchesSearch =
         name.includes(search.toLowerCase()) ||
         email.includes(search.toLowerCase());
-      const matchesRole = roleFilter === "all" || role === roleFilter;
+      const matchesRole = roleFilter === "all" || persona === roleFilter;
 
       return matchesSearch && matchesRole;
     });
@@ -207,7 +220,7 @@ export default function ManageUsersPage({ ALL_USERS = [], currentUser }) {
         </div>
 
         <div className="flex items-center gap-1.5 w-full sm:w-auto">
-          {["all", "founder", "collaborator"].map((r) => (
+          {["all", "founder", "collaborator", "admin"].map((r) => (
             <button
               key={r}
               onClick={() => setRoleFilter(r)}
@@ -235,7 +248,9 @@ export default function ManageUsersPage({ ALL_USERS = [], currentUser }) {
                 <Table.Column isRowHeader className="px-6 py-3.5">
                   User Details
                 </Table.Column>
-                <Table.Column className="px-6 py-3.5">Role</Table.Column>
+                <Table.Column className="px-6 py-3.5">
+                  Account Type
+                </Table.Column>
                 <Table.Column className="px-6 py-3.5">
                   Subscription Plan
                 </Table.Column>
@@ -268,7 +283,7 @@ export default function ManageUsersPage({ ALL_USERS = [], currentUser }) {
                     const isProcessing = loadingId === uId;
                     const userName = u.name || "User";
                     const userEmail = u.email || "N/A";
-                    const userRole = u.role || "collaborator";
+                    const userPersona = getUserPersona(u);
                     const joinedDate = formatDate(u.createdAt || u.joinedDate);
 
                     const isBlocked = Boolean(
@@ -289,9 +304,18 @@ export default function ManageUsersPage({ ALL_USERS = [], currentUser }) {
                         {/* User Details */}
                         <Table.Cell className="px-6 py-4">
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-9 h-9 rounded-full bg-slate-800 text-amber-500 font-bold flex items-center justify-center text-sm shrink-0 border border-slate-700/50">
-                              {userName[0]}
-                            </div>
+                            {u.image && u.image.startsWith("http") ? (
+                              <img
+                                src={u.image}
+                                alt={userName}
+                                className="w-9 h-9 rounded-full object-cover shrink-0 border border-slate-700/50"
+                              />
+                            ) : (
+                              <div className="w-9 h-9 rounded-full bg-slate-800 text-amber-500 font-bold flex items-center justify-center text-sm shrink-0 border border-slate-700/50">
+                                {userName[0] || "U"}
+                              </div>
+                            )}
+
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
                                 <span className="font-semibold text-slate-100 truncate">
@@ -311,24 +335,24 @@ export default function ManageUsersPage({ ALL_USERS = [], currentUser }) {
                           </div>
                         </Table.Cell>
 
-                        {/* Role */}
+                        {/* Account Type / Role */}
                         <Table.Cell className="px-6 py-4 capitalize font-medium text-slate-300">
                           <span
                             className={`px-2.5 py-1 rounded-lg text-[11px] font-mono inline-block font-semibold ${
-                              userRole === "founder"
+                              userPersona === "founder"
                                 ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                                : userRole === "admin"
+                                : userPersona === "admin"
                                   ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
                                   : "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"
                             }`}
                           >
-                            {userRole}
+                            {userPersona}
                           </span>
                         </Table.Cell>
 
                         {/* Subscription Plan (Free, Premium, Enterprise) */}
                         <Table.Cell className="px-6 py-4">
-                          {getPlanBadge(planStr, userRole)}
+                          {getPlanBadge(planStr, userPersona)}
                         </Table.Cell>
 
                         {/* Joined Date */}

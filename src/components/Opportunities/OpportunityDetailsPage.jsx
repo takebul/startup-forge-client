@@ -49,6 +49,19 @@ function parseSkills(skills) {
   return [];
 }
 
+// Helper to resolve user persona (admin, founder, collaborator)
+function getUserPersona(u) {
+  if (!u) return null;
+  const role = String(u.role || "").toLowerCase();
+  const accountType = String(u.accountType || "").toLowerCase();
+
+  if (role === "admin") return "admin";
+  if (accountType === "founder" || role === "founder") return "founder";
+  if (accountType === "collaborator" || role === "collaborator")
+    return "collaborator";
+  return "collaborator";
+}
+
 // Helper for human-readable dates
 const formatDate = (dateString) => {
   if (!dateString || dateString === "N/A") return "Open Deadline";
@@ -66,13 +79,16 @@ export default function OpportunityDetailsPage({
   startups = [],
   userData = [],
   initialAppliedOppIds = [],
+  initialUser,
 }) {
   const router = useRouter();
   const { data: session } = authClient.useSession();
-  const user = session?.user;
-  const role = user?.role;
-  const isCollaborator = role === "collaborator";
+  const user = initialUser || session?.user;
   const isAuthenticated = !!user;
+
+  // Resolve active persona (collaborator, founder, admin)
+  const persona = useMemo(() => getUserPersona(user), [user]);
+  const isCollaborator = persona === "collaborator";
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -110,12 +126,12 @@ export default function OpportunityDetailsPage({
 
   const oppId = String(opp?._id || opp?.id || "");
 
-  // 2. Deadline Over / Expiration Check (Fixed dependency array to [opp] for React Compiler)
+  // 2. Deadline Over / Expiration Check
   const isDeadlinePassed = useMemo(() => {
-    if (!opp?.deadline) return false;
+    if (!opp?.deadline || opp.deadline === "N/A" || opp.deadline === "Open")
+      return false;
     const deadlineDate = new Date(opp.deadline);
     if (isNaN(deadlineDate.getTime())) return false;
-    // Set to the end of the deadline day
     deadlineDate.setHours(23, 59, 59, 999);
     return new Date() > deadlineDate;
   }, [opp]);
@@ -533,7 +549,7 @@ export default function OpportunityDetailsPage({
                   </div>
                   <p className="text-[11px] text-amber-300/80">
                     Logged in as{" "}
-                    <strong className="capitalize">{role || "User"}</strong>.
+                    <strong className="capitalize">{persona || "User"}</strong>.
                     Only collaborator accounts can apply.
                   </p>
                 </div>
@@ -599,7 +615,7 @@ export default function OpportunityDetailsPage({
       )}
 
       {/* -----------------------------------------------------------------------------
-          SUCCESS DIALOG MODAL (Go to Dashboard or Stay)
+          SUCCESS DIALOG MODAL
       ----------------------------------------------------------------------------- */}
       <AnimatePresence>
         {showSuccessModal && (

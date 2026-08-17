@@ -8,10 +8,18 @@ import {
   TrendingUp,
   Bookmark,
   Briefcase,
-  CheckCircle,
+  CheckCircle2,
   XCircle,
+  Clock,
+  ArrowRight,
+  ShieldCheck,
+  User,
 } from "lucide-react";
-import { StatCard, Btn } from "@/components/Dashboard/founder-dashboard-shared";
+import {
+  StatCard,
+  Btn,
+  Badge,
+} from "@/components/Dashboard/founder-dashboard-shared";
 import {
   BarChart,
   Bar,
@@ -37,7 +45,7 @@ function parseArrayData(data, key) {
 const CustomBarTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl px-3.5 py-2 bg-[#0D1528] border border-slate-800 text-xs shadow-xl space-y-1">
+    <div className="rounded-xl px-3.5 py-2.5 bg-[#0D1528] border border-slate-800 text-xs shadow-xl space-y-1 font-sans">
       <p className="font-semibold text-slate-200">{label}</p>
       <p
         className="font-mono font-bold"
@@ -52,7 +60,7 @@ const CustomBarTooltip = ({ active, payload, label }) => {
 const CustomPieTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl px-3 py-2 bg-[#0D1528] border border-slate-800 text-xs shadow-xl">
+    <div className="rounded-xl px-3 py-2 bg-[#0D1528] border border-slate-800 text-xs shadow-xl font-sans">
       <p className="text-slate-200">
         {payload[0].name}:{" "}
         <span className="font-mono font-bold text-amber-400">
@@ -78,40 +86,69 @@ export default function CollaboratorDashboardPage({
     [bookmarks],
   );
 
-  // 2. Compute Real-time Metric Aggregations
+  // 2. Compute Real-time Metric Aggregations with Case-Insensitive Status
   const totalApplications = applicationsList.length;
+
   const acceptedRoles = useMemo(
-    () => applicationsList.filter((a) => a.status === "Accepted").length,
+    () =>
+      applicationsList.filter(
+        (a) => String(a.status || "").toLowerCase() === "accepted",
+      ).length,
     [applicationsList],
   );
+
   const rejectedRoles = useMemo(
-    () => applicationsList.filter((a) => a.status === "Rejected").length,
+    () =>
+      applicationsList.filter(
+        (a) => String(a.status || "").toLowerCase() === "rejected",
+      ).length,
     [applicationsList],
   );
+
   const pendingRoles = useMemo(
-    () => applicationsList.filter((a) => a.status === "Pending").length,
+    () =>
+      applicationsList.filter((a) => {
+        const s = String(a.status || "").toLowerCase();
+        return s === "pending" || s === "" || s === "reviewing";
+      }).length,
     [applicationsList],
   );
+
   const totalBookmarks = bookmarksList.length;
 
-  // 3. User Plan Status
-  const planKey = String(user?.plan || user?.plan_id || "").toLowerCase();
-  const isUpgraded =
-    planKey.includes("premium") ||
-    planKey.includes("enterprise") ||
-    (planKey !== "" && !planKey.includes("free"));
+  // 3. User Plan & Application Quota Calculations
+  const planKey = String(
+    user?.plan || user?.plan_id || "collaborator_free",
+  ).toLowerCase();
 
-  // 4. Bar Chart Dataset (Total Applications, Accepted Roles, Rejected Roles, Bookmarks)
+  const planInfo = useMemo(() => {
+    if (planKey.includes("enterprise")) {
+      return { name: "Enterprise", limit: 100, isUpgraded: true };
+    }
+    if (planKey.includes("premium")) {
+      return { name: "Premium Collaborator", limit: 10, isUpgraded: true };
+    }
+    return { name: "Free Plan", limit: 3, isUpgraded: false };
+  }, [planKey]);
+
+  // 4. Bar Chart Dataset
   const metricsChartData = useMemo(() => {
     return [
       { name: "Total Apply", value: totalApplications, fill: "#818CF8" },
       { name: "Accepted", value: acceptedRoles, fill: "#10B981" },
+      { name: "Pending", value: pendingRoles, fill: "#F59E0B" },
       { name: "Rejected", value: rejectedRoles, fill: "#EF4444" },
-      { name: "Bookmarks", value: totalBookmarks, fill: "#F59E0B" },
+      { name: "Bookmarks", value: totalBookmarks, fill: "#38BDF8" },
     ];
-  }, [totalApplications, acceptedRoles, rejectedRoles, totalBookmarks]);
+  }, [
+    totalApplications,
+    acceptedRoles,
+    pendingRoles,
+    rejectedRoles,
+    totalBookmarks,
+  ]);
 
-  // 5. Pie/Donut Chart Dataset (Application Status Breakdown)
+  // 5. Donut Chart Dataset (Application Status Breakdown)
   const statusPieData = useMemo(() => {
     return [
       { name: "Accepted", value: acceptedRoles, color: "#10B981" },
@@ -121,7 +158,7 @@ export default function CollaboratorDashboardPage({
   }, [acceptedRoles, pendingRoles, rejectedRoles]);
 
   return (
-    <div className="p-8 space-y-6 font-sans">
+    <div className="p-8 space-y-8 max-w-7xl mx-auto font-sans">
       {/* Header with Welcome Greeting & Verified Badge */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -131,19 +168,19 @@ export default function CollaboratorDashboardPage({
             </h2>
 
             {/* Verified Badge or Upgrade Link */}
-            {isUpgraded ? (
+            {planInfo.isUpgraded ? (
               <div
                 className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full"
                 title="Verified Collaborator Account"
               >
                 <BadgeCheck className="h-4 w-4 fill-amber-500/20 text-amber-400 shrink-0" />
-                <span>VERIFIED</span>
+                <span>{planInfo.name.toUpperCase()}</span>
               </div>
             ) : (
               <Link href="/dashboard/collaborator/premium">
                 <span className="text-[11px] font-mono text-slate-400 bg-white/5 hover:bg-white/10 border border-slate-800 px-2.5 py-1 rounded-full transition-colors inline-flex items-center gap-1.5 cursor-pointer">
                   <Sparkles className="h-3 w-3 text-amber-500 shrink-0" />
-                  <span>Get Verified Badge</span>
+                  <span>Upgrade to Premium</span>
                 </span>
               </Link>
             )}
@@ -154,6 +191,14 @@ export default function CollaboratorDashboardPage({
             engagement.
           </p>
         </div>
+
+        {/* Quota Indicator */}
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#0D1528] border border-slate-800/80 text-xs font-mono">
+          <span className="text-slate-500">Monthly Quota:</span>
+          <span className="text-amber-400 font-bold">
+            {totalApplications} / {planInfo.limit} Used
+          </span>
+        </div>
       </div>
 
       {/* Dynamic Stats Cards Grid */}
@@ -161,7 +206,7 @@ export default function CollaboratorDashboardPage({
         <StatCard
           label="Total Applications"
           value={totalApplications}
-          sub="submitted roles"
+          sub="submitted pitches"
           color="#818CF8"
         />
         <StatCard
@@ -171,16 +216,16 @@ export default function CollaboratorDashboardPage({
           color="#10B981"
         />
         <StatCard
-          label="Rejected Roles"
-          value={rejectedRoles}
-          sub="unsuccessful applications"
-          color="#EF4444"
+          label="Pending Review"
+          value={pendingRoles}
+          sub="under founder review"
+          color="#F59E0B"
         />
         <StatCard
           label="Bookmarks"
           value={totalBookmarks}
           sub="saved opportunities"
-          color="#F59E0B"
+          color="#38BDF8"
         />
       </div>
 
@@ -194,8 +239,7 @@ export default function CollaboratorDashboardPage({
                 Activity Overview
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
-                Comparison of applications, acceptances, rejections, and
-                bookmarks
+                Real-time activity across applications, outcomes, and bookmarks
               </p>
             </div>
             <div className="flex items-center gap-1.5 text-xs text-indigo-400 font-mono font-semibold">
@@ -255,7 +299,7 @@ export default function CollaboratorDashboardPage({
               Application Status
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              Current status of submitted roles
+              Current breakdown of submitted roles
             </p>
           </div>
 
@@ -313,8 +357,8 @@ export default function CollaboratorDashboardPage({
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="rounded-2xl p-6 bg-[#0D1528] border border-slate-800 space-y-3">
+      {/* Quick Actions Bar */}
+      <div className="rounded-2xl p-6 bg-[#0D1528] border border-slate-800/80 space-y-3 shadow-sm">
         <h3 className="font-semibold text-sm text-slate-200">Quick Actions</h3>
         <div className="flex flex-wrap gap-3">
           <Link href="/dashboard/collaborator/browse-opportunities">
@@ -324,12 +368,17 @@ export default function CollaboratorDashboardPage({
           </Link>
           <Link href="/dashboard/collaborator/my-applications">
             <Btn variant="ghost" size="sm">
-              📬 View Applications
+              📬 View Applications ({totalApplications})
             </Btn>
           </Link>
           <Link href="/dashboard/collaborator/bookmarks">
             <Btn variant="outline" size="sm">
-              🔖 Saved Bookmarks
+              🔖 Saved Bookmarks ({totalBookmarks})
+            </Btn>
+          </Link>
+          <Link href="/dashboard/collaborator/profile">
+            <Btn variant="ghost" size="sm">
+              ⚙️ Profile Settings
             </Btn>
           </Link>
         </div>

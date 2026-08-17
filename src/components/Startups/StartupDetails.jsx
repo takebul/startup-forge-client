@@ -47,9 +47,23 @@ function parseSkills(skills) {
   return [];
 }
 
+// Helper to resolve user persona (admin, founder, collaborator)
+function getUserPersona(u) {
+  if (!u) return null;
+  const role = String(u.role || "").toLowerCase();
+  const accountType = String(u.accountType || "").toLowerCase();
+
+  if (role === "admin") return "admin";
+  if (accountType === "founder" || role === "founder") return "founder";
+  if (accountType === "collaborator" || role === "collaborator")
+    return "collaborator";
+  return "collaborator";
+}
+
 // Helper to check if a specific deadline date has expired
 function checkIsDeadlinePassed(deadlineStr) {
-  if (!deadlineStr || deadlineStr === "N/A") return false;
+  if (!deadlineStr || deadlineStr === "N/A" || deadlineStr === "Open")
+    return false;
   const deadlineDate = new Date(deadlineStr);
   if (isNaN(deadlineDate.getTime())) return false;
   deadlineDate.setHours(23, 59, 59, 999);
@@ -61,20 +75,23 @@ export default function StartupDetails({
   opportunities = [],
   userData = [],
   initialAppliedOppIds = [],
+  initialUser,
 }) {
   const router = useRouter();
   const { data: session } = authClient.useSession();
-  const user = session?.user;
-  const role = user?.role;
-  const isCollaborator = role === "collaborator";
+  const user = initialUser || session?.user;
   const isAuthenticated = !!user;
+
+  // Resolve active persona (collaborator, founder, admin)
+  const persona = useMemo(() => getUserPersona(user), [user]);
+  const isCollaborator = persona === "collaborator";
 
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedRole, setSelectedRole] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
 
-  // Track applied opportunity IDs (supports initial array + newly submitted applications)
+  // Track applied opportunity IDs
   const [appliedOppIds, setAppliedOppIds] = useState(() =>
     Array.isArray(initialAppliedOppIds) ? initialAppliedOppIds.map(String) : [],
   );
@@ -347,7 +364,7 @@ export default function StartupDetails({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative space-x-6 pb-3 text-sm font-bold transition-colors cursor-pointer ${
+              className={`relative pb-3 text-sm font-bold transition-colors cursor-pointer ${
                 activeTab === tab.id
                   ? "text-violet-600 dark:text-violet-400"
                   : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
@@ -499,7 +516,7 @@ export default function StartupDetails({
                           </div>
                         </div>
 
-                        {/* Role-based Action Guards */}
+                        {/* Action Buttons with Persona Checks */}
                         <div className="mt-2 md:mt-0 flex items-center md:flex-col md:items-end gap-3 shrink-0">
                           {isRoleDeadlinePassed ? (
                             <button
@@ -521,7 +538,7 @@ export default function StartupDetails({
                             </button>
                           ) : !isAuthenticated ? (
                             <Link
-                              href={`/login?redirect=/startups/${startup._id || startup.id}`}
+                              href={`/signin?redirect=/startups/${startup._id || startup.id}`}
                               className="inline-flex items-center gap-1.5 rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-500 shadow-md shadow-violet-600/15"
                             >
                               <LogIn className="w-3.5 h-3.5" />
@@ -591,7 +608,7 @@ export default function StartupDetails({
       </section>
 
       {/* -----------------------------------------------------------------------------
-          APPLY MODAL (Opens strictly when a role is selected and user is collaborator)
+          APPLY MODAL
       ----------------------------------------------------------------------------- */}
       {selectedRole && (
         <ApplyModal
@@ -608,12 +625,11 @@ export default function StartupDetails({
       )}
 
       {/* -----------------------------------------------------------------------------
-          SUCCESS DIALOG MODAL (Go to Dashboard or Stay)
+          SUCCESS DIALOG MODAL
       ----------------------------------------------------------------------------- */}
       <AnimatePresence>
         {showSuccessModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -622,7 +638,6 @@ export default function StartupDetails({
               className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             />
 
-            {/* Modal Card */}
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}

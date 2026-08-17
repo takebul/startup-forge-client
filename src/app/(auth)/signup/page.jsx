@@ -20,10 +20,13 @@ import {
   CheckCircle2,
   Loader2,
   User,
+  Briefcase,
+  Rocket,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signUp, signIn } from "@/lib/auth-client";
+import { updateUserStatus } from "@/lib/actions/users";
 
 function validate(form) {
   const errs = {};
@@ -42,7 +45,7 @@ function validate(form) {
   } else if (!/[a-z]/.test(form.password)) {
     errs.password = "Must contain at least one lowercase letter.";
   }
-  if (!form.role) errs.role = "Please select a role.";
+  if (!form.accountType) errs.accountType = "Please select an account type.";
   return errs;
 }
 
@@ -162,7 +165,7 @@ function SignupContent() {
     email: "",
     password: "",
     imageUrl: "",
-    role: "",
+    accountType: "", // Stores 'founder' or 'collaborator'
   });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -204,7 +207,8 @@ function SignupContent() {
     }
   }
 
-  const plan = form.role === "founder" ? "founder_free" : "collaborator_free";
+  const plan =
+    form.accountType === "founder" ? "founder_free" : "collaborator_free";
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -215,27 +219,44 @@ function SignupContent() {
     }
     setStatus("loading");
 
-    const { data, error } = await signUp.email({
-      name: form.name,
-      email: form.email,
-      password: form.password,
-      image: form.imageUrl || undefined,
-      role: form.role,
-      plan: plan,
-      status: "active",
-    });
+    try {
+      // 1. Sign up user: Pass accountType directly instead of privileged 'role'
+      const res = await signUp.email({
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        image: form.imageUrl || undefined,
+        accountType: form.accountType,
+        plan: plan,
+        status: "active",
+        callbackURL: redirectTo,
+      });
 
-    console.log({ data, error });
+      if (res?.error) {
+        throw new Error(
+          res.error.message || "Signup failed. Please try again.",
+        );
+      }
 
-    if (error) {
-      setStatus("error");
-      setStatusMessage(error.message || "Signup failed. Please try again.");
-    } else {
+      // 2. Sync to MongoDB to ensure accountType and plan persist
+      const createdUserId = res?.data?.user?.id || res?.data?.user?._id;
+      if (createdUserId) {
+        await updateUserStatus(createdUserId, {
+          accountType: form.accountType,
+          plan: plan,
+          status: "active",
+        });
+      }
+
       setStatus("success");
       setStatusMessage(`Welcome, ${form.name.split(" ")[0]}! Redirecting...`);
       setTimeout(() => {
         router.push(redirectTo);
       }, 1200);
+    } catch (err) {
+      console.error("Signup error:", err);
+      setStatus("error");
+      setStatusMessage(err?.message || "Signup failed. Please try again.");
     }
   }
 
@@ -253,7 +274,7 @@ function SignupContent() {
     }
   }
 
-  const roleLabels = {
+  const accountTypeLabels = {
     founder: "Founder",
     collaborator: "Collaborator",
   };
@@ -349,7 +370,7 @@ function SignupContent() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((s) => !s)}
-                  className="text-zinc-500 hover:text-zinc-300 transition-colors p-0.5"
+                  className="text-zinc-500 hover:text-zinc-300 transition-colors p-0.5 cursor-pointer"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
@@ -388,13 +409,14 @@ function SignupContent() {
             )}
           </Field>
 
+          {/* Profile Image Mode & Input */}
           <Field label="Profile Image" error={uploadError ?? undefined}>
             <div className="flex items-center gap-2 mb-2">
               <button
                 type="button"
                 onClick={() => setImageMode("url")}
                 className={[
-                  "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all",
+                  "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all cursor-pointer",
                   imageMode === "url"
                     ? "bg-indigo-500/15 border-indigo-500/40 text-indigo-300"
                     : "bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:border-zinc-600",
@@ -407,7 +429,7 @@ function SignupContent() {
                 type="button"
                 onClick={() => setImageMode("file")}
                 className={[
-                  "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all",
+                  "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all cursor-pointer",
                   imageMode === "file"
                     ? "bg-indigo-500/15 border-indigo-500/40 text-indigo-300"
                     : "bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:border-zinc-600",
@@ -440,7 +462,7 @@ function SignupContent() {
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  className="w-full h-11 flex items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-700 hover:border-indigo-500/50 bg-zinc-900 hover:bg-indigo-500/5 text-sm text-zinc-500 hover:text-indigo-300 transition-all duration-200"
+                  className="w-full h-11 flex items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-700 hover:border-indigo-500/50 bg-zinc-900 hover:bg-indigo-500/5 text-sm text-zinc-500 hover:text-indigo-300 transition-all duration-200 cursor-pointer"
                 >
                   {uploading ? (
                     <Loader2 size={15} className="animate-spin" />
@@ -477,25 +499,28 @@ function SignupContent() {
             </AnimatePresence>
           </Field>
 
-          <Field label="Role" error={errors.role}>
+          {/* Account Type Selection */}
+          <Field label="Account Type" error={errors.accountType}>
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setRoleOpen((o) => !o)}
                 className={[
-                  "flex items-center justify-between w-full h-11 px-3.5 rounded-xl border bg-zinc-900 text-sm transition-all duration-200",
+                  "flex items-center justify-between w-full h-11 px-3.5 rounded-xl border bg-zinc-900 text-sm transition-all duration-200 cursor-pointer",
                   "focus:outline-none focus:ring-2 focus:ring-indigo-500/30",
                   roleOpen
                     ? "border-indigo-500/50 ring-2 ring-indigo-500/20"
                     : "",
-                  errors.role
+                  errors.accountType
                     ? "border-red-500/60"
                     : "border-zinc-800 hover:border-zinc-700",
-                  form.role ? "text-zinc-100" : "text-zinc-600",
+                  form.accountType ? "text-zinc-100" : "text-zinc-600",
                 ].join(" ")}
               >
                 <span>
-                  {form.role ? roleLabels[form.role] : "Select your role…"}
+                  {form.accountType
+                    ? accountTypeLabels[form.accountType]
+                    : "Select account type…"}
                 </span>
                 <motion.span
                   animate={{ rotate: roleOpen ? 180 : 0 }}
@@ -520,17 +545,19 @@ function SignupContent() {
                         key={r}
                         type="button"
                         onClick={() => {
-                          set("role", r);
+                          set("accountType", r);
                           setRoleOpen(false);
                         }}
                         className={[
-                          "w-full text-left px-3.5 py-2.5 text-sm transition-colors",
-                          form.role === r
+                          "w-full text-left px-3.5 py-2.5 text-sm transition-colors cursor-pointer",
+                          form.accountType === r
                             ? "bg-indigo-500/15 text-indigo-300"
                             : "text-zinc-300 hover:bg-zinc-800",
                         ].join(" ")}
                       >
-                        <span className="font-medium">{roleLabels[r]}</span>
+                        <span className="font-medium">
+                          {accountTypeLabels[r]}
+                        </span>
                         <span className="ml-2 text-zinc-600 text-xs">
                           {r === "founder"
                             ? "— building something new"
@@ -549,7 +576,7 @@ function SignupContent() {
             isDisabled={status === "loading" || status === "success"}
             className={[
               "mt-1 w-full h-11 rounded-xl font-semibold text-sm transition-all duration-200",
-              "bg-indigo-600 hover:bg-indigo-500 text-white",
+              "bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer",
               "disabled:opacity-50 disabled:cursor-not-allowed",
               "focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:ring-offset-2 focus:ring-offset-zinc-900",
               "flex items-center justify-center gap-2",
@@ -584,7 +611,7 @@ function SignupContent() {
           type="button"
           onClick={handleGoogleAuth}
           disabled={status === "loading"}
-          className="w-full h-11 flex items-center justify-center gap-2.5 rounded-xl border border-zinc-700 hover:border-zinc-600 bg-zinc-900 hover:bg-zinc-800 text-sm text-zinc-200 font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full h-11 flex items-center justify-center gap-2.5 rounded-xl border border-zinc-700 hover:border-zinc-600 bg-zinc-900 hover:bg-zinc-800 text-sm text-zinc-200 font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           <GoogleIcon />
           Continue with Google

@@ -21,36 +21,42 @@ import { getUsersData } from "@/lib/api/users";
 import { getUserSession } from "@/lib/core/session";
 
 export default async function Home() {
-  // Server component — reads session, passes role + user down to client banner
-
+  // 1. Read session and extract user persona
   const user = await getUserSession();
-  const role = user?.role ?? null;
 
-  const founderApplications = await getApplicationsByStartupId(user?.id);
-  const founderOpportunities = await getOpportunitiesByUserId(user?.id);
-  const founderStartup = await getFounderStartup(user?.id);
-  const opportunities = await getOpportunities();
-  const userData = await getUsersData();
-  const startups = await getStartups();
-  const collaboratorApplications = await getApplicationsById(user?.id);
-  const featuredStartups = await getFeaturedStartups();
-  const featuredOpportunities = await getFeaturedOpportunities();
+  // Resolve role: prioritizes 'admin', then checks 'accountType' (founder/collaborator)
+  const resolvedRole =
+    user?.role === "admin"
+      ? "admin"
+      : user?.accountType || (user?.role !== "user" ? user?.role : null);
 
-  // console.log({
-  //   user,
-  //   founderApplications,
-  //   founderOpportunities,
-  //   founderStartup,
-  //   opportunities,
-  //   userData,
-  //   startups,
-  //   collaboratorApplications,
-  // });
+  // 2. Parallel data fetching for dashboard and home components
+  const [
+    founderApplications,
+    founderOpportunities,
+    founderStartup,
+    opportunities,
+    userData,
+    startups,
+    collaboratorApplications,
+    featuredStartups,
+    featuredOpportunities,
+  ] = await Promise.all([
+    getApplicationsByStartupId(user?.id),
+    getOpportunitiesByUserId(user?.id),
+    getFounderStartup(user?.id),
+    getOpportunities(),
+    getUsersData(),
+    getStartups(),
+    getApplicationsById(user?.id),
+    getFeaturedStartups(),
+    getFeaturedOpportunities(),
+  ]);
 
   return (
     <>
       <BannerPage
-        role={role}
+        role={resolvedRole}
         user={user}
         founderApplications={founderApplications}
         founderOpportunities={founderOpportunities}

@@ -1,8 +1,19 @@
 "use client";
 
 import { useMemo } from "react";
-import { TrendingUp } from "lucide-react";
-import { StatCard } from "@/components/Dashboard/founder-dashboard-shared";
+import Link from "next/link";
+import {
+  TrendingUp,
+  BadgeCheck,
+  Sparkles,
+  Briefcase,
+  Users,
+  CheckCircle2,
+  Clock,
+  Plus,
+  ArrowRight,
+} from "lucide-react";
+import { StatCard, Btn } from "@/components/Dashboard/founder-dashboard-shared";
 import {
   BarChart,
   Bar,
@@ -28,8 +39,10 @@ function parseArrayData(data, key) {
 const CustomBarTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl px-3.5 py-2.5 bg-[#0D1528] border border-slate-800 text-xs shadow-xl space-y-1">
-      <p className="font-semibold text-slate-200">{label}</p>
+    <div className="rounded-xl px-3.5 py-2.5 bg-[#0D1528] border border-slate-800 text-xs shadow-xl space-y-1 font-sans">
+      <p className="font-semibold text-slate-200">
+        {payload[0]?.payload?.fullTitle || label}
+      </p>
       <p className="text-amber-400 font-mono font-bold">
         Applications: {payload[0].value}
       </p>
@@ -40,7 +53,7 @@ const CustomBarTooltip = ({ active, payload, label }) => {
 const CustomPieTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl px-3 py-2 bg-[#0D1528] border border-slate-800 text-xs shadow-xl">
+    <div className="rounded-xl px-3 py-2 bg-[#0D1528] border border-slate-800 text-xs shadow-xl font-sans">
       <p className="text-slate-200">
         {payload[0].name}:{" "}
         <span className="font-mono font-bold text-amber-400">
@@ -52,6 +65,7 @@ const CustomPieTooltip = ({ active, payload }) => {
 };
 
 export default function FounderDashboardOverviewPage({
+  user,
   opportunities = [],
   applications = [],
 }) {
@@ -65,40 +79,71 @@ export default function FounderDashboardOverviewPage({
     [applications],
   );
 
-  // 2. Compute Real-time Metric Aggregations
+  // 2. Compute Real-time Metric Aggregations (Case-Insensitive)
   const totalOpportunities = opportunitiesList.length;
   const totalApplications = applicationsList.length;
+
   const acceptedMembers = useMemo(
-    () => applicationsList.filter((a) => a.status === "Accepted").length,
-    [applicationsList],
-  );
-  const pendingApplications = useMemo(
-    () => applicationsList.filter((a) => a.status === "Pending").length,
-    [applicationsList],
-  );
-  const rejectedApplications = useMemo(
-    () => applicationsList.filter((a) => a.status === "Rejected").length,
+    () =>
+      applicationsList.filter(
+        (a) => String(a.status || "").toLowerCase() === "accepted",
+      ).length,
     [applicationsList],
   );
 
-  // 3. Compute Applications per Opportunity Role (Bar Chart Data)
+  const pendingApplications = useMemo(
+    () =>
+      applicationsList.filter((a) => {
+        const s = String(a.status || "").toLowerCase();
+        return s === "pending" || s === "" || s === "reviewing";
+      }).length,
+    [applicationsList],
+  );
+
+  const rejectedApplications = useMemo(
+    () =>
+      applicationsList.filter(
+        (a) => String(a.status || "").toLowerCase() === "rejected",
+      ).length,
+    [applicationsList],
+  );
+
+  // 3. User Plan & Verified Status
+  const planKey = String(
+    user?.plan || user?.plan_id || "founder_free",
+  ).toLowerCase();
+  const isUpgraded =
+    planKey.includes("premium") ||
+    planKey.includes("enterprise") ||
+    (planKey !== "" && !planKey.includes("free"));
+
+  const planDisplayName = planKey.includes("enterprise")
+    ? "Enterprise"
+    : planKey.includes("premium")
+      ? "Founder Premium"
+      : "Founder Free";
+
+  // 4. Compute Applications per Opportunity Role (Bar Chart Data)
   const applicationsPerRoleData = useMemo(() => {
     if (opportunitiesList.length === 0) return [];
 
     return opportunitiesList.map((opp) => {
       const oppId = String(opp._id || opp.id || "");
       const count = applicationsList.filter((app) => {
-        const appOppId = String(app.opportunityId || app.convertedOppId || "");
+        const appOppId = String(
+          app.opportunityId || app.convertedOppId || app.opportunity_id || "",
+        );
         return (
-          appOppId === oppId ||
+          (oppId && appOppId === oppId) ||
           (app.opportunityTitle &&
+            opp.roleTitle &&
             app.opportunityTitle.trim().toLowerCase() ===
-              opp.roleTitle?.trim().toLowerCase())
+              opp.roleTitle.trim().toLowerCase())
         );
       }).length;
 
-      const title = opp.roleTitle || "Untitled Role";
-      const shortTitle = title.length > 16 ? `${title.slice(0, 14)}...` : title;
+      const title = opp.roleTitle || opp.title || "Untitled Role";
+      const shortTitle = title.length > 15 ? `${title.slice(0, 13)}...` : title;
 
       return {
         role: shortTitle,
@@ -108,7 +153,7 @@ export default function FounderDashboardOverviewPage({
     });
   }, [opportunitiesList, applicationsList]);
 
-  // 4. Compute Application Status Breakdown (Pie/Donut Chart Data)
+  // 5. Compute Application Status Breakdown (Donut Chart Data)
   const statusPieData = useMemo(() => {
     return [
       { name: "Accepted", value: acceptedMembers, color: "#10B981" },
@@ -119,18 +164,46 @@ export default function FounderDashboardOverviewPage({
 
   return (
     <div className="p-8 space-y-8 max-w-7xl mx-auto font-sans">
-      {/* Header */}
-      <div>
-        <h2 className="text-xl font-bold text-slate-100">
-          Founder Dashboard Overview
-        </h2>
-        <p className="text-xs text-slate-400 mt-1">
-          Monitor your recruitment pipeline, applicant conversions, and role
-          engagement.
-        </p>
+      {/* Header with Welcome Greeting & Plan Badge */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h2 className="text-xl font-bold text-slate-100">
+              Welcome back, {user?.name || "Founder"}!
+            </h2>
+
+            {isUpgraded ? (
+              <div
+                className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full"
+                title="Verified Founder Account"
+              >
+                <BadgeCheck className="h-4 w-4 fill-amber-500/20 text-amber-400 shrink-0" />
+                <span>{planDisplayName.toUpperCase()}</span>
+              </div>
+            ) : (
+              <Link href="/dashboard/founder/pricing">
+                <span className="text-[11px] font-mono text-slate-400 bg-white/5 hover:bg-white/10 border border-slate-800 px-2.5 py-1 rounded-full transition-colors inline-flex items-center gap-1.5 cursor-pointer">
+                  <Sparkles className="h-3 w-3 text-amber-500 shrink-0" />
+                  <span>Upgrade to Premium</span>
+                </span>
+              </Link>
+            )}
+          </div>
+          <p className="text-xs text-slate-400 mt-1">
+            Monitor your recruitment pipeline, applicant conversions, and role
+            engagement.
+          </p>
+        </div>
+
+        <Link href="/dashboard/founder/add-opportunity">
+          <Btn variant="primary" size="sm" className="gap-1.5">
+            <Plus className="w-4 h-4" />
+            <span>Post New Role</span>
+          </Btn>
+        </Link>
       </div>
 
-      {/* Top Dynamic Stat Cards */}
+      {/* Dynamic Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           label="Total Opportunities"
@@ -153,7 +226,7 @@ export default function FounderDashboardOverviewPage({
         <StatCard
           label="Pending Review"
           value={pendingApplications}
-          sub="applications awaiting action"
+          sub="awaiting review"
           color="#3B82F6"
         />
       </div>
@@ -289,6 +362,33 @@ export default function FounderDashboardOverviewPage({
               </p>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Quick Actions Bar */}
+      <div className="rounded-2xl p-6 bg-[#0D1528] border border-slate-800/80 space-y-3 shadow-sm">
+        <h3 className="font-semibold text-sm text-slate-200">Quick Actions</h3>
+        <div className="flex flex-wrap gap-3">
+          <Link href="/dashboard/founder/add-opportunity">
+            <Btn variant="primary" size="sm">
+              + Post New Opportunity
+            </Btn>
+          </Link>
+          <Link href="/dashboard/founder/applications">
+            <Btn variant="ghost" size="sm">
+              📬 Review Applications ({pendingApplications} New)
+            </Btn>
+          </Link>
+          <Link href="/dashboard/founder/opportunities">
+            <Btn variant="outline" size="sm">
+              📋 Manage Active Roles ({totalOpportunities})
+            </Btn>
+          </Link>
+          <Link href="/dashboard/founder/startup">
+            <Btn variant="ghost" size="sm">
+              🏢 Startup Profile
+            </Btn>
+          </Link>
         </div>
       </div>
     </div>

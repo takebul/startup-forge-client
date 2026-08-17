@@ -13,13 +13,16 @@ export const auth = betterAuth({
   },
   user: {
     additionalFields: {
-      role: {
-        defaultValue: "founder",
+      accountType: {
+        defaultValue: "collaborator",
       },
       plan: {
-        defaultValue: "founder_free",
+        defaultValue: "collaborator_free",
+      },
+      status: {
+        defaultValue: "active",
       },
     },
   },
-  // plugins: [admin()],
+  plugins: [admin()],
 });

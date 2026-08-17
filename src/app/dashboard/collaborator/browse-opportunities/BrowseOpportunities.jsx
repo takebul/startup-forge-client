@@ -18,6 +18,8 @@ import {
   Clock,
   Briefcase,
   ExternalLink,
+  ShieldAlert,
+  Rocket,
 } from "lucide-react";
 import { createApplication } from "@/lib/actions/applications";
 import { createBookmark, deleteBookmark } from "@/lib/actions/bookmarks";
@@ -45,11 +47,23 @@ function getSkillsArray(skills) {
 
 // Helper to check if a specific deadline date has expired
 function checkIsDeadlinePassed(deadlineStr) {
-  if (!deadlineStr || deadlineStr === "N/A") return false;
+  if (!deadlineStr || deadlineStr === "N/A" || deadlineStr === "Open")
+    return false;
   const deadlineDate = new Date(deadlineStr);
   if (isNaN(deadlineDate.getTime())) return false;
   deadlineDate.setHours(23, 59, 59, 999);
   return new Date() > deadlineDate;
+}
+
+// Helper to resolve user persona
+function getUserPersona(u) {
+  if (!u) return "collaborator";
+  const role = String(u.role || "").toLowerCase();
+  const accountType = String(u.accountType || "").toLowerCase();
+
+  if (role === "admin") return "admin";
+  if (accountType === "founder" || role === "founder") return "founder";
+  return "collaborator";
 }
 
 // ─── Pagination Controls ───────────────────────────────────────────────────────
@@ -112,7 +126,7 @@ export default function BrowseOpportunities({
   user,
 }) {
   const router = useRouter();
-  const activeUserId = user?.id || user?._id;
+  const activeUserId = String(user?.id || user?._id || "");
 
   const [fullUser, setFullUser] = useState(() => user || {});
 
@@ -208,6 +222,7 @@ export default function BrowseOpportunities({
   const [applyModal, setApplyModal] = useState(null);
   const [showIncompleteModal, setShowIncompleteModal] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
+  const [showFounderRoleModal, setShowFounderRoleModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [submittedRoleInfo, setSubmittedRoleInfo] = useState(null);
 
@@ -222,6 +237,9 @@ export default function BrowseOpportunities({
       setForm((prev) => ({ ...prev, email: fullUser.email }));
     }
   }, [fullUser, form.email]);
+
+  // Determine active persona (checks role & accountType)
+  const currentPersona = useMemo(() => getUserPersona(fullUser), [fullUser]);
 
   // =========================================================================
   // 1. PROFILE COMPLETION CALCULATOR
@@ -268,23 +286,29 @@ export default function BrowseOpportunities({
   const isApplicationLimitReached = appliedCount >= planInfo.limit;
 
   // =========================================================================
-  // 3. APPLICATION GATEKEEPER (Checks Deadline, Profile Completion & Quota)
+  // 3. APPLICATION GATEKEEPER
   // =========================================================================
   const handleInitiateApply = (opportunity) => {
     if (!opportunity) return;
 
-    // 1. Check if deadline has passed
+    // 1. Role Guard: Founders cannot apply to collaborator roles
+    if (currentPersona === "founder") {
+      setShowFounderRoleModal(true);
+      return;
+    }
+
+    // 2. Check if deadline has passed
     if (checkIsDeadlinePassed(opportunity.deadline)) {
       return;
     }
 
-    // 2. Check profile completeness
+    // 3. Check profile completeness
     if (!isProfileComplete) {
       setShowIncompleteModal(true);
       return;
     }
 
-    // 3. Check monthly application quota
+    // 4. Check monthly application quota
     if (isApplicationLimitReached) {
       setShowLimitModal(true);
       return;
@@ -555,7 +579,7 @@ export default function BrowseOpportunities({
                       Details
                     </Btn>
 
-                    {/* Action button states: Deadline Passed vs Already Applied vs Apply */}
+                    {/* Action button states */}
                     {isDeadlinePassed ? (
                       <button
                         type="button"
@@ -608,7 +632,7 @@ export default function BrowseOpportunities({
             const skillsList = getSkillsArray(selected.requiredSkills);
 
             return (
-              <div className="space-y-4">
+              <div className="space-y-4 font-sans">
                 <div>
                   <p className="text-xs font-mono uppercase tracking-wider text-slate-500 mb-1">
                     Role
@@ -709,13 +733,61 @@ export default function BrowseOpportunities({
         </Modal>
       )}
 
+      {/* Founder Application Restriction Warning Modal */}
+      {showFounderRoleModal && (
+        <Modal
+          title="Role Restriction"
+          onClose={() => setShowFounderRoleModal(false)}
+        >
+          <div className="space-y-4 text-center py-2 font-sans">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-2xl mx-auto font-bold">
+              <Rocket className="w-7 h-7" />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-bold text-slate-100">
+                Founder Account Detected
+              </h3>
+              <p className="text-xs text-slate-400 mt-1.5 max-w-sm mx-auto leading-relaxed">
+                You are currently signed in with a{" "}
+                <span className="text-amber-400 font-semibold font-mono">
+                  Founder Account
+                </span>
+                . Role applications are designated for Collaborators. As a
+                Founder, you can create and manage your startup roles from your
+                dashboard.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <Btn
+                fullWidth
+                onClick={() => {
+                  setShowFounderRoleModal(false);
+                  router.push("/dashboard/founder/add-opportunity");
+                }}
+              >
+                + Post a New Role
+              </Btn>
+              <Btn
+                variant="ghost"
+                fullWidth
+                onClick={() => setShowFounderRoleModal(false)}
+              >
+                Dismiss
+              </Btn>
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {/* Profile Incomplete Warning Modal */}
       {showIncompleteModal && (
         <Modal
           title="Profile Completion Required"
           onClose={() => setShowIncompleteModal(false)}
         >
-          <div className="space-y-4 text-center py-2">
+          <div className="space-y-4 text-center py-2 font-sans">
             <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center text-2xl mx-auto font-bold">
               ⚠️
             </div>
@@ -770,7 +842,7 @@ export default function BrowseOpportunities({
           title="Application Limit Reached"
           onClose={() => setShowLimitModal(false)}
         >
-          <div className="space-y-4 text-center py-2">
+          <div className="space-y-4 text-center py-2 font-sans">
             <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center text-2xl mx-auto font-bold">
               🔒
             </div>
@@ -792,7 +864,6 @@ export default function BrowseOpportunities({
               </p>
             </div>
 
-            {/* Quota Progress Line */}
             <div className="w-full bg-slate-900 border border-slate-800 rounded-full h-2 overflow-hidden my-3">
               <div className="bg-red-500 h-full rounded-full w-full" />
             </div>
@@ -831,7 +902,7 @@ export default function BrowseOpportunities({
         />
       )}
 
-      {/* Success Dialog Modal (Go to Applications or Stay) */}
+      {/* Success Dialog Modal */}
       <AnimatePresence>
         {showSuccessModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

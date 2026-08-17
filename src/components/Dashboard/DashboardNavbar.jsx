@@ -29,17 +29,15 @@ function formatPlanTitle(planId) {
     .join(" ");
 }
 
-// Helper to format ISO dates into human-readable timestamps
+// Deterministic timestamp helper to prevent locale/timezone hydration mismatches
 function formatTimestamp(dateStr) {
-  if (!dateStr) return "Just now";
+  if (!dateStr) return "Recent";
   try {
     const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return String(dateStr);
-    return d.toLocaleString("en-US", {
+    if (isNaN(d.getTime())) return "Recent";
+    return d.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
     });
   } catch {
     return "Recent";
@@ -55,6 +53,17 @@ function parseArrayData(data, key) {
   return [];
 }
 
+// Helper to resolve user persona (admin, founder, collaborator)
+function getUserPersona(u) {
+  if (!u) return "collaborator";
+  const role = String(u.role || "").toLowerCase();
+  const accountType = String(u.accountType || "").toLowerCase();
+
+  if (role === "admin") return "admin";
+  if (accountType === "founder" || role === "founder") return "founder";
+  return "collaborator";
+}
+
 export default function DashboardNavbar({
   subscriptions = [],
   startups = [],
@@ -64,7 +73,10 @@ export default function DashboardNavbar({
 }) {
   const { data: session } = authClient.useSession();
   const user = initialUser || session?.user;
-  const role = user?.role || "collaborator";
+  const activeUserId = String(user?.id || user?._id || "");
+
+  // Resolve active persona
+  const persona = useMemo(() => getUserPersona(user), [user]);
 
   const router = useRouter();
 
@@ -102,13 +114,15 @@ export default function DashboardNavbar({
     const list = [];
 
     // 1. FOUNDER NOTIFICATIONS
-    if (role === "founder") {
+    if (persona === "founder") {
       const combinedFounderStartups =
         parsedFounderStartups.length > 0
           ? parsedFounderStartups
           : parsedStartups.filter(
               (s) =>
-                s.startupId === user?.id ||
+                (activeUserId &&
+                  (s.startupId === activeUserId ||
+                    s.userId === activeUserId)) ||
                 s.founder_email === user?.email ||
                 s.founderEmail === user?.email,
             );
@@ -122,45 +136,49 @@ export default function DashboardNavbar({
             }' has been approved by Admin!`,
             type: "success",
             timestamp: "Approved",
-            rawDate: new Date(),
+            timeValue: s.createdAt ? new Date(s.createdAt).getTime() : 0,
           });
         }
       });
 
       parsedApplications.forEach((app) => {
+        const createdAt = app.appliedDate || app.createdAt;
         list.push({
           id: `notif-app-${app._id || app.id}`,
           message: `📥 ${
             app.applicantName || app.applicantEmail || "A collaborator"
           } applied for '${app.opportunityTitle || "Role"}'`,
           type: "info",
-          timestamp: formatTimestamp(app.appliedDate || app.createdAt),
-          rawDate: new Date(app.appliedDate || app.createdAt || Date.now()),
+          timestamp: formatTimestamp(createdAt),
+          timeValue: createdAt ? new Date(createdAt).getTime() : 0,
         });
       });
     }
 
     // 2. COLLABORATOR NOTIFICATIONS
-    if (role === "collaborator") {
+    if (persona === "collaborator") {
       parsedApplications.forEach((app) => {
-        if (app.status === "Accepted") {
+        const s = String(app.status || "").toLowerCase();
+        if (s === "accepted") {
+          const createdAt = app.appliedDate || app.createdAt;
           list.push({
             id: `notif-collab-acc-${app._id || app.id}`,
             message: `🎉 Congratulations! Your application for '${
               app.opportunityTitle || "Role"
             }' at '${app.startupName || "Startup"}' was Accepted!`,
             type: "success",
-            timestamp: formatTimestamp(app.appliedDate || app.createdAt),
-            rawDate: new Date(app.appliedDate || app.createdAt || Date.now()),
+            timestamp: formatTimestamp(createdAt),
+            timeValue: createdAt ? new Date(createdAt).getTime() : 0,
           });
         }
       });
     }
 
     // 3. ADMIN NOTIFICATIONS
-    if (role === "admin") {
+    if (persona === "admin") {
       parsedStartups.forEach((s) => {
         const isPending = s.status === "Pending" || s.status === false;
+        const createdAt = s.createdAt || s.date;
         list.push({
           id: `notif-admin-st-${s._id || s.id}`,
           message: `🚀 ${
@@ -169,20 +187,26 @@ export default function DashboardNavbar({
             s.founder_email || "a founder"
           }`,
           type: isPending ? "warning" : "info",
-          timestamp: "Recent",
-          rawDate: new Date(),
+          timestamp: formatTimestamp(createdAt),
+          timeValue: createdAt ? new Date(createdAt).getTime() : 0,
         });
       });
 
       parsedSubscriptions.forEach((sub) => {
+        const pStatus = String(
+          sub.payment_status || sub.paymentStatus || sub.status || "",
+        ).toLowerCase();
+
         if (
-          sub.payment_status === "paid" ||
-          sub.payment_status === "Completed"
+          pStatus === "paid" ||
+          pStatus === "completed" ||
+          pStatus === "succeeded"
         ) {
           const planName = formatPlanTitle(sub.planId);
           const amountFormatted = sub.amount
             ? `$${(sub.amount / 100).toFixed(0)}`
             : "$29";
+          const subDate = sub.subscriptionAt || sub.createdAt || sub.date;
 
           list.push({
             id: `notif-admin-sub-${sub._id || sub.id}`,
@@ -190,21 +214,18 @@ export default function DashboardNavbar({
               sub.email || sub.user || "A user"
             } subscribed to ${planName} (${amountFormatted})`,
             type: "success",
-            timestamp: formatTimestamp(
-              sub.subscriptionAt || sub.createdAt || sub.date,
-            ),
-            rawDate: new Date(
-              sub.subscriptionAt || sub.createdAt || Date.now(),
-            ),
+            timestamp: formatTimestamp(subDate),
+            timeValue: subDate ? new Date(subDate).getTime() : 0,
           });
         }
       });
     }
 
-    return list.sort((a, b) => b.rawDate - a.rawDate);
+    return list.sort((a, b) => b.timeValue - a.timeValue);
   }, [
-    role,
+    persona,
     user,
+    activeUserId,
     parsedStartups,
     parsedFounderStartups,
     parsedApplications,
@@ -215,7 +236,7 @@ export default function DashboardNavbar({
     return dynamicNotifications.filter((n) => !readIds.includes(n.id)).length;
   }, [dynamicNotifications, readIds]);
 
-  // Outside Click Listener for both Notifications & Avatar Menu
+  // Outside Click Listener
   useEffect(() => {
     function handleClickOutside(event) {
       if (notifRef.current && !notifRef.current.contains(event.target)) {
@@ -265,27 +286,28 @@ export default function DashboardNavbar({
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
 
+  const userName = user?.name || "User";
+
   return (
     <header className="flex flex-col border-b border-slate-800 bg-[#080E1C] gap-4 px-8 py-5 sm:flex-row sm:items-center sm:justify-between shrink-0 relative z-40 font-sans">
       {/* Page Title & Greeting */}
       <div>
         <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-          <span>{capitalizeFirstLetter(role)} Dashboard</span>
-          {role === "admin" && (
+          <span>{`${capitalizeFirstLetter(persona)} Dashboard`}</span>
+          {persona === "admin" && (
             <span className="text-[10px] font-mono font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2.5 py-0.5 rounded-full uppercase flex items-center gap-1">
               <Crown className="w-3 h-3" /> Admin
             </span>
           )}
         </h1>
-        <p className="mt-0.5 text-xs text-slate-400">
-          Welcome back, {user?.name || "User"} 👋 — Here's your overview
+        {/* Unified template literal string to prevent text-node hydration diffs */}
+        <p className="mt-0.5 text-xs text-slate-400" suppressHydrationWarning>
+          {`Welcome back, ${userName} 👋 — Here's your overview`}
         </p>
       </div>
 
       <div className="flex items-center space-x-3">
-        {/* ========================================================================= */}
-        {/* NOTIFICATION BELL WITH POPOVER                                            */}
-        {/* ========================================================================= */}
+        {/* NOTIFICATION BELL WITH POPOVER */}
         <div ref={notifRef} className="relative">
           <button
             onClick={() => {
@@ -377,7 +399,7 @@ export default function DashboardNavbar({
         </div>
 
         {/* Dynamic Action Button */}
-        {role === "admin" ? (
+        {persona === "admin" ? (
           <Link
             href="/dashboard/admin/users"
             className="flex h-9 items-center justify-center space-x-1.5 rounded-xl bg-purple-600 px-4 text-xs font-bold text-white hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/10"
@@ -385,7 +407,7 @@ export default function DashboardNavbar({
             <Users className="h-4 w-4" />
             <span>Manage Users</span>
           </Link>
-        ) : role === "founder" ? (
+        ) : persona === "founder" ? (
           <Link
             href="/dashboard/founder/add-opportunity"
             className="flex h-9 items-center justify-center space-x-1.5 rounded-xl bg-amber-500 px-4 text-xs font-bold text-slate-950 hover:bg-amber-600 transition-colors shadow-lg shadow-amber-500/10"
@@ -403,9 +425,7 @@ export default function DashboardNavbar({
           </Link>
         )}
 
-        {/* ========================================================================= */}
-        {/* USER AVATAR WITH DROPDOWN MENU                                           */}
-        {/* ========================================================================= */}
+        {/* USER AVATAR WITH DROPDOWN MENU */}
         <div ref={avatarRef} className="relative">
           <button
             onClick={() => {
@@ -436,14 +456,14 @@ export default function DashboardNavbar({
                   </p>
                   <span
                     className={`px-2 py-0.5 text-[10px] font-mono font-bold rounded-full uppercase shrink-0 ${
-                      role === "admin"
+                      persona === "admin"
                         ? "text-purple-400 bg-purple-500/10 border border-purple-500/20"
-                        : role === "founder"
+                        : persona === "founder"
                           ? "text-amber-400 bg-amber-500/10 border border-amber-500/20"
                           : "text-indigo-400 bg-indigo-500/10 border border-indigo-500/20"
                     }`}
                   >
-                    {role}
+                    {persona}
                   </span>
                 </div>
                 <p className="text-[11px] font-mono text-slate-400 truncate mt-0.5">
@@ -485,7 +505,11 @@ export default function DashboardNavbar({
 
               {/* Profile Settings Link */}
               <Link
-                href="/profile"
+                href={
+                  persona === "founder"
+                    ? "/dashboard/founder/profile"
+                    : "/dashboard/collaborator/profile"
+                }
                 onClick={() => setIsAvatarOpen(false)}
                 className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-300 rounded-xl hover:bg-white/5 transition-colors"
               >
@@ -493,11 +517,11 @@ export default function DashboardNavbar({
                 <span>Profile Settings</span>
               </Link>
 
-              {/* Upgrade Plan Link (Founders & Collaborators) */}
-              {role !== "admin" && (
+              {/* Upgrade Plan Link */}
+              {persona !== "admin" && (
                 <Link
                   href={
-                    role === "founder"
+                    persona === "founder"
                       ? "/pricing"
                       : "/dashboard/collaborator/premium"
                   }
