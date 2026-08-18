@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, Suspense } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@heroui/react";
 import Person from "@gravity-ui/icons/Person";
@@ -73,7 +74,8 @@ async function uploadToImgbb(file) {
   });
   if (!res.ok) throw new Error("Image upload failed");
   const data = await res.json();
-  return data.data.url;
+  // Use display_url for direct image link, or fallback to url
+  return data.data.display_url || data.data.url;
 }
 
 function GoogleIcon({ size = 18 }) {
@@ -144,7 +146,7 @@ function TextInput({
           : "border-zinc-800 hover:border-zinc-700 focus-within:border-indigo-500/50",
       ].join(" ")}
     >
-      {icon && <span className="text-zinc-500 flex-shrink-0">{icon}</span>}
+      {icon && <span className="text-zinc-500 shrink-0">{icon}</span>}
       <input
         type={type}
         value={value}
@@ -153,9 +155,49 @@ function TextInput({
         autoComplete={autoComplete}
         className="flex-1 bg-transparent text-sm text-zinc-100 placeholder-zinc-600 outline-none min-w-0"
       />
-      {suffix && <span className="flex-shrink-0">{suffix}</span>}
+      {suffix && <span className="shrink-0">{suffix}</span>}
     </div>
   );
+}
+
+function getImageUrlError(url) {
+  if (!url || typeof url !== "string") return "Please enter a valid image URL.";
+
+  const trimmed = url.trim();
+  if (!trimmed) return "Please enter a valid image URL.";
+
+  if (trimmed.startsWith("blob:") || trimmed.startsWith("data:")) return "";
+
+  try {
+    const parsed = new URL(trimmed);
+    const isImgBbShareLink =
+      parsed.hostname.includes("ibb.co") ||
+      parsed.hostname.includes("imgbb.com");
+    const isDirectImageHost =
+      parsed.hostname.includes("i.ibb.co") ||
+      parsed.hostname.includes("i.imgur.com") ||
+      parsed.hostname.includes("cloudinary.com") ||
+      parsed.hostname.includes("images.unsplash.com") ||
+      parsed.hostname.includes("cdn.");
+    const hasImageExtension =
+      /\.(jpg|jpeg|png|gif|webp|svg|bmp|avif)(\?.*)?$/i.test(trimmed);
+
+    if (isImgBbShareLink && !isDirectImageHost && !hasImageExtension) {
+      return "imgBB share links are not direct image URLs. Please use a direct image URL ending in .jpg, .png, .gif, or .webp.";
+    }
+
+    if (!isDirectImageHost && !hasImageExtension) {
+      return "Please use a direct image URL (for example: https://example.com/avatar.jpg).";
+    }
+
+    return "";
+  } catch {
+    return "Please use a valid image URL starting with http:// or https://.";
+  }
+}
+
+function isValidUrl(url) {
+  return !getImageUrlError(url);
 }
 
 function SignupContent() {
@@ -197,8 +239,9 @@ function SignupContent() {
     setUploading(true);
     try {
       const url = await uploadToImgbb(file);
-      set("imageUrl", url);
-      setImagePreview(url);
+      const trimmedUrl = url.trim();
+      set("imageUrl", trimmedUrl);
+      setImagePreview(trimmedUrl);
     } catch {
       setUploadError("Upload failed. Check your Imgbb API key.");
       set("imageUrl", "");
@@ -225,7 +268,7 @@ function SignupContent() {
         name: form.name,
         email: form.email,
         password: form.password,
-        image: form.imageUrl || undefined,
+        image: form.imageUrl?.trim() || undefined,
         accountType: form.accountType,
         plan: plan,
         status: "active",
@@ -281,13 +324,13 @@ function SignupContent() {
 
   return (
     <div className="relative rounded-2xl border border-zinc-800/80 bg-zinc-900/80 backdrop-blur-xl shadow-2xl overflow-hidden font-sans">
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-indigo-500/50 to-transparent" />
 
       <div className="px-7 pt-8 pb-7">
         <div className="mb-7">
           <div className="flex items-center gap-2.5 mb-5">
             <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-              <div className="w-3.5 h-3.5 rounded-[3px] bg-indigo-400" />
+              <div className="w-3.5 h-3.5 rounded-sm bg-indigo-400" />
             </div>
             <span className="text-xs font-semibold tracking-[0.2em] text-zinc-500 uppercase">
               Launchpad
@@ -316,12 +359,12 @@ function SignupContent() {
               ].join(" ")}
             >
               {status === "success" ? (
-                <CheckCircle2 size={16} className="flex-shrink-0 mt-0.5" />
+                <CheckCircle2 size={16} className="shrink-0 mt-0.5" />
               ) : (
                 <CircleXmark
                   width={16}
                   height={16}
-                  className="flex-shrink-0 mt-0.5"
+                  className="shrink-0 mt-0.5"
                 />
               )}
               <span>{statusMessage}</span>
@@ -441,15 +484,36 @@ function SignupContent() {
             </div>
 
             {imageMode === "url" ? (
-              <TextInput
-                value={form.imageUrl}
-                onChange={(v) => {
-                  set("imageUrl", v);
-                  setImagePreview(v || null);
-                }}
-                placeholder="https://example.com/avatar.jpg"
-                icon={<Camera width={15} height={15} />}
-              />
+              <>
+                <TextInput
+                  value={form.imageUrl}
+                  onChange={(v) => {
+                    const trimmed = v.trim();
+                    set("imageUrl", trimmed);
+                    // Only set preview if it's a valid URL
+                    if (trimmed && isValidUrl(trimmed)) {
+                      setImagePreview(trimmed);
+                    } else {
+                      setImagePreview(null);
+                    }
+                  }}
+                  placeholder="https://example.com/avatar.jpg"
+                  icon={<Camera width={15} height={15} />}
+                  hasError={
+                    form.imageUrl.length > 0 && !isValidUrl(form.imageUrl)
+                  }
+                />
+                {form.imageUrl.length > 0 && !isValidUrl(form.imageUrl) && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-1.5 text-xs text-red-400 mt-1.5"
+                  >
+                    <AlertCircle size={12} />
+                    {getImageUrlError(form.imageUrl)}
+                  </motion.p>
+                )}
+              </>
             ) : (
               <div>
                 <input
@@ -475,17 +539,19 @@ function SignupContent() {
             )}
 
             <AnimatePresence>
-              {imagePreview && !uploading && (
+              {imagePreview && !uploading && isValidUrl(imagePreview) && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   className="flex items-center gap-3 mt-2.5"
                 >
-                  <div className="w-10 h-10 rounded-full overflow-hidden border border-zinc-700 bg-zinc-800 flex-shrink-0">
-                    <img
-                      src={imagePreview}
+                  <div className="w-10 h-10 rounded-full overflow-hidden border border-zinc-700 bg-zinc-800 shrink-0">
+                    <Image
+                      src={imagePreview?.trim()}
                       alt="Preview"
+                      width={40}
+                      height={40}
                       className="w-full h-full object-cover"
                       onError={() => setImagePreview(null)}
                     />
@@ -646,13 +712,13 @@ export default function SignupPage() {
       {/* Ambient background */}
       <div className="absolute inset-0 pointer-events-none">
         <div
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full opacity-[0.07]"
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-125 rounded-full opacity-[0.07] max-w-225"
           style={{
             background: "radial-gradient(ellipse, #6366f1 0%, transparent 70%)",
           }}
         />
         <div
-          className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full opacity-[0.05]"
+          className="absolute bottom-0 right-0 w-125 h-125 rounded-full opacity-[0.05]"
           style={{
             background: "radial-gradient(ellipse, #8b5cf6 0%, transparent 70%)",
           }}
@@ -672,7 +738,7 @@ export default function SignupPage() {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -16 }}
         transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="relative w-full max-w-[440px]"
+        className="relative w-full max-w-110"
       >
         <Suspense fallback={<SignupFallback />}>
           <SignupContent />

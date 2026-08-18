@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Briefcase,
@@ -12,6 +13,8 @@ import {
   Building2,
   Clock,
   XCircle,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 // Helper parser to safely extract array data regardless of API response wrapping
@@ -50,7 +53,9 @@ const formatDate = (dateString) => {
 
 // Helper to check if a deadline has expired
 function checkIsDeadlinePassed(deadlineStr) {
-  if (!deadlineStr || deadlineStr === "N/A") return false;
+  if (!deadlineStr || deadlineStr === "N/A" || deadlineStr === "Open") {
+    return false;
+  }
   const deadlineDate = new Date(deadlineStr);
   if (isNaN(deadlineDate.getTime())) return false;
   deadlineDate.setHours(23, 59, 59, 999);
@@ -58,25 +63,52 @@ function checkIsDeadlinePassed(deadlineStr) {
 }
 
 export default function OpportunitiesPage({
-  opportunities = [],
+  opportunities = {},
   startups = [],
+  currentPage = 1,
+  pageSize = 9,
+  totalData,
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedWorkType, setSelectedWorkType] = useState("All");
   const [selectedIndustry, setSelectedIndustry] = useState("All");
   const [sortBy, setSortBy] = useState("default");
 
-  // 1. Safely Parse Incoming Live Datasets
+  // 1. Resolve Total Items and Pagination Bounds
+  const rawDataList =
+    opportunities?.data || opportunities?.opportunities || opportunities;
+
+  const currentLimit =
+    Number(searchParams.get("limit")) || Number(pageSize) || 9;
+  const activePage = Number(opportunities?.page) || Number(currentPage) || 1;
+
+  const totalItems =
+    totalData ??
+    opportunities?.totalData ??
+    opportunities?.totalCount ??
+    opportunities?.total ??
+    (Array.isArray(rawDataList) ? rawDataList.length : 0);
+
+  const totalPages =
+    opportunities?.total_page ||
+    opportunities?.totalPages ||
+    (totalItems > 0 ? Math.ceil(totalItems / currentLimit) : 1);
+
+  // 2. Safely Parse Incoming Datasets
   const rawOpportunities = useMemo(
-    () => parseArrayData(opportunities, "opportunities"),
-    [opportunities],
+    () => parseArrayData(rawDataList, "data"),
+    [rawDataList],
   );
   const rawStartups = useMemo(
     () => parseArrayData(startups, "startups"),
     [startups],
   );
 
-  // 2. Associate Opportunities with Startup details (e.g., industry, logo)
+  // 3. Associate Opportunities with Startup Details
   const enrichedOpportunities = useMemo(() => {
     return rawOpportunities.map((opp) => {
       const oppStartupId = String(opp.startupId || "");
@@ -113,7 +145,7 @@ export default function OpportunitiesPage({
     });
   }, [rawOpportunities, rawStartups]);
 
-  // 3. Dynamically Extract Filter Dropdown Options
+  // 4. Dynamically Extract Filter Dropdown Options
   const workTypes = useMemo(() => {
     const list = enrichedOpportunities
       .map((item) => item.workType || item.work_type)
@@ -128,7 +160,7 @@ export default function OpportunitiesPage({
     return ["All", ...Array.from(new Set(list))];
   }, [enrichedOpportunities]);
 
-  // 4. Search, Filter, and Sort Opportunities
+  // 5. Search, Filter, and Sort Opportunities
   const filteredOpportunities = useMemo(() => {
     let result = enrichedOpportunities.filter((item) => {
       const search = searchTerm.toLowerCase().trim();
@@ -155,7 +187,6 @@ export default function OpportunitiesPage({
       return matchesSearch && matchesWorkType && matchesIndustry;
     });
 
-    // Apply Sorting
     if (sortBy === "deadline") {
       result.sort((a, b) => {
         if (!a.deadline) return 1;
@@ -191,6 +222,29 @@ export default function OpportunitiesPage({
     setSortBy("default");
   };
 
+  // URL-driven page navigation
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > totalPages || newPage === activePage) return;
+    const params = new URLSearchParams(
+      searchParams ? searchParams.toString() : "",
+    );
+    params.set("page", newPage.toString());
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  // URL-driven per-page limit updater
+  const handleLimitChange = (newLimit) => {
+    const params = new URLSearchParams(
+      searchParams ? searchParams.toString() : "",
+    );
+    params.set("limit", newLimit.toString());
+    params.set("page", "1"); // Reset to first page whenever page size changes
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const startItem = totalItems === 0 ? 0 : (activePage - 1) * currentLimit + 1;
+  const endItem = Math.min(activePage * currentLimit, totalItems);
+
   return (
     <section className="min-h-screen bg-slate-50 py-16 text-slate-900 transition-colors duration-200 dark:bg-slate-950 dark:text-slate-100 font-sans lg:py-24">
       <div className="container mx-auto px-6 lg:px-12">
@@ -211,7 +265,7 @@ export default function OpportunitiesPage({
         {/* Filter Controls Bar */}
         <div className="mt-10 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            {/* Search Input (Role Title, Startup, or Skills) */}
+            {/* Search Input */}
             <div className="relative flex-1">
               <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
@@ -288,7 +342,7 @@ export default function OpportunitiesPage({
                 </span>
                 {searchTerm && (
                   <span className="rounded-md bg-violet-100 px-2.5 py-0.5 font-medium text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">
-                    "{searchTerm}"
+                    &quot;{searchTerm}&quot;
                   </span>
                 )}
                 {selectedWorkType !== "All" && (
@@ -401,7 +455,7 @@ export default function OpportunitiesPage({
                       </div>
                     </div>
 
-                    {/* Card Footer: Application Deadline & Action */}
+                    {/* Card Footer */}
                     <div className="mt-6 border-t border-slate-100 pt-4 dark:border-slate-800">
                       <div className="flex items-center justify-between">
                         <div>
@@ -457,6 +511,109 @@ export default function OpportunitiesPage({
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Full Pagination Bar */}
+        <div className="mt-12 flex flex-col md:flex-row items-center justify-between gap-4 border-t border-slate-200 pt-8 dark:border-slate-800">
+          {/* Results Summary Counter */}
+          <p className="text-xs font-mono text-slate-500 dark:text-slate-400">
+            Showing{" "}
+            <strong className="text-slate-800 dark:text-slate-200">
+              {startItem}
+            </strong>
+            –
+            <strong className="text-slate-800 dark:text-slate-200">
+              {endItem}
+            </strong>{" "}
+            of{" "}
+            <strong className="text-violet-600 dark:text-violet-400 font-bold">
+              {totalItems}
+            </strong>{" "}
+            opportunities
+          </p>
+
+          {/* Pagination Navigation & Per-Page Limit Controls */}
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            {/* Show [X] Per Page Dropdown */}
+            <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400 font-sans">
+              <span>Show</span>
+              <select
+                value={currentLimit}
+                onChange={(e) => handleLimitChange(Number(e.target.value))}
+                className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold font-mono text-slate-800 outline-none transition-colors focus:border-violet-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-sm"
+              >
+                {[6, 9, 18, 27, 36].map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+              <span>per page</span>
+            </div>
+
+            {/* Previous / Page Numbers / Next Buttons */}
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => handlePageChange(activePage - 1)}
+                  disabled={activePage <= 1}
+                  className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 cursor-pointer"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline">Prev</span>
+                </button>
+
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (p) => {
+                      if (
+                        totalPages > 7 &&
+                        p !== 1 &&
+                        p !== totalPages &&
+                        Math.abs(p - activePage) > 1
+                      ) {
+                        if (Math.abs(p - activePage) === 2) {
+                          return (
+                            <span
+                              key={p}
+                              className="px-1 text-xs text-slate-400 dark:text-slate-600"
+                            >
+                              ...
+                            </span>
+                          );
+                        }
+                        return null;
+                      }
+
+                      const isActive = p === activePage;
+                      return (
+                        <button
+                          key={p}
+                          onClick={() => handlePageChange(p)}
+                          className={`h-8 w-8 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+                            isActive
+                              ? "bg-violet-600 text-white shadow-md shadow-violet-600/25 dark:bg-violet-600"
+                              : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      );
+                    },
+                  )}
+                </div>
+
+                <button
+                  onClick={() => handlePageChange(activePage + 1)}
+                  disabled={activePage >= totalPages}
+                  className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 cursor-pointer"
+                >
+                  <span className="hidden sm:inline">Next</span>
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </section>
   );
