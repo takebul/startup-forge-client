@@ -4,8 +4,10 @@ export const getOpportunitiesByUserId = async (startupId) => {
   return serverFetch(`/api/my/opportunities?startupId=${startupId}`);
 };
 
-export const getOpportunities = async (page, limit) => {
-  return serverFetch(`/api/opportunities?page=${page}&limit=${limit}`);
+export const getOpportunities = async (search, page, limit) => {
+  return serverFetch(
+    `/api/opportunities?search=${search}&page=${page}&limit=${limit}`,
+  );
 };
 
 export const getFeaturedOpportunities = async () => {

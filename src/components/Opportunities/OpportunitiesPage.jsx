@@ -16,6 +16,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { Button } from "@heroui/react";
 
 // Helper parser to safely extract array data regardless of API response wrapping
 function parseArrayData(data, key) {
@@ -73,7 +74,6 @@ export default function OpportunitiesPage({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedWorkType, setSelectedWorkType] = useState("All");
   const [selectedIndustry, setSelectedIndustry] = useState("All");
   const [sortBy, setSortBy] = useState("default");
@@ -163,19 +163,6 @@ export default function OpportunitiesPage({
   // 5. Search, Filter, and Sort Opportunities
   const filteredOpportunities = useMemo(() => {
     let result = enrichedOpportunities.filter((item) => {
-      const search = searchTerm.toLowerCase().trim();
-      const roleTitle = String(
-        item.roleTitle || item.role_title || "",
-      ).toLowerCase();
-      const startupName = String(item.resolvedStartupName || "").toLowerCase();
-      const skills = item.parsedSkillsList.map((s) => s.toLowerCase());
-
-      const matchesSearch =
-        search === "" ||
-        roleTitle.includes(search) ||
-        startupName.includes(search) ||
-        skills.some((sk) => sk.includes(search));
-
       const workType = item.workType || item.work_type;
       const matchesWorkType =
         selectedWorkType === "All" || workType === selectedWorkType;
@@ -184,7 +171,7 @@ export default function OpportunitiesPage({
         selectedIndustry === "All" ||
         item.resolvedIndustry === selectedIndustry;
 
-      return matchesSearch && matchesWorkType && matchesIndustry;
+      return matchesWorkType && matchesIndustry;
     });
 
     if (sortBy === "deadline") {
@@ -202,21 +189,12 @@ export default function OpportunitiesPage({
     }
 
     return result;
-  }, [
-    enrichedOpportunities,
-    searchTerm,
-    selectedWorkType,
-    selectedIndustry,
-    sortBy,
-  ]);
+  }, [enrichedOpportunities, selectedWorkType, selectedIndustry, sortBy]);
 
   const hasActiveFilters =
-    searchTerm !== "" ||
-    selectedWorkType !== "All" ||
-    selectedIndustry !== "All";
+    selectedWorkType !== "All" || selectedIndustry !== "All";
 
   const clearAllFilters = () => {
-    setSearchTerm("");
     setSelectedWorkType("All");
     setSelectedIndustry("All");
     setSortBy("default");
@@ -267,14 +245,21 @@ export default function OpportunitiesPage({
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             {/* Search Input */}
             <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search by role title, startup, or skills (e.g. React, Python, Figma)..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-800 outline-none transition-colors focus:border-violet-600 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:border-violet-500"
-              />
+              <form
+                action="/opportunities"
+                className="flex items-center gap-1.5"
+              >
+                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  name="search"
+                  type="text"
+                  placeholder="Search by role title, startup, or skills (e.g. React, Python, Figma)..."
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-800 outline-none transition-colors focus:border-violet-600 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:border-violet-500"
+                />
+                <Button className={"rounded-lg"} type="submit">
+                  <Search /> Search
+                </Button>
+              </form>
             </div>
 
             {/* Filters Group */}
@@ -340,11 +325,7 @@ export default function OpportunitiesPage({
                 <span className="font-semibold text-slate-500 dark:text-slate-400">
                   Active Filters:
                 </span>
-                {searchTerm && (
-                  <span className="rounded-md bg-violet-100 px-2.5 py-0.5 font-medium text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">
-                    &quot;{searchTerm}&quot;
-                  </span>
-                )}
+
                 {selectedWorkType !== "All" && (
                   <span className="rounded-md bg-violet-100 px-2.5 py-0.5 font-medium text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">
                     Type: {selectedWorkType}

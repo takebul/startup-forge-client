@@ -4,10 +4,17 @@ import { getStartups } from "@/lib/api/startups";
 
 const OpportunitiesPageWrapper = async ({ searchParams }) => {
   const searchQuery = await searchParams;
+
+  const searchTitleAndSkills = searchQuery.search || "";
+
   const page = searchQuery.page || 1;
   const limit = searchQuery.limit || 9;
 
-  const opportunities = await getOpportunities(page, limit);
+  const opportunities = await getOpportunities(
+    searchTitleAndSkills,
+    page,
+    limit,
+  );
   const { total_data } = opportunities;
   console.log(total_data);
   const startups = await getStartups();
