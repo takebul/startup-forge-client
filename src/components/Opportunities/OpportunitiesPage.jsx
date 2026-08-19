@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@heroui/react";
 
-// Helper parser to safely extract array data regardless of API response wrapping
+// Helper parser to safely extract array data
 function parseArrayData(data, key) {
   if (!data) return [];
   if (Array.isArray(data)) return data;
@@ -27,7 +27,7 @@ function parseArrayData(data, key) {
   return [];
 }
 
-// Helper to normalize skills whether stored as an array or a comma-separated string
+// Helper to normalize skills array
 function parseSkills(skills) {
   if (!skills) return [];
   if (Array.isArray(skills)) return skills.filter(Boolean);
@@ -52,7 +52,7 @@ const formatDate = (dateString) => {
   });
 };
 
-// Helper to check if a deadline has expired
+// Helper to check if deadline has expired
 function checkIsDeadlinePassed(deadlineStr) {
   if (!deadlineStr || deadlineStr === "N/A" || deadlineStr === "Open") {
     return false;
@@ -74,23 +74,31 @@ export default function OpportunitiesPage({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [selectedWorkType, setSelectedWorkType] = useState("All");
-  const [selectedIndustry, setSelectedIndustry] = useState("All");
+  // Read active filter values from URL search parameters
+  const urlSearch = searchParams.get("search") || "";
+  const urlWorkType = searchParams.get("workType") || "All";
+  const urlIndustry = searchParams.get("industry") || "All";
+  const currentLimit =
+    Number(searchParams.get("limit")) || Number(pageSize) || 9;
+
+  const [searchInput, setSearchInput] = useState(urlSearch);
   const [sortBy, setSortBy] = useState("default");
 
-  // 1. Resolve Total Items and Pagination Bounds
+  useEffect(() => {
+    setSearchInput(urlSearch);
+  }, [urlSearch]);
+
+  // 1. Resolve Pagination Bounds
   const rawDataList =
     opportunities?.data || opportunities?.opportunities || opportunities;
 
-  const currentLimit =
-    Number(searchParams.get("limit")) || Number(pageSize) || 9;
   const activePage = Number(opportunities?.page) || Number(currentPage) || 1;
 
   const totalItems =
     totalData ??
+    opportunities?.total_data ??
     opportunities?.totalData ??
     opportunities?.totalCount ??
-    opportunities?.total ??
     (Array.isArray(rawDataList) ? rawDataList.length : 0);
 
   const totalPages =
@@ -98,7 +106,7 @@ export default function OpportunitiesPage({
     opportunities?.totalPages ||
     (totalItems > 0 ? Math.ceil(totalItems / currentLimit) : 1);
 
-  // 2. Safely Parse Incoming Datasets
+  // 2. Parse Incoming Datasets
   const rawOpportunities = useMemo(
     () => parseArrayData(rawDataList, "data"),
     [rawDataList],
@@ -136,7 +144,8 @@ export default function OpportunitiesPage({
           matchedStartup?.startup_name || opp.startupName || "Startup Team",
         resolvedStartupId:
           matchedStartup?._id || matchedStartup?.id || opp.startupId || "",
-        resolvedIndustry: matchedStartup?.industry || "Technology",
+        resolvedIndustry:
+          opp.industry || matchedStartup?.industry || "Technology",
         parsedSkillsList: parseSkills(
           opp.requiredSkills || opp.required_skills,
         ),
@@ -145,80 +154,67 @@ export default function OpportunitiesPage({
     });
   }, [rawOpportunities, rawStartups]);
 
-  // 4. Dynamically Extract Filter Dropdown Options
-  const workTypes = useMemo(() => {
-    const list = enrichedOpportunities
-      .map((item) => item.workType || item.work_type)
-      .filter(Boolean);
-    return ["All", ...Array.from(new Set(list))];
-  }, [enrichedOpportunities]);
+  // 4. Dynamic Options for Filter Dropdowns
+  const workTypes = ["All", "Remote", "Hybrid", "On-site"];
 
   const industries = useMemo(() => {
-    const list = enrichedOpportunities
-      .map((item) => item.resolvedIndustry)
-      .filter(Boolean);
+    const list = rawStartups.map((item) => item.industry).filter(Boolean);
     return ["All", ...Array.from(new Set(list))];
-  }, [enrichedOpportunities]);
+  }, [rawStartups]);
 
-  // 5. Search, Filter, and Sort Opportunities
-  const filteredOpportunities = useMemo(() => {
-    let result = enrichedOpportunities.filter((item) => {
-      const workType = item.workType || item.work_type;
-      const matchesWorkType =
-        selectedWorkType === "All" || workType === selectedWorkType;
-
-      const matchesIndustry =
-        selectedIndustry === "All" ||
-        item.resolvedIndustry === selectedIndustry;
-
-      return matchesWorkType && matchesIndustry;
-    });
+  // 5. Client-Side Sorting
+  const sortedOpportunities = useMemo(() => {
+    let list = [...enrichedOpportunities];
 
     if (sortBy === "deadline") {
-      result.sort((a, b) => {
+      list.sort((a, b) => {
         if (!a.deadline) return 1;
         if (!b.deadline) return -1;
         return new Date(a.deadline) - new Date(b.deadline);
       });
     } else if (sortBy === "title") {
-      result.sort((a, b) =>
+      list.sort((a, b) =>
         String(a.roleTitle || a.role_title || "").localeCompare(
           String(b.roleTitle || b.role_title || ""),
         ),
       );
     }
 
-    return result;
-  }, [enrichedOpportunities, selectedWorkType, selectedIndustry, sortBy]);
+    return list;
+  }, [enrichedOpportunities, sortBy]);
 
-  const hasActiveFilters =
-    selectedWorkType !== "All" || selectedIndustry !== "All";
+  // Centralized URL Parameter Updater
+  const updateQueryParam = (updates = {}) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value && value !== "All" && String(value).trim() !== "") {
+        params.set(key, String(value).trim());
+      } else {
+        params.delete(key);
+      }
+    });
+
+    if (!updates.page) {
+      params.set("page", "1");
+    }
+
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    updateQueryParam({ search: searchInput });
+  };
 
   const clearAllFilters = () => {
-    setSelectedWorkType("All");
-    setSelectedIndustry("All");
+    setSearchInput("");
     setSortBy("default");
+    router.push(pathname);
   };
 
-  // URL-driven page navigation
-  const handlePageChange = (newPage) => {
-    if (newPage < 1 || newPage > totalPages || newPage === activePage) return;
-    const params = new URLSearchParams(
-      searchParams ? searchParams.toString() : "",
-    );
-    params.set("page", newPage.toString());
-    router.push(`${pathname}?${params.toString()}`);
-  };
-
-  // URL-driven per-page limit updater
-  const handleLimitChange = (newLimit) => {
-    const params = new URLSearchParams(
-      searchParams ? searchParams.toString() : "",
-    );
-    params.set("limit", newLimit.toString());
-    params.set("page", "1"); // Reset to first page whenever page size changes
-    router.push(`${pathname}?${params.toString()}`);
-  };
+  const hasActiveFilters =
+    urlSearch !== "" || urlWorkType !== "All" || urlIndustry !== "All";
 
   const startItem = totalItems === 0 ? 0 : (activePage - 1) * currentLimit + 1;
   const endItem = Math.min(activePage * currentLimit, totalItems);
@@ -246,18 +242,24 @@ export default function OpportunitiesPage({
             {/* Search Input */}
             <div className="relative flex-1">
               <form
-                action="/opportunities"
-                className="flex items-center gap-1.5"
+                onSubmit={handleSearchSubmit}
+                className="flex items-center gap-2"
               >
-                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  name="search"
-                  type="text"
-                  placeholder="Search by role title, startup, or skills (e.g. React, Python, Figma)..."
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-800 outline-none transition-colors focus:border-violet-600 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:border-violet-500"
-                />
-                <Button className={"rounded-lg"} type="submit">
-                  <Search /> Search
+                <div className="relative flex-1">
+                  <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search by role title or skills (e.g. React, Python, Figma)..."
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-800 outline-none transition-colors focus:border-violet-600 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:border-violet-500"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  className="rounded-xl bg-violet-600 text-white font-semibold text-xs px-4 h-10 hover:bg-violet-700 transition-colors cursor-pointer"
+                >
+                  Search
                 </Button>
               </form>
             </div>
@@ -270,8 +272,10 @@ export default function OpportunitiesPage({
                   Work Type:
                 </label>
                 <select
-                  value={selectedWorkType}
-                  onChange={(e) => setSelectedWorkType(e.target.value)}
+                  value={urlWorkType}
+                  onChange={(e) =>
+                    updateQueryParam({ workType: e.target.value })
+                  }
                   className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 outline-none transition-colors focus:border-violet-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 cursor-pointer"
                 >
                   {workTypes.map((type, index) => (
@@ -288,8 +292,10 @@ export default function OpportunitiesPage({
                   Industry:
                 </label>
                 <select
-                  value={selectedIndustry}
-                  onChange={(e) => setSelectedIndustry(e.target.value)}
+                  value={urlIndustry}
+                  onChange={(e) =>
+                    updateQueryParam({ industry: e.target.value })
+                  }
                   className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 outline-none transition-colors focus:border-violet-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 cursor-pointer"
                 >
                   {industries.map((ind, index) => (
@@ -310,7 +316,7 @@ export default function OpportunitiesPage({
                   onChange={(e) => setSortBy(e.target.value)}
                   className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 outline-none transition-colors focus:border-violet-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 cursor-pointer"
                 >
-                  <option value="default">Default</option>
+                  <option value="default">Default (Newest)</option>
                   <option value="deadline">Closest Deadline</option>
                   <option value="title">Role Title (A-Z)</option>
                 </select>
@@ -326,14 +332,19 @@ export default function OpportunitiesPage({
                   Active Filters:
                 </span>
 
-                {selectedWorkType !== "All" && (
+                {urlSearch && (
                   <span className="rounded-md bg-violet-100 px-2.5 py-0.5 font-medium text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">
-                    Type: {selectedWorkType}
+                    &quot;{urlSearch}&quot;
                   </span>
                 )}
-                {selectedIndustry !== "All" && (
+                {urlWorkType !== "All" && (
                   <span className="rounded-md bg-violet-100 px-2.5 py-0.5 font-medium text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">
-                    Industry: {selectedIndustry}
+                    Type: {urlWorkType}
+                  </span>
+                )}
+                {urlIndustry !== "All" && (
+                  <span className="rounded-md bg-violet-100 px-2.5 py-0.5 font-medium text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">
+                    Industry: {urlIndustry}
                   </span>
                 )}
               </div>
@@ -351,12 +362,12 @@ export default function OpportunitiesPage({
 
         {/* Opportunities Grid */}
         <AnimatePresence mode="wait">
-          {filteredOpportunities.length > 0 ? (
+          {sortedOpportunities.length > 0 ? (
             <motion.div
               layout
               className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
             >
-              {filteredOpportunities.map((item, idx) => {
+              {sortedOpportunities.map((item, idx) => {
                 const oppId = String(item._id || item.id || idx);
                 const roleTitle =
                   item.roleTitle || item.role_title || "Untitled Role";
@@ -376,7 +387,7 @@ export default function OpportunitiesPage({
                     className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-violet-300 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/80 dark:hover:border-violet-500/50"
                   >
                     <div>
-                      {/* Header Tags: Work Type & Commitment */}
+                      {/* Header Tags */}
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <span className="rounded-md bg-emerald-100 px-2.5 py-1 text-[11px] font-mono font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
                           {workType}
@@ -512,14 +523,13 @@ export default function OpportunitiesPage({
             opportunities
           </p>
 
-          {/* Pagination Navigation & Per-Page Limit Controls */}
+          {/* Pagination Controls */}
           <div className="flex flex-wrap items-center justify-center gap-4">
-            {/* Show [X] Per Page Dropdown */}
             <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400 font-sans">
               <span>Show</span>
               <select
                 value={currentLimit}
-                onChange={(e) => handleLimitChange(Number(e.target.value))}
+                onChange={(e) => updateQueryParam({ limit: e.target.value })}
                 className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold font-mono text-slate-800 outline-none transition-colors focus:border-violet-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-sm"
               >
                 {[6, 9, 18, 27, 36].map((size) => (
@@ -531,11 +541,10 @@ export default function OpportunitiesPage({
               <span>per page</span>
             </div>
 
-            {/* Previous / Page Numbers / Next Buttons */}
             {totalPages > 1 && (
               <div className="flex items-center gap-1.5">
                 <button
-                  onClick={() => handlePageChange(activePage - 1)}
+                  onClick={() => updateQueryParam({ page: activePage - 1 })}
                   disabled={activePage <= 1}
                   className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 cursor-pointer"
                 >
@@ -569,7 +578,7 @@ export default function OpportunitiesPage({
                       return (
                         <button
                           key={p}
-                          onClick={() => handlePageChange(p)}
+                          onClick={() => updateQueryParam({ page: p })}
                           className={`h-8 w-8 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
                             isActive
                               ? "bg-violet-600 text-white shadow-md shadow-violet-600/25 dark:bg-violet-600"
@@ -584,7 +593,7 @@ export default function OpportunitiesPage({
                 </div>
 
                 <button
-                  onClick={() => handlePageChange(activePage + 1)}
+                  onClick={() => updateQueryParam({ page: activePage + 1 })}
                   disabled={activePage >= totalPages}
                   className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 cursor-pointer"
                 >
