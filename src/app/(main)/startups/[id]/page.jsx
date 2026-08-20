@@ -8,11 +8,18 @@ import StartupDetails from "@/components/Startups/StartupDetails";
 const StartupDetailsPage = async ({ params }) => {
   const { id } = await params;
 
-  // 1. Fetch startup, opportunity, user session, and applications data in parallel
-  const [user, opportunities, userData, startup] = await Promise.all([
-    getUserSession(),
+  // 1. Fetch user session first to determine role
+  const user = await getUserSession();
+
+  const resolvedRole =
+    user?.role === "admin"
+      ? "admin"
+      : user?.accountType || (user?.role !== "user" ? user?.role : null);
+
+  // 2. Fetch opportunity details, startups, and conditionally users data
+  const [opportunities, userData, startup] = await Promise.all([
     getOpportunities(),
-    getUsersData(),
+    resolvedRole === "admin" ? getUsersData() : Promise.resolve([]),
     getStartupDetails(id),
   ]);
 

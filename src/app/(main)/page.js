@@ -42,13 +42,21 @@ export default async function Home() {
     featuredStartups,
     featuredOpportunities,
   ] = await Promise.all([
-    getApplicationsByStartupId(user?.id),
-    getOpportunitiesByUserId(user?.id),
-    getFounderStartup(user?.id),
+    resolvedRole === "founder"
+      ? getApplicationsByStartupId(user?.id)
+      : Promise.resolve([]),
+    resolvedRole === "founder"
+      ? getOpportunitiesByUserId(user?.id)
+      : Promise.resolve([]),
+    resolvedRole === "founder"
+      ? getFounderStartup(user?.id)
+      : Promise.resolve([]),
     getOpportunities(),
-    getUsersData(),
+    resolvedRole === "admin" ? getUsersData() : Promise.resolve([]),
     getStartups(),
-    getApplicationsById(user?.id),
+    resolvedRole === "collaborator"
+      ? getApplicationsById(user?.id)
+      : Promise.resolve([]),
     getFeaturedStartups(),
     getFeaturedOpportunities(),
   ]);

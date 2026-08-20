@@ -34,7 +34,7 @@ const PRICING_PLANS = [
     badgeColor: "text-slate-500",
     buttonVariant: "outline",
     buttonText: "Get Started Free",
-    href: "/signup?redirect=/dashboard/founder",
+    href: "/signup?redirect=/dashboard",
     features: [
       { text: "1 Active Startup Listing", included: true },
       { text: "Up to 3 Open Opportunity Roles", included: true, isBold: true },

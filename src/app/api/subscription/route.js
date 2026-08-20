@@ -2,9 +2,14 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { stripe, SUBSCRIPTION_PLAN_PRICE_ID } from "@/lib/stripe";
 import { getUserSession } from "@/lib/core/session";
+import { redirect } from "next/navigation";
 
 export async function POST(request) {
   const user = await getUserSession();
+
+  if (!user) {
+    redirect("/signin");
+  }
 
   try {
     const headersList = await headers();

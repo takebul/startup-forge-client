@@ -1,4 +1,4 @@
-import { serverFetch } from "../core/server";
+import { protectedFetch, serverFetch } from "../core/server";
 
 export const getApplicationsById = async (opportunityId) => {
   return serverFetch(`/api/my/applications?applicationId=${opportunityId}`);
@@ -9,5 +9,5 @@ export const getApplicationsByCollaboratorId = async (collaboratorId) => {
 };
 
 export const getApplicationsByStartupId = async (startupId) => {
-  return serverFetch(`/api/founder/applications?startupId=${startupId}`);
+  return protectedFetch(`/api/founder/applications?startupId=${startupId}`);
 };

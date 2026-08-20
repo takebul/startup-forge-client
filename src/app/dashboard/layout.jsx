@@ -3,7 +3,7 @@ import DashboardNavbar from "@/components/Dashboard/DashboardNavbar";
 import { getSubscriptions } from "@/lib/api/subscriptions";
 import { getFounderStartup, getStartups } from "@/lib/api/startups";
 import { getApplicationsById } from "@/lib/api/applications";
-import { getUserSession } from "@/lib/core/session";
+import { getUserSession, requireAccountType } from "@/lib/core/session";
 
 export default async function DashboardLayout({ children }) {
   const user = await getUserSession();
@@ -11,6 +11,8 @@ export default async function DashboardLayout({ children }) {
   const startups = await getStartups();
   const founderStartups = await getFounderStartup(user?.id);
   const applications = await getApplicationsById(user?.id);
+
+  await requireAccountType(user?.accountType);
 
   console.log({ subscriptions, startups, founderStartups, applications });
   return (

@@ -35,7 +35,7 @@ export async function proxy(request) {
 }
 
 export const config = {
-  matcher: ["/profile", "/dashboard/founder", "/dashboard/collaborator"],
+  matcher: ["/profile"],
 };
 
 // {

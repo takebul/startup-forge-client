@@ -8,12 +8,19 @@ import OpportunityDetailsPage from "@/components/Opportunities/OpportunityDetail
 const OpportunityDetailsPageWrapper = async ({ params }) => {
   const { id } = await params;
 
-  // 1. Fetch user session, opportunity details, startups, and users data in parallel
-  const [user, opportunity, startups, userData] = await Promise.all([
-    getUserSession(),
+  // 1. Fetch user session first to determine role
+  const user = await getUserSession();
+
+  const resolvedRole =
+    user?.role === "admin"
+      ? "admin"
+      : user?.accountType || (user?.role !== "user" ? user?.role : null);
+
+  // 2. Fetch opportunity details, startups, and conditionally users data
+  const [opportunity, startups, userData] = await Promise.all([
     getOpportunityDetails(id),
     getStartups(),
-    getUsersData(),
+    resolvedRole === "admin" ? getUsersData() : Promise.resolve([]),
   ]);
 
   // 2. Fetch logged-in collaborator's submitted applications to check if already applied
