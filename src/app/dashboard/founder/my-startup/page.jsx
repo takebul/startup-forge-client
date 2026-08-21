@@ -4,7 +4,7 @@ import { getUserSession } from "@/lib/core/session";
 
 export default async function FounderMyStartupPage() {
   const user = await getUserSession();
-  const startups = await getFounderStartup(user?.id);
+  const startups = user?.id ? await getFounderStartup(user.id) : [];
 
   return <FounderMyStartups founder={user} startups={startups} />;
 }
