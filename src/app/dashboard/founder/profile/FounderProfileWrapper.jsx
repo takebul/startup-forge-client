@@ -6,14 +6,14 @@ import Link from "next/link";
 import {
   BadgeCheck,
   Sparkles,
+  Building2,
+  Rocket,
   Briefcase,
-  Layers,
-  FileCheck,
-  Bookmark,
-  Edit,
+  Users,
   ExternalLink,
-  Code2,
-  Clock,
+  Edit,
+  ShieldCheck,
+  Layers,
 } from "lucide-react";
 import {
   Btn,
@@ -27,14 +27,14 @@ import { authClient } from "@/lib/auth-client";
 import { updateUserProfile } from "@/lib/actions/users";
 
 function formatPlanDisplayName(planId) {
-  if (!planId) return "Collaborator Free";
+  if (!planId) return "Free Founder";
   const normalized = String(planId).toLowerCase();
-  if (normalized.includes("enterprise")) return "Enterprise Collaborator";
-  if (normalized.includes("premium")) return "Premium Collaborator";
-  return "Collaborator Free";
+  if (normalized.includes("enterprise")) return "Enterprise Founder";
+  if (normalized.includes("premium")) return "Premium Founder";
+  return "Free Founder";
 }
 
-export default function ProfilePageWrapper({ initialUser }) {
+export default function FounderProfileWrapper({ initialUser }) {
   const router = useRouter();
   const { data: session } = authClient.useSession();
   const user = initialUser || session?.user;
@@ -48,13 +48,13 @@ export default function ProfilePageWrapper({ initialUser }) {
 
   const planDisplayName = formatPlanDisplayName(planKey);
 
-  // Initialize profile state
+  // Profile data state
   const [profile, setProfile] = useState({
     name: user?.name || "",
     image:
       user?.image ||
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-    headline: user?.headline || "Software Engineer & Startup Collaborator",
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+    headline: user?.headline || "Early-Stage Startup Founder & Builder",
     skills: Array.isArray(user?.skills)
       ? user.skills.join(", ")
       : user?.skills || "",
@@ -67,15 +67,15 @@ export default function ProfilePageWrapper({ initialUser }) {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState(null);
 
-  // Sync profile when user prop or session updates
+  // Sync profile when session/user updates
   useEffect(() => {
     if (user) {
       setProfile({
         name: user.name || "",
         image:
           user.image ||
-          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-        headline: user.headline || "Software Engineer & Startup Collaborator",
+          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+        headline: user.headline || "Early-Stage Startup Founder & Builder",
         skills: Array.isArray(user.skills)
           ? user.skills.join(", ")
           : user.skills || "",
@@ -85,7 +85,7 @@ export default function ProfilePageWrapper({ initialUser }) {
   }, [user]);
 
   // =========================================================================
-  // DYNAMIC PROFILE COMPLETION CALCULATOR (25% per key field)
+  // PROFILE COMPLETION CALCULATOR (25% per key field)
   // =========================================================================
   const getProfileCompletion = (data) => {
     let percentage = 0;
@@ -100,19 +100,19 @@ export default function ProfilePageWrapper({ initialUser }) {
     if (data.image && data.image.trim().length > 0) {
       percentage += 25;
     } else {
-      missingFields.push("Profile Picture");
+      missingFields.push("Profile Photo");
     }
 
     if (data.skills && data.skills.trim().length > 0) {
       percentage += 25;
     } else {
-      missingFields.push("Core Skills");
+      missingFields.push("Domain Expertise");
     }
 
     if (data.bio && data.bio.trim().length > 0) {
       percentage += 25;
     } else {
-      missingFields.push("Bio / Experience");
+      missingFields.push("Mission & Bio");
     }
 
     return { percentage, missingFields };
@@ -150,7 +150,7 @@ export default function ProfilePageWrapper({ initialUser }) {
 
       router.refresh();
     } catch (err) {
-      console.error("Failed to save collaborator profile:", err);
+      console.error("Failed to save founder profile:", err);
       setError(err?.message || "Failed to update profile. Please try again.");
     } finally {
       setSaving(false);
@@ -170,14 +170,14 @@ export default function ProfilePageWrapper({ initialUser }) {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-            <span>Collaborator Profile</span>
-            <span className="text-[10px] font-mono font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 rounded-full uppercase flex items-center gap-1">
-              <Briefcase className="w-3 h-3 text-indigo-400" /> Collaborator
+            <span>Founder Profile</span>
+            <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full uppercase flex items-center gap-1">
+              <Rocket className="w-3 h-3 text-amber-400" /> Founder
             </span>
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Manage your public talent portfolio, technical skills, and candidate
-            identity across startup opportunities.
+            Manage your founder background, venture leadership credentials, and
+            public recruitment profile.
           </p>
         </div>
 
@@ -187,24 +187,24 @@ export default function ProfilePageWrapper({ initialUser }) {
         </Btn>
       </div>
 
-      {/* Success Banner */}
+      {/* Success Notification */}
       {saved && (
         <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono flex items-center justify-between shadow-sm">
-          <span>✓ Profile updated and saved successfully!</span>
+          <span>✓ Founder profile updated and saved successfully!</span>
         </div>
       )}
 
-      {/* Profile Readiness & Completion Bar */}
+      {/* Profile Completion Indicator */}
       <div className="rounded-2xl p-5 bg-[#0D1528] border border-slate-800 space-y-3 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
             <h4 className="text-sm font-semibold text-slate-200">
-              Candidate Profile Readiness
+              Founder Profile Readiness
             </h4>
             <p className="text-xs text-slate-400 mt-0.5">
               {completionPercentage === 100
-                ? "🎉 Your profile is 100% complete! Ready to stand out to startup founders."
-                : "Complete all sections to increase visibility and get prioritized in candidate review boards."}
+                ? "🎉 Your profile is 100% complete and verified to attract top collaborator applications."
+                : "Complete all sections to boost candidate conversion rates and trust on StartupForge."}
             </p>
           </div>
           <span
@@ -251,22 +251,22 @@ export default function ProfilePageWrapper({ initialUser }) {
         )}
       </div>
 
-      {/* Main Profile View Card */}
+      {/* Main Founder Card */}
       <div className="rounded-2xl p-6 bg-[#0D1528] border border-slate-800 space-y-6 shadow-sm">
         <div className="flex flex-col sm:flex-row items-start justify-between gap-6 pb-6 border-b border-slate-800">
           <div className="flex items-center gap-5">
             <div className="relative">
               <img
                 src={profile.image}
-                alt={profile.name || "Collaborator Avatar"}
-                className="w-20 h-20 rounded-2xl object-cover ring-2 ring-indigo-500/30 bg-[#060C1A] shadow-inner"
+                alt={profile.name || "Founder Avatar"}
+                className="w-20 h-20 rounded-2xl object-cover ring-2 ring-amber-500/30 bg-[#060C1A] shadow-inner"
               />
               {isUpgraded && (
                 <div
-                  className="absolute -bottom-1.5 -right-1.5 bg-indigo-600 text-white p-1 rounded-xl ring-2 ring-[#0D1528] shadow-md"
-                  title="Verified Talent"
+                  className="absolute -bottom-1.5 -right-1.5 bg-amber-500 text-slate-950 p-1 rounded-xl ring-2 ring-[#0D1528] shadow-md"
+                  title="Verified Founder"
                 >
-                  <BadgeCheck className="w-3.5 h-3.5 fill-indigo-600 text-white" />
+                  <BadgeCheck className="w-3.5 h-3.5 fill-amber-500 text-slate-950" />
                 </div>
               )}
             </div>
@@ -274,19 +274,19 @@ export default function ProfilePageWrapper({ initialUser }) {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-lg font-bold text-slate-100">
-                  {profile.name || "Collaborator"}
+                  {profile.name || "Founder"}
                 </h3>
 
                 {isUpgraded ? (
-                  <span className="flex items-center gap-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full">
-                    <BadgeCheck className="h-3.5 w-3.5 text-indigo-400 fill-indigo-500/20" />
-                    <span>VERIFIED TALENT</span>
+                  <span className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full">
+                    <BadgeCheck className="h-3.5 w-3.5 text-amber-400 fill-amber-500/20" />
+                    <span>VERIFIED FOUNDER</span>
                   </span>
                 ) : (
                   <Link href="/pricing">
                     <span className="text-[10px] font-mono text-slate-400 bg-white/5 hover:bg-white/10 border border-slate-800 px-2.5 py-0.5 rounded-full transition-colors inline-flex items-center gap-1 cursor-pointer">
-                      <Sparkles className="h-3 w-3 text-amber-400" />
-                      <span>Upgrade Plan</span>
+                      <Sparkles className="h-3 w-3 text-amber-500" />
+                      <span>Upgrade to Verified</span>
                     </span>
                   </Link>
                 )}
@@ -305,7 +305,7 @@ export default function ProfilePageWrapper({ initialUser }) {
           </div>
 
           <div className="flex sm:flex-col gap-2 w-full sm:w-auto">
-            <span className="text-[11px] font-mono text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-xl text-center">
+            <span className="text-[11px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-xl text-center">
               Plan: <strong>{planDisplayName}</strong>
             </span>
             <Link
@@ -317,10 +317,10 @@ export default function ProfilePageWrapper({ initialUser }) {
           </div>
         </div>
 
-        {/* Skills Section */}
+        {/* Domain Expertise & Focus */}
         <div>
           <p className="text-xs font-mono uppercase tracking-wider text-slate-500 mb-2">
-            Skills &amp; Technical Expertise
+            Founder Domain Expertise &amp; Industry Focus
           </p>
           {skillsList.length > 0 ? (
             <div className="flex flex-wrap gap-2">
@@ -335,16 +335,16 @@ export default function ProfilePageWrapper({ initialUser }) {
             </div>
           ) : (
             <p className="text-xs text-slate-500 italic">
-              No skills added yet. Click &quot;Edit Profile&quot; to add your
-              technical skills (+25%).
+              No industry focus or skills added yet. Click &quot;Edit
+              Profile&quot; to add domain expertise (+25%).
             </p>
           )}
         </div>
 
-        {/* Bio / Summary Section */}
+        {/* Mission & Background Statement */}
         <div>
           <p className="text-xs font-mono uppercase tracking-wider text-slate-500 mb-2">
-            Bio &amp; Candidate Summary
+            Mission Statement &amp; Founder Bio
           </p>
           {profile.bio ? (
             <div className="text-sm text-slate-300 leading-relaxed bg-[#060C1A] p-4 rounded-xl border border-slate-800/80">
@@ -352,54 +352,54 @@ export default function ProfilePageWrapper({ initialUser }) {
             </div>
           ) : (
             <p className="text-xs text-slate-500 italic">
-              No bio added yet. Click &quot;Edit Profile&quot; to introduce your
-              experience to startup founders (+25%).
+              No bio added yet. Click &quot;Edit Profile&quot; to share your
+              vision and startup mission (+25%).
             </p>
           )}
         </div>
       </div>
 
-      {/* Collaborator Workspace Shortcuts */}
+      {/* Founder Workspace Shortcuts */}
       <div className="rounded-2xl p-5 bg-[#0D1528] border border-slate-800 flex flex-wrap items-center justify-between gap-4 shadow-sm">
         <div>
           <h4 className="text-sm font-semibold text-slate-200">
-            Collaborator Workspace
+            Founder Workspace
           </h4>
           <p className="text-xs text-slate-400 mt-0.5">
-            Quick access to opportunities and applications
+            Quick access to startup management workflows
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2.5">
           <Link
-            href="/dashboard/collaborator/browse-opportunities"
+            href="/dashboard/founder/my-startup"
+            className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-300 border border-slate-800 transition-colors inline-flex items-center gap-1.5"
+          >
+            <Building2 className="w-3.5 h-3.5 text-amber-400" />
+            <span>My Startup</span>
+          </Link>
+
+          <Link
+            href="/dashboard/founder/add-opportunity"
             className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-300 border border-slate-800 transition-colors inline-flex items-center gap-1.5"
           >
             <Briefcase className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Browse Opportunities</span>
+            <span>Post Opportunity</span>
           </Link>
 
           <Link
-            href="/dashboard/collaborator/my-applications"
+            href="/dashboard/founder/applications"
             className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-300 border border-slate-800 transition-colors inline-flex items-center gap-1.5"
           >
-            <FileCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>My Applications</span>
-          </Link>
-
-          <Link
-            href="/dashboard/collaborator/bookmarks"
-            className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-300 border border-slate-800 transition-colors inline-flex items-center gap-1.5"
-          >
-            <Bookmark className="w-3.5 h-3.5 text-amber-400" />
-            <span>Saved Bookmarks</span>
+            <Users className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Review Applications</span>
           </Link>
         </div>
       </div>
 
-      {/* Edit Collaborator Profile Modal */}
+      {/* Edit Founder Profile Modal */}
       {isModalOpen && (
-        <Modal title="Update Collaborator Profile" onClose={handleCloseModal}>
+        <Modal title="Update Founder Profile" onClose={handleCloseModal}>
           <form onSubmit={handleSave} className="space-y-4 font-sans">
             {error && (
               <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
@@ -412,17 +412,17 @@ export default function ProfilePageWrapper({ initialUser }) {
               <Input
                 value={editForm.name}
                 onChange={(v) => setEditForm({ ...editForm, name: v })}
-                placeholder="e.g. Sarah Jenkins"
+                placeholder="e.g. Alex Rivera"
                 required
               />
             </div>
 
             <div>
-              <Label>Professional Headline</Label>
+              <Label>Founder Headline</Label>
               <Input
                 value={editForm.headline}
                 onChange={(v) => setEditForm({ ...editForm, headline: v })}
-                placeholder="e.g. Senior Full-Stack Engineer | React, Node.js & AI"
+                placeholder="e.g. Co-Founder & CEO @ NexusAI"
               />
             </div>
 
@@ -435,27 +435,27 @@ export default function ProfilePageWrapper({ initialUser }) {
             </div>
 
             <div>
-              <Label>Technical Skills &amp; Stack (comma-separated)</Label>
+              <Label>Domain Expertise &amp; Industry (comma-separated)</Label>
               <Input
                 value={editForm.skills}
                 onChange={(v) => setEditForm({ ...editForm, skills: v })}
-                placeholder="React, Next.js, Node.js, TypeScript, PostgreSQL, TailwindCSS"
+                placeholder="Artificial Intelligence, SaaS, Product Strategy, Seed Fundraising"
               />
             </div>
 
             <div>
-              <Label>Bio / Candidate Summary</Label>
+              <Label>Mission Statement &amp; Bio</Label>
               <Textarea
                 value={editForm.bio}
                 onChange={(v) => setEditForm({ ...editForm, bio: v })}
-                placeholder="Describe your background, past engineering projects, and what kind of startup ventures you want to build..."
+                placeholder="Describe your startup's core vision, what problem you are solving, and what kind of collaborators you are looking to bring onto your team..."
                 rows={4}
               />
             </div>
 
             <div className="flex gap-3 pt-3 border-t border-slate-800">
               <Btn type="submit" fullWidth disabled={saving}>
-                {saving ? "Saving Changes..." : "Save Profile"}
+                {saving ? "Saving Changes..." : "Save Founder Profile"}
               </Btn>
               <Btn variant="ghost" onClick={handleCloseModal} fullWidth>
                 Cancel

@@ -190,7 +190,7 @@ export default function DashboardNavbar({ user: initialUser }) {
                 href={
                   persona === "founder"
                     ? "/dashboard/founder/profile"
-                    : "/dashboard/collaborator/profile"
+                    : `/dashboard/${user?.accountType}/profile`
                 }
                 onClick={() => setIsAvatarOpen(false)}
                 className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-300 rounded-xl hover:bg-white/5 transition-colors"
