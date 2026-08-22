@@ -16,7 +16,6 @@ import {
   markNotificationAsRead,
 } from "@/lib/actions/notifications";
 
-// Formats timestamp into: Month Day, Year • Hour:Minute AM/PM (e.g. "Aug 21, 2026 • 7:15 AM")
 function formatTimestamp(dateStr) {
   if (!dateStr) return "Recent";
   try {
@@ -62,7 +61,6 @@ export default function NotificationDropdown({ user }) {
   const activeUserId = String(user?.id || user?._id || "");
   const persona = useMemo(() => getUserPersona(user), [user]);
 
-  // Fetch real notifications from backend MongoDB API
   const fetchUserNotifications = useCallback(async () => {
     if (!activeUserId) return;
     setIsLoading(true);
@@ -81,7 +79,6 @@ export default function NotificationDropdown({ user }) {
     fetchUserNotifications();
   }, [fetchUserNotifications]);
 
-  // Mark all as read
   const handleMarkAllRead = async () => {
     if (!activeUserId || unreadCount === 0) return;
 
@@ -96,7 +93,6 @@ export default function NotificationDropdown({ user }) {
     }
   };
 
-  // Mark single as read & navigate to target link
   const handleNotificationClick = async (notif) => {
     const notifId = notif._id || notif.id;
 
@@ -117,11 +113,19 @@ export default function NotificationDropdown({ user }) {
 
     if (notif.link) {
       setIsOpen(false);
-      router.push(notif.link);
+
+      // Route aliases for legacy notification documents
+      let targetUrl = notif.link;
+      if (targetUrl === "/dashboard/admin/subscriptions") {
+        targetUrl = "/dashboard/admin/transactions";
+      } else if (targetUrl === "/dashboard/founder/my-applications") {
+        targetUrl = "/dashboard/founder/applications";
+      }
+
+      router.push(targetUrl);
     }
   };
 
-  // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
