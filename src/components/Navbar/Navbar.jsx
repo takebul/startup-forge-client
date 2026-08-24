@@ -21,7 +21,7 @@ import {
   Sparkles,
   Building2,
   CreditCard,
-  Crown,
+  User,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 
@@ -54,6 +54,12 @@ export default function Navbar() {
     setMounted(true);
   }, []);
 
+  // Close mobile drawer when pathname changes
+  useEffect(() => {
+    setIsMenuOpen(false);
+    setIsAvatarOpen(false);
+  }, [pathname]);
+
   // Close avatar dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event) {
@@ -72,8 +78,8 @@ export default function Navbar() {
 
   const publicLinks = [
     { name: "Home", href: "/", icon: Home },
-    { name: "Browse Startups", href: "/startups", icon: Rocket },
-    { name: "Browse Opportunities", href: "/opportunities", icon: Briefcase },
+    { name: "Startups", href: "/startups", icon: Rocket },
+    { name: "Opportunities", href: "/opportunities", icon: Briefcase },
     { name: "Pricing", href: "/pricing", icon: CreditCard },
   ];
 
@@ -87,6 +93,7 @@ export default function Navbar() {
         fetchOptions: {
           onSuccess: () => {
             setIsAvatarOpen(false);
+            setIsMenuOpen(false);
             router.push("/");
           },
         },
@@ -111,43 +118,45 @@ export default function Navbar() {
         : "/dashboard/collaborator/profile";
 
   return (
-    <nav className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/80 backdrop-blur-md dark:border-slate-800 dark:bg-[#080E1C]/80 font-sans transition-colors duration-200">
+    <nav className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/85 backdrop-blur-md dark:border-slate-800 dark:bg-[#080E1C]/85 font-sans transition-colors duration-200">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between gap-4">
-          {/* Mobile Menu Button & Brand */}
-          <div className="flex items-center gap-3">
+        <div className="flex h-16 items-center justify-between gap-3 sm:gap-4">
+          {/* Left: Mobile Toggle & Brand Logo */}
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+            {/* Hamburger Button (Visible on < md) */}
             <button
+              type="button"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="rounded-xl p-1.5 text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors sm:hidden"
-              aria-label="Toggle menu"
+              className="inline-flex md:hidden items-center justify-center rounded-xl p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              aria-label="Toggle Navigation Menu"
             >
               {isMenuOpen ? (
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5 text-violet-600 dark:text-violet-400" />
               ) : (
                 <Menu className="h-5 w-5" />
               )}
             </button>
 
             {/* Brand Logo */}
-            <Link href="/" className="flex items-center gap-2.5">
+            <Link href="/" className="flex items-center gap-2">
               <motion.div
-                whileHover={{ scale: 1.05, rotate: 10 }}
-                whileTap={{ scale: 0.95 }}
-                className="rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-indigo-500 p-2 shadow-sm shadow-indigo-600/30"
+                whileHover={{ scale: 1.06, rotate: 8 }}
+                whileTap={{ scale: 0.94 }}
+                className="rounded-xl bg-gradient-to-tr from-violet-600 via-purple-600 to-indigo-600 p-2 shadow-sm shadow-violet-600/30 shrink-0"
               >
                 <Rocket className="h-4 w-4 text-white" />
               </motion.div>
-              <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+              <span className="text-lg sm:text-xl font-black tracking-tight text-slate-900 dark:text-white truncate">
                 Startup
-                <span className="text-indigo-600 dark:text-indigo-400">
+                <span className="text-violet-600 dark:text-violet-400">
                   Forge
                 </span>
               </span>
             </Link>
           </div>
 
-          {/* Desktop Nav Links */}
-          <ul className="hidden sm:flex sm:items-center sm:gap-6">
+          {/* Center: Tablet & Desktop Nav Links (Visible on >= md) */}
+          <ul className="hidden md:flex items-center gap-2 lg:gap-6">
             {publicLinks.map((link) => {
               const isActive = pathname === link.href;
               const Icon = link.icon;
@@ -155,10 +164,10 @@ export default function Navbar() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className={`flex items-center gap-1.5 text-xs font-semibold transition-colors ${
+                    className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition-all ${
                       isActive
-                        ? "text-indigo-600 dark:text-indigo-400 font-bold"
-                        : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                        ? "bg-violet-50 text-violet-700 font-bold dark:bg-violet-500/15 dark:text-violet-300 shadow-2xs"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/60"
                     }`}
                   >
                     <Icon className="h-3.5 w-3.5" />
@@ -169,16 +178,17 @@ export default function Navbar() {
             })}
           </ul>
 
-          {/* Right Actions */}
-          <div className="flex items-center gap-3">
+          {/* Right Actions: Theme Toggle, Auth / Avatar */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* Theme Toggle Button */}
             {mounted && (
               <Button
                 isIconOnly
+                size="sm"
                 variant="light"
                 onPress={toggleTheme}
-                aria-label="Toggle theme"
-                className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-xl"
+                aria-label="Toggle color theme"
+                className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-xl h-9 w-9 min-w-9"
               >
                 {theme === "dark" ? (
                   <Sun className="h-4 w-4 text-amber-400" />
@@ -189,14 +199,15 @@ export default function Navbar() {
             )}
 
             {isLoggedIn ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 {/* Desktop Dashboard Shortcut */}
-                <div className="hidden sm:block">
+                <div className="hidden lg:block">
                   <Link href={dashboardHref}>
                     <Button
+                      size="sm"
                       variant="flat"
                       color="primary"
-                      className="font-bold text-xs rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20"
+                      className="font-bold text-xs rounded-xl bg-violet-50 text-violet-700 hover:bg-violet-100 dark:bg-violet-500/10 dark:text-violet-300 dark:hover:bg-violet-500/20 px-3.5 py-1.5"
                       startContent={<LayoutDashboard className="h-3.5 w-3.5" />}
                     >
                       Dashboard
@@ -207,8 +218,9 @@ export default function Navbar() {
                 {/* User Avatar Popover */}
                 <div ref={avatarRef} className="relative">
                   <button
+                    type="button"
                     onClick={() => setIsAvatarOpen(!isAvatarOpen)}
-                    className="flex items-center rounded-full p-0.5 ring-2 ring-indigo-500/30 hover:ring-indigo-500/70 transition-all cursor-pointer outline-none"
+                    className="flex items-center rounded-full p-0.5 ring-2 ring-violet-500/30 hover:ring-violet-500/70 transition-all cursor-pointer outline-none"
                     title="User Profile Menu"
                   >
                     <img
@@ -235,7 +247,7 @@ export default function Navbar() {
                                 ? "text-purple-700 bg-purple-100 border border-purple-200 dark:text-purple-400 dark:bg-purple-500/10 dark:border-purple-500/20"
                                 : persona === "founder"
                                   ? "text-amber-700 bg-amber-100 border border-amber-200 dark:text-amber-400 dark:bg-amber-500/10 dark:border-amber-500/20"
-                                  : "text-indigo-700 bg-indigo-100 border border-indigo-200 dark:text-indigo-400 dark:bg-indigo-500/10 dark:border-indigo-500/20"
+                                  : "text-violet-700 bg-violet-100 border border-violet-200 dark:text-violet-400 dark:bg-violet-500/10 dark:border-violet-500/20"
                             }`}
                           >
                             {persona}
@@ -310,6 +322,7 @@ export default function Navbar() {
                       <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
 
                       <button
+                        type="button"
                         onClick={handleSignOut}
                         className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 rounded-xl transition-colors w-full text-left cursor-pointer"
                       >
@@ -321,24 +334,27 @@ export default function Navbar() {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
-                <Link href="/signin">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Link href="/signin" className="hidden sm:inline-flex">
                   <Button
+                    size="sm"
                     variant="light"
-                    className="text-xs font-semibold text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white px-3 py-2 rounded-xl"
+                    className="text-xs font-semibold text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white px-3 py-1.5 rounded-xl"
                   >
-                    Sign in
+                    Sign In
                   </Button>
                 </Link>
 
                 <Link href="/signup">
                   <Button
+                    size="sm"
                     color="primary"
                     variant="shadow"
-                    className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-indigo-600/25 rounded-xl"
+                    className="bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs shadow-violet-600/25 rounded-xl px-3.5 py-1.5"
                     startContent={<LogIn className="h-3.5 w-3.5" />}
                   >
-                    Get Started
+                    <span className="hidden xs:inline">Join</span>
+                    <span className="xs:hidden">Get Started</span>
                   </Button>
                 </Link>
               </div>
@@ -347,50 +363,148 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Drawer Navigation */}
+      {/* Mobile/Tablet Drawer Navigation (< md) */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-[#080E1C] sm:hidden"
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="overflow-hidden border-t border-slate-200/90 bg-white/95 backdrop-blur-md dark:border-slate-800 dark:bg-[#080E1C]/95 md:hidden shadow-xl"
           >
-            <ul className="space-y-1 px-4 py-4">
-              {publicLinks.map((link) => {
-                const isActive = pathname === link.href;
-                const Icon = link.icon;
-                return (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      onClick={() => setIsMenuOpen(false)}
-                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-colors ${
-                        isActive
-                          ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400"
-                          : "text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900"
-                      }`}
-                    >
-                      <Icon className="h-4 w-4" />
-                      <span>{link.name}</span>
-                    </Link>
-                  </li>
-                );
-              })}
-
+            <div className="px-4 py-5 space-y-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
+              {/* If Logged In: Mobile User Card */}
               {isLoggedIn && (
-                <li className="pt-2 border-t border-slate-200 dark:border-slate-800">
-                  <Link
-                    href={dashboardHref}
-                    onClick={() => setIsMenuOpen(false)}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold text-indigo-600 bg-indigo-50 dark:bg-indigo-500/10 dark:text-indigo-400"
+                <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <img
+                      src={
+                        user?.image ||
+                        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80"
+                      }
+                      alt={user?.name || "User Avatar"}
+                      className="h-10 w-10 rounded-full object-cover ring-2 ring-violet-500/30 shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                        {user?.name || "User Account"}
+                      </p>
+                      <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400 truncate">
+                        {user?.email || "user@example.com"}
+                      </p>
+                    </div>
+                  </div>
+                  <span
+                    className={`px-2.5 py-0.5 text-[10px] font-mono font-bold rounded-full uppercase shrink-0 ${
+                      persona === "admin"
+                        ? "text-purple-700 bg-purple-100 dark:text-purple-400 dark:bg-purple-500/10"
+                        : persona === "founder"
+                          ? "text-amber-700 bg-amber-100 dark:text-amber-400 dark:bg-amber-500/10"
+                          : "text-violet-700 bg-violet-100 dark:text-violet-400 dark:bg-violet-500/10"
+                    }`}
                   >
-                    <LayoutDashboard className="h-4 w-4" />
-                    <span>Go to Dashboard</span>
-                  </Link>
-                </li>
+                    {persona}
+                  </span>
+                </div>
               )}
-            </ul>
+
+              {/* Public & Navigation Links */}
+              <ul className="space-y-1">
+                {publicLinks.map((link) => {
+                  const isActive = pathname === link.href;
+                  const Icon = link.icon;
+                  return (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        onClick={() => setIsMenuOpen(false)}
+                        className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-colors ${
+                          isActive
+                            ? "bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300 font-bold"
+                            : "text-slate-700 hover:bg-slate-100/80 dark:text-slate-300 dark:hover:bg-slate-900"
+                        }`}
+                      >
+                        <Icon className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" />
+                        <span>{link.name}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+
+                {isLoggedIn && (
+                  <>
+                    <li className="pt-2 border-t border-slate-200/80 dark:border-slate-800">
+                      <Link
+                        href={dashboardHref}
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-violet-700 bg-violet-50 dark:bg-violet-500/10 dark:text-violet-300"
+                      >
+                        <LayoutDashboard className="h-4 w-4 shrink-0" />
+                        <span>Dashboard Overview</span>
+                      </Link>
+                    </li>
+
+                    <li>
+                      <Link
+                        href={profileHref}
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100/80 dark:text-slate-300 dark:hover:bg-slate-900"
+                      >
+                        <Settings className="h-4 w-4 text-slate-500 dark:text-slate-400 shrink-0" />
+                        <span>Profile Settings</span>
+                      </Link>
+                    </li>
+
+                    <li>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          handleSignOut();
+                        }}
+                        className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
+                      >
+                        <LogOut className="h-4 w-4 shrink-0" />
+                        <span>Sign Out</span>
+                      </button>
+                    </li>
+                  </>
+                )}
+              </ul>
+
+              {/* If Not Logged In: Mobile Auth Buttons */}
+              {!isLoggedIn && (
+                <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800 flex flex-col gap-2.5">
+                  <Link
+                    href="/signin"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="w-full"
+                  >
+                    <Button
+                      variant="bordered"
+                      className="w-full rounded-2xl font-bold text-xs border-slate-300 text-slate-700 dark:border-slate-700 dark:text-slate-200 py-3"
+                    >
+                      Sign In
+                    </Button>
+                  </Link>
+
+                  <Link
+                    href="/signup"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="w-full"
+                  >
+                    <Button
+                      color="primary"
+                      className="w-full rounded-2xl font-bold text-xs bg-violet-600 text-white shadow-md shadow-violet-600/25 hover:bg-violet-700 py-3"
+                      startContent={<LogIn className="h-4 w-4" />}
+                    >
+                      Get Started
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -3,6 +3,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import Footer from "@/components/Footer/Footer";
 import Navbar from "@/components/Navbar/Navbar";
+import AmbientBackground from "@/components/Common/AmbientBackground";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -74,13 +75,15 @@ export default function RootLayout({ children }) {
       className={`${inter.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
-      <body className="bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased min-h-screen flex flex-col font-sans transition-colors duration-200">
+      <body className="bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased min-h-screen flex flex-col font-sans transition-colors duration-200 relative">
         <Providers>
+          <AmbientBackground />
           <Navbar />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 relative z-10">{children}</main>
           <Footer />
         </Providers>
       </body>
     </html>
   );
 }
+

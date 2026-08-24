@@ -1,19 +1,34 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button, Chip, ProgressBar } from "@heroui/react";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 import {
   ArrowRight,
   Plus,
   Rocket,
   Search,
   Users,
-  ShieldCheck,
   Building2,
   FileCheck,
   Sparkles,
+  TrendingUp,
+  Zap,
+  ShieldCheck,
+  Activity,
+  Award,
+  Clock,
+  ArrowUpRight,
 } from "lucide-react";
 
 // Safe array extractor helper
@@ -61,114 +76,353 @@ const scaleIn = {
 };
 
 // =============================================================================
-// 1. GUEST BANNER (Seamless Flow & Ambient Glow)
+// RECHARTS DATASETS FOR LIVE TELEMETRY
 // =============================================================================
-const GuestBanner = () => (
-  <section className="relative overflow-hidden py-24 lg:py-32 font-sans transition-colors duration-300">
-    {/* Ambient Glow & Floating Orbs */}
-    <div className="pointer-events-none absolute left-1/2 top-0 h-[500px] w-[750px] -translate-x-1/2 -translate-y-1/4 rounded-full blur-3xl bg-gradient-to-tr from-violet-500/20 via-purple-500/15 to-indigo-500/20 dark:from-violet-600/25 dark:via-purple-600/20 dark:to-indigo-600/25 animate-pulse-glow" />
-    <div className="pointer-events-none absolute -left-20 top-32 h-72 w-72 rounded-full blur-3xl bg-violet-400/15 dark:bg-violet-600/15 animate-float-slow" />
-    <div className="pointer-events-none absolute -right-20 top-44 h-80 w-80 rounded-full blur-3xl bg-indigo-400/15 dark:bg-indigo-600/15 animate-float-reverse" />
+const ECOSYSTEM_TELEMETRY = [
+  { month: "Jan", matches: 380, applications: 950, ventures: 160 },
+  { month: "Feb", matches: 540, applications: 1320, ventures: 220 },
+  { month: "Mar", matches: 720, applications: 1780, ventures: 310 },
+  { month: "Apr", matches: 960, applications: 2340, ventures: 430 },
+  { month: "May", matches: 1240, applications: 3050, ventures: 580 },
+  { month: "Jun", matches: 1560, applications: 3820, ventures: 760 },
+  { month: "Jul", matches: 1910, applications: 4680, ventures: 940 },
+  { month: "Aug", matches: 2420, applications: 5800, ventures: 1140 },
+];
 
-    <div className="relative mx-auto max-w-4xl px-6 text-center lg:px-12">
-      {/* Live Active Badge */}
-      <motion.div variants={fadeUp} initial="hidden" animate="show" custom={0}>
-        <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold tracking-wide border-violet-200 bg-white/80 text-violet-700 dark:border-violet-500/25 dark:bg-violet-500/10 dark:text-violet-300 shadow-xs backdrop-blur-md">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-violet-600 dark:bg-violet-400" />
-          500+ active startups recruiting now
-        </span>
-      </motion.div>
+const FOUNDER_VELOCITY_DATA = [
+  { day: "Mon", applicants: 4, reviewScore: 92 },
+  { day: "Tue", applicants: 9, reviewScore: 95 },
+  { day: "Wed", applicants: 7, reviewScore: 88 },
+  { day: "Thu", applicants: 14, reviewScore: 98 },
+  { day: "Fri", applicants: 11, reviewScore: 94 },
+  { day: "Sat", applicants: 6, reviewScore: 91 },
+  { day: "Sun", applicants: 16, reviewScore: 99 },
+];
 
-      {/* Main Heading */}
-      <motion.h1
-        variants={fadeUp}
-        initial="hidden"
-        animate="show"
-        custom={1}
-        className="mt-8 text-4xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-6xl"
-      >
-        Build great startups
-        <br />
-        <span className="bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-violet-400 dark:via-indigo-300 dark:to-purple-300">
-          together on StartupForge
-        </span>
-      </motion.h1>
-
-      {/* Subheading */}
-      <motion.p
-        variants={fadeUp}
-        initial="hidden"
-        animate="show"
-        custom={2}
-        className="mt-6 text-base leading-relaxed sm:text-lg lg:text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto"
-      >
-        Connect with high-potential early-stage ventures. Join passionate
-        engineering, design, and growth teams or post your vision to recruit
-        exceptional talent.
-      </motion.p>
-
-      {/* Hero Action Buttons */}
-      <motion.div
-        variants={fadeUp}
-        initial="hidden"
-        animate="show"
-        custom={3}
-        className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
-      >
-        <Link href="/opportunities" className="w-full sm:w-auto">
-          <Button
-            size="lg"
-            className="w-full sm:w-auto rounded-2xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm shadow-lg shadow-violet-600/25 hover:shadow-violet-600/35 hover:-translate-y-0.5 active:scale-95 transition-all px-7 py-4"
-            endContent={<ArrowRight className="w-4 h-4" />}
-          >
-            Browse Opportunities
-          </Button>
-        </Link>
-
-        <Link href="/signup" className="w-full sm:w-auto">
-          <Button
-            size="lg"
-            variant="bordered"
-            className="w-full sm:w-auto rounded-2xl border border-slate-300/90 bg-white/80 hover:bg-white text-slate-800 font-bold text-sm shadow-xs hover:border-violet-400 hover:-translate-y-0.5 active:scale-95 transition-all dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-900 px-7 py-4"
-          >
-            Post an Opportunity
-          </Button>
-        </Link>
-      </motion.div>
-
-      {/* Metric Badges */}
-      <motion.div
-        variants={fadeUp}
-        initial="hidden"
-        animate="show"
-        custom={4}
-        className="mt-14 flex flex-wrap items-center justify-center gap-6 sm:gap-12 border-t border-slate-200/80 dark:border-slate-800/80 pt-8 text-xs font-mono text-slate-500 dark:text-slate-400"
-      >
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-slate-900 dark:text-slate-100 text-base">
-            2,400+
-          </span>{" "}
-          Active Roles
+// Custom High-End Tooltip for Recharts
+const CustomChartTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="rounded-2xl border border-slate-200/90 bg-white/95 p-3.5 shadow-xl backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/95 font-sans">
+        <p className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400">
+          {label} Snapshot
+        </p>
+        <div className="mt-2 space-y-1.5 text-xs">
+          {payload.map((entry, idx) => (
+            <div key={idx} className="flex items-center justify-between gap-4">
+              <span className="flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300">
+                <span
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: entry.color }}
+                />
+                {entry.name}:
+              </span>
+              <span className="font-mono font-bold text-slate-900 dark:text-white">
+                {typeof entry.value === "number"
+                  ? entry.value.toLocaleString()
+                  : entry.value}
+              </span>
+            </div>
+          ))}
         </div>
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-slate-900 dark:text-slate-100 text-base">
-            1,100+
-          </span>{" "}
-          Vetted Startups
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-slate-900 dark:text-slate-100 text-base">
-            8,500+
-          </span>{" "}
-          Collaborators
-        </div>
-      </motion.div>
-    </div>
-  </section>
-);
+      </div>
+    );
+  }
+  return null;
+};
 
 // =============================================================================
-// 2. FOUNDER BANNER
+// 1. GUEST BANNER (Hero Presentation with Live Recharts Telemetry Deck)
+// =============================================================================
+const GuestBanner = () => {
+  const [mounted, setMounted] = useState(false);
+  const [activeTab, setActiveTab] = useState("matches"); // 'matches' | 'growth'
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  return (
+    <section className="relative overflow-hidden pt-10 pb-6 md:pt-14 md:pb-10 lg:pt-16 lg:pb-12 font-sans transition-colors duration-300">
+      <div className="relative mx-auto max-w-6xl px-6 lg:px-12 space-y-12">
+        {/* Top Hero Pitch */}
+        <div className="mx-auto max-w-4xl text-center">
+          {/* Live Active Badge */}
+          <motion.div variants={fadeUp} initial="hidden" animate="show" custom={0}>
+            <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold tracking-wide border-violet-200 bg-white/80 text-violet-700 dark:border-violet-500/25 dark:bg-violet-500/10 dark:text-violet-300 shadow-xs backdrop-blur-md">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-violet-600 dark:bg-violet-400" />
+              500+ Active Startups Recruiting Right Now
+            </span>
+          </motion.div>
+
+          {/* Main Heading */}
+          <motion.h1
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            custom={1}
+            className="mt-6 text-4xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-6xl"
+          >
+            Build great startups
+            <br />
+            <span className="bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-violet-400 dark:via-indigo-300 dark:to-purple-300">
+              together on StartupForge
+            </span>
+          </motion.h1>
+
+          {/* Subheading */}
+          <motion.p
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            custom={2}
+            className="mt-5 text-base leading-relaxed sm:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto"
+          >
+            Connect with high-potential early-stage ventures. Join passionate
+            engineering, design, and growth teams or post your vision to recruit
+            exceptional talent.
+          </motion.p>
+
+          {/* Hero Action Buttons */}
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            custom={3}
+            className="mt-8 flex flex-col items-center justify-center gap-3.5 sm:flex-row"
+          >
+            <Link href="/opportunities" className="w-full sm:w-auto">
+              <Button
+                size="lg"
+                className="w-full sm:w-auto rounded-2xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm shadow-lg shadow-violet-600/25 hover:shadow-violet-600/35 hover:-translate-y-0.5 active:scale-95 transition-all px-8 py-3.5"
+                endContent={<ArrowRight className="w-4 h-4" />}
+              >
+                Browse Opportunities
+              </Button>
+            </Link>
+
+            <Link href="/signup" className="w-full sm:w-auto">
+              <Button
+                size="lg"
+                variant="bordered"
+                className="w-full sm:w-auto rounded-2xl border border-slate-300/90 bg-white/80 hover:bg-white text-slate-800 font-bold text-sm shadow-xs hover:border-violet-400 hover:-translate-y-0.5 active:scale-95 transition-all dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-900 px-8 py-3.5"
+              >
+                Post an Opportunity
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+
+        {/* ===================================================================
+            SENIOR DESIGNER SHOWCASE: LIVE ECOSYSTEM TELEMETRY DECK (RECHARTS)
+            =================================================================== */}
+        <motion.div
+          initial={{ opacity: 0, y: 35 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
+          className="relative mx-auto max-w-5xl rounded-3xl border border-slate-200/90 bg-white/90 p-6 md:p-8 shadow-xl backdrop-blur-xl dark:border-slate-800/90 dark:bg-[#0B1120]/90"
+        >
+          {/* Deck Header Bar with Interactive Tab Switcher */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 dark:border-slate-800/80 pb-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-600/25">
+                <Activity className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    Venture &amp; Talent Telemetry
+                  </h3>
+                  <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-mono font-bold text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                    LIVE
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Real-time matching velocity and ecosystem liquidity across 30+ domains
+                </p>
+              </div>
+            </div>
+
+            {/* Tab Controller */}
+            <div className="flex items-center gap-1.5 rounded-2xl border border-slate-200/90 bg-slate-100/90 p-1 dark:border-slate-800 dark:bg-slate-800/80">
+              <button
+                type="button"
+                onClick={() => setActiveTab("matches")}
+                className={`rounded-xl px-3.5 py-1.5 text-xs font-mono font-bold transition-all cursor-pointer ${
+                  activeTab === "matches"
+                    ? "bg-white text-violet-700 shadow-xs dark:bg-slate-900 dark:text-violet-300"
+                    : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                }`}
+              >
+                Match Velocity
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("growth")}
+                className={`rounded-xl px-3.5 py-1.5 text-xs font-mono font-bold transition-all cursor-pointer ${
+                  activeTab === "growth"
+                    ? "bg-white text-violet-700 shadow-xs dark:bg-slate-900 dark:text-violet-300"
+                    : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                }`}
+              >
+                Venture Formations
+              </button>
+            </div>
+          </div>
+
+          {/* Key Stat Cards Grid */}
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 font-mono">
+            <div className="rounded-2xl border border-slate-100 bg-slate-50/90 p-3.5 dark:border-slate-800/60 dark:bg-slate-900/60">
+              <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
+                <span>Monthly Velocity</span>
+              </div>
+              <p className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                +42.8%
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-slate-50/90 p-3.5 dark:border-slate-800/60 dark:bg-slate-900/60">
+              <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                <Clock className="h-3.5 w-3.5 text-violet-500" />
+                <span>Avg. Match Speed</span>
+              </div>
+              <p className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                48 Hours
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-slate-50/90 p-3.5 dark:border-slate-800/60 dark:bg-slate-900/60">
+              <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                <ShieldCheck className="h-3.5 w-3.5 text-indigo-500" />
+                <span>Match Success</span>
+              </div>
+              <p className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                98.6%
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-slate-50/90 p-3.5 dark:border-slate-800/60 dark:bg-slate-900/60">
+              <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                <Award className="h-3.5 w-3.5 text-amber-500" />
+                <span>Active Builders</span>
+              </div>
+              <p className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                8,540+
+              </p>
+            </div>
+          </div>
+
+          {/* Dynamic Recharts Visualization */}
+          <div className="mt-6 h-[240px] w-full">
+            {mounted ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={ECOSYSTEM_TELEMETRY}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="colorMatches" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#7c3aed" stopOpacity={0.0} />
+                    </linearGradient>
+                    <linearGradient id="colorApps" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
+                    </linearGradient>
+                    <linearGradient id="colorVentures" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="currentColor"
+                    className="text-slate-200/60 dark:text-slate-800/60"
+                  />
+                  <XAxis
+                    dataKey="month"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 11, fill: "#94a3b8" }}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 11, fill: "#94a3b8" }}
+                  />
+                  <Tooltip content={<CustomChartTooltip />} />
+
+                  {activeTab === "matches" ? (
+                    <>
+                      <Area
+                        type="monotone"
+                        dataKey="applications"
+                        name="Talent Applications"
+                        stroke="#6366f1"
+                        strokeWidth={2}
+                        fillOpacity={1}
+                        fill="url(#colorApps)"
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="matches"
+                        name="Verified Matches"
+                        stroke="#7c3aed"
+                        strokeWidth={2.5}
+                        fillOpacity={1}
+                        fill="url(#colorMatches)"
+                      />
+                    </>
+                  ) : (
+                    <Area
+                      type="monotone"
+                      dataKey="ventures"
+                      name="Active Ventures"
+                      stroke="#10b981"
+                      strokeWidth={2.5}
+                      fillOpacity={1}
+                      fill="url(#colorVentures)"
+                    />
+                  )}
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full w-full rounded-2xl bg-slate-100/50 dark:bg-slate-800/30 animate-pulse" />
+            )}
+          </div>
+
+          {/* Live Activity Ticker Strip */}
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 dark:border-slate-800/80 pt-4 text-xs font-mono">
+            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 truncate">
+              <Zap className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+              <span className="font-semibold text-slate-900 dark:text-white">
+                Latest Synergy:
+              </span>
+              <span className="truncate">
+                Senior AI Engineer matched with NeuroFlow (YC W26)
+              </span>
+            </div>
+
+            <Link
+              href="/startups"
+              className="inline-flex items-center gap-1 font-bold text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 transition-colors"
+            >
+              <span>Explore All Startups</span>
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+};
+
+// =============================================================================
+// 2. FOUNDER BANNER (Enriched with Recharts Pipeline Velocity Sparkline)
 // =============================================================================
 const FounderBanner = ({
   user,
@@ -177,6 +431,12 @@ const FounderBanner = ({
   founderStartup = [],
   opportunities = [],
 }) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const appsList = useMemo(() => {
     return parseArrayData(founderApplications, "founderApplications");
   }, [founderApplications]);
@@ -200,18 +460,15 @@ const FounderBanner = ({
   const activeStartupsCount = startupList.length || 1;
 
   return (
-    <section className="relative overflow-hidden py-16 lg:py-20 font-sans transition-colors duration-300">
-      {/* Ambient background glow */}
-      <div className="pointer-events-none absolute -top-10 right-10 h-72 w-72 rounded-full blur-3xl bg-violet-400/10 dark:bg-violet-600/15 animate-float-slow" />
-      <div className="pointer-events-none absolute -bottom-10 left-10 h-64 w-64 rounded-full blur-3xl bg-indigo-400/10 dark:bg-indigo-600/15 animate-float-reverse" />
-
+    <section className="relative overflow-hidden py-10 md:py-12 lg:py-14 font-sans transition-colors duration-300">
       <div className="mx-auto max-w-6xl px-6 lg:px-12 relative">
-        <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
+        <div className="grid gap-8 lg:grid-cols-12 lg:items-center">
           {/* Left Description */}
           <motion.div
             initial="hidden"
             animate="show"
             variants={{ show: { transition: { staggerChildren: 0.08 } } }}
+            className="lg:col-span-7 space-y-4"
           >
             <motion.div variants={fadeUp}>
               <Chip
@@ -225,7 +482,7 @@ const FounderBanner = ({
 
             <motion.h1
               variants={fadeUp}
-              className="mt-4 text-3xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-4xl lg:text-5xl"
+              className="text-3xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-4xl"
             >
               Welcome back,{" "}
               <span className="text-violet-600 dark:text-violet-400">
@@ -237,15 +494,15 @@ const FounderBanner = ({
 
             <motion.p
               variants={fadeUp}
-              className="mt-4 text-sm leading-relaxed text-slate-600 dark:text-slate-400 sm:text-base"
+              className="text-sm leading-relaxed text-slate-600 dark:text-slate-400 max-w-xl"
             >
-              Post new team roles, review candidate applications from developers
-              and designers, and coordinate matching pipelines.
+              Post new roles, review candidate applications with verified skill tags,
+              and coordinate your recruitment pipeline in real time.
             </motion.p>
 
             <motion.div
               variants={fadeUp}
-              className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap"
+              className="pt-2 flex flex-col gap-3 sm:flex-row sm:flex-wrap"
             >
               <Link href="/dashboard/founder/add-opportunity">
                 <Button
@@ -269,48 +526,71 @@ const FounderBanner = ({
             </motion.div>
           </motion.div>
 
-          {/* Right Metrics Card */}
+          {/* Right Metrics & Sparkline Card */}
           <motion.div
             variants={scaleIn}
             initial="hidden"
             animate="show"
-            className="rounded-3xl border p-7 border-slate-200/90 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/80"
+            className="lg:col-span-5 rounded-3xl border border-slate-200/90 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 space-y-4"
           >
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 font-mono">
-              Recruitment Pipeline Overview
-            </p>
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500 font-mono">
+                Pipeline Velocity
+              </p>
+              <span className="flex items-center gap-1 text-[11px] font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                <TrendingUp className="h-3 w-3" />
+                Active
+              </span>
+            </div>
 
-            <div className="mt-5 space-y-3">
-              <div className="flex items-center justify-between rounded-2xl border px-4 py-3.5 border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60">
-                <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">
-                  Pending Applications
-                </span>
-                <Chip
-                  size="sm"
-                  variant="flat"
-                  className="bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300 font-mono font-bold text-xs"
-                >
-                  {pendingCount} New
-                </Chip>
+            {/* Quick Stat Tiles */}
+            <div className="grid grid-cols-3 gap-2 text-center font-mono">
+              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-2.5 dark:border-slate-800/60 dark:bg-slate-900/60">
+                <span className="text-[10px] text-slate-400">Pending</span>
+                <p className="text-base font-bold text-violet-600 dark:text-violet-400">
+                  {pendingCount}
+                </p>
               </div>
+              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-2.5 dark:border-slate-800/60 dark:bg-slate-900/60">
+                <span className="text-[10px] text-slate-400">Roles</span>
+                <p className="text-base font-bold text-slate-900 dark:text-white">
+                  {openRolesCount}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-2.5 dark:border-slate-800/60 dark:bg-slate-900/60">
+                <span className="text-[10px] text-slate-400">Startups</span>
+                <p className="text-base font-bold text-slate-900 dark:text-white">
+                  {activeStartupsCount}
+                </p>
+              </div>
+            </div>
 
-              <div className="flex items-center justify-between rounded-2xl border px-4 py-3.5 border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60">
-                <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">
-                  Active Startups
-                </span>
-                <span className="text-xs font-bold font-mono text-slate-900 dark:text-white">
-                  {activeStartupsCount} Active
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between rounded-2xl border px-4 py-3.5 border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60">
-                <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">
-                  Open Positions
-                </span>
-                <span className="text-xs font-bold font-mono text-slate-900 dark:text-white">
-                  {openRolesCount} Listed
-                </span>
-              </div>
+            {/* Interactive Recharts Sparkline */}
+            <div className="h-[110px] w-full pt-1">
+              {mounted ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={FOUNDER_VELOCITY_DATA} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="founderVelocity" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#7c3aed" stopOpacity={0.0} />
+                      </linearGradient>
+                    </defs>
+                    <Tooltip content={<CustomChartTooltip />} />
+                    <Area
+                      type="monotone"
+                      dataKey="applicants"
+                      name="Applications"
+                      stroke="#7c3aed"
+                      strokeWidth={2}
+                      fillOpacity={1}
+                      fill="url(#founderVelocity)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full w-full rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+              )}
             </div>
           </motion.div>
         </div>
@@ -343,18 +623,15 @@ const CollaboratorBanner = ({
   const profileStrength = useMemo(() => calculateProfileStrength(user), [user]);
 
   return (
-    <section className="relative overflow-hidden py-16 lg:py-20 font-sans transition-colors duration-300">
-      {/* Ambient background glow */}
-      <div className="pointer-events-none absolute -top-10 right-10 h-72 w-72 rounded-full blur-3xl bg-indigo-400/10 dark:bg-indigo-600/15 animate-float-slow" />
-      <div className="pointer-events-none absolute -bottom-10 left-10 h-64 w-64 rounded-full blur-3xl bg-violet-400/10 dark:bg-violet-600/15 animate-float-reverse" />
-
+    <section className="relative overflow-hidden py-10 md:py-12 lg:py-14 font-sans transition-colors duration-300">
       <div className="mx-auto max-w-6xl px-6 lg:px-12 relative">
-        <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
+        <div className="grid gap-8 lg:grid-cols-12 lg:items-center">
           {/* Left Description */}
           <motion.div
             initial="hidden"
             animate="show"
             variants={{ show: { transition: { staggerChildren: 0.08 } } }}
+            className="lg:col-span-7 space-y-4"
           >
             <motion.div variants={fadeUp}>
               <Chip
@@ -368,7 +645,7 @@ const CollaboratorBanner = ({
 
             <motion.h1
               variants={fadeUp}
-              className="mt-4 text-3xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-4xl lg:text-5xl"
+              className="text-3xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-4xl"
             >
               Welcome back,{" "}
               <span className="text-indigo-600 dark:text-indigo-400">
@@ -380,7 +657,7 @@ const CollaboratorBanner = ({
 
             <motion.p
               variants={fadeUp}
-              className="mt-4 text-sm leading-relaxed text-slate-600 dark:text-slate-400 sm:text-base"
+              className="text-sm leading-relaxed text-slate-600 dark:text-slate-400 max-w-xl"
             >
               Discover open startup opportunities, filter positions by tech
               stack or commitment level, and manage active submissions.
@@ -388,7 +665,7 @@ const CollaboratorBanner = ({
 
             <motion.div
               variants={fadeUp}
-              className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap"
+              className="pt-2 flex flex-col gap-3 sm:flex-row sm:flex-wrap"
             >
               <Link href="/dashboard/collaborator/browse-opportunities">
                 <Button
@@ -417,14 +694,14 @@ const CollaboratorBanner = ({
             variants={scaleIn}
             initial="hidden"
             animate="show"
-            className="rounded-3xl border p-7 border-slate-200/90 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/80"
+            className="lg:col-span-5 rounded-3xl border p-6 border-slate-200/90 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/80 space-y-3.5"
           >
             <p className="text-xs font-bold uppercase tracking-wider text-slate-500 font-mono">
               Collaborator Summary
             </p>
 
-            <div className="mt-5 space-y-3">
-              <div className="flex items-center justify-between rounded-2xl border px-4 py-3.5 border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60">
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between rounded-2xl border px-4 py-3 border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60">
                 <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">
                   Active Applications
                 </span>
@@ -437,7 +714,7 @@ const CollaboratorBanner = ({
                 </Chip>
               </div>
 
-              <div className="flex items-center justify-between rounded-2xl border px-4 py-3.5 border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60">
+              <div className="flex items-center justify-between rounded-2xl border px-4 py-3 border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60">
                 <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">
                   Account Standing
                 </span>
@@ -447,7 +724,7 @@ const CollaboratorBanner = ({
               </div>
 
               {/* HeroUI Progress Component */}
-              <div className="rounded-2xl border px-4 py-3.5 border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 space-y-2">
+              <div className="rounded-2xl border px-4 py-3 border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 space-y-2">
                 <div className="flex items-center justify-between text-xs font-mono">
                   <span className="text-slate-500 dark:text-slate-400">
                     Profile Readiness
@@ -498,10 +775,7 @@ const AdminBanner = ({ userData = [], startups = [], opportunities = [] }) => {
   );
 
   return (
-    <section className="relative overflow-hidden py-14 lg:py-16 font-sans transition-colors duration-300">
-      {/* Ambient background glow */}
-      <div className="pointer-events-none absolute -top-10 right-10 h-72 w-72 rounded-full blur-3xl bg-purple-400/10 dark:bg-purple-600/15 animate-float-slow" />
-
+    <section className="relative overflow-hidden py-10 md:py-12 font-sans transition-colors duration-300">
       <div className="mx-auto max-w-6xl px-6 lg:px-12 relative">
         <motion.div
           initial="hidden"
@@ -563,7 +837,7 @@ const AdminBanner = ({ userData = [], startups = [], opportunities = [] }) => {
         </motion.div>
 
         {/* Governance Stat Chips */}
-        <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
+        <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
           {[
             {
               label: "Total Users",
@@ -585,7 +859,7 @@ const AdminBanner = ({ userData = [], startups = [], opportunities = [] }) => {
               value: oppsList.length || "1,140",
               alert: false,
             },
-          ].map(({ label, value, alert }, i) => (
+          ].map(({ label, value, alert }) => (
             <div
               key={label}
               className={`flex flex-col justify-center rounded-2xl border p-4 transition-colors ${
@@ -619,7 +893,6 @@ const AdminBanner = ({ userData = [], startups = [], opportunities = [] }) => {
     </section>
   );
 };
-
 
 // =============================================================================
 // MAIN BANNER DISPATCHER

@@ -2,58 +2,57 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Rocket, Mail, MapPin, MessageSquare, Sparkles } from "lucide-react";
 
 const Footer = () => {
   const pathname = usePathname();
 
-  if (pathname.includes("dashboard")) {
+  if (pathname?.includes("dashboard")) {
     return null;
   }
 
   return (
-    <footer className="border-t border-slate-200 bg-slate-50 py-10 text-slate-700 transition-colors duration-200 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
-      <div className="container mx-auto space-y-8 divide-y divide-slate-200 px-6 dark:divide-slate-800 md:space-y-12">
+    <footer className="relative z-10 border-t border-slate-200/90 bg-white/95 backdrop-blur-md py-14 text-slate-800 transition-colors duration-200 dark:border-slate-800/90 dark:bg-[#060C1A]/95 dark:text-slate-200 shadow-sm">
+      <div className="container mx-auto px-6 lg:px-12 max-w-6xl space-y-12">
         {/* Main Footer Grid */}
-        <div className="grid grid-cols-12 gap-8">
+        <div className="grid grid-cols-12 gap-8 lg:gap-12">
           {/* Brand Info & Mission */}
-          <div className="col-span-full pb-6 md:col-span-5 md:pb-0">
+          <div className="col-span-full md:col-span-5 space-y-4">
             <Link
               href="/"
-              className="flex items-center space-x-3 justify-start"
+              className="inline-flex items-center gap-2.5"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-white shadow-md shadow-violet-600/20">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="h-6 w-6"
-                >
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                </svg>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-violet-600 via-purple-600 to-indigo-600 text-white shadow-md shadow-violet-600/25">
+                <Rocket className="h-5 w-5" />
               </div>
-              <span className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              <span className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                 Startup
                 <span className="text-violet-600 dark:text-violet-400">
                   Forge
                 </span>
               </span>
             </Link>
-            <p className="mt-4 max-w-sm text-sm text-slate-600 dark:text-slate-400">
+            <p className="max-w-sm text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
               Bridging visionary startup founders with world-class developers,
-              designers, and marketers to turn ambitious ideas into reality.
+              designers, and growth specialists to turn ambitious ideas into reality.
             </p>
+
+            <div className="pt-2 flex items-center gap-2 text-xs font-mono font-bold text-violet-700 dark:text-violet-300">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Building the next generation of tech ventures</span>
+            </div>
           </div>
 
           {/* Quick Links: For Founders */}
-          <div className="col-span-6 md:col-span-2 text-left">
-            <p className="pb-3 text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100 font-mono">
-              Founders
+          <div className="col-span-6 sm:col-span-3 md:col-span-2 text-left">
+            <p className="pb-4 text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white font-mono">
+              For Founders
             </p>
-            <ul className="space-y-2.5 text-sm">
+            <ul className="space-y-3 text-sm">
               <li>
                 <Link
                   href="/dashboard/founder/add-opportunity"
-                  className="text-slate-600 dark:text-slate-400 transition-colors hover:text-violet-600 dark:hover:text-violet-400"
+                  className="font-medium text-slate-700 hover:text-violet-600 dark:text-slate-300 dark:hover:text-violet-400 transition-colors"
                 >
                   Post Opportunity
                 </Link>
@@ -61,7 +60,7 @@ const Footer = () => {
               <li>
                 <Link
                   href="/dashboard/founder/applications"
-                  className="text-slate-600 dark:text-slate-400 transition-colors hover:text-violet-600 dark:hover:text-violet-400"
+                  className="font-medium text-slate-700 hover:text-violet-600 dark:text-slate-300 dark:hover:text-violet-400 transition-colors"
                 >
                   Review Applicants
                 </Link>
@@ -69,7 +68,7 @@ const Footer = () => {
               <li>
                 <Link
                   href="/startups"
-                  className="text-slate-600 dark:text-slate-400 transition-colors hover:text-violet-600 dark:hover:text-violet-400"
+                  className="font-medium text-slate-700 hover:text-violet-600 dark:text-slate-300 dark:hover:text-violet-400 transition-colors"
                 >
                   Startup Directory
                 </Link>
@@ -77,7 +76,7 @@ const Footer = () => {
               <li>
                 <Link
                   href="/pricing"
-                  className="text-slate-600 dark:text-slate-400 transition-colors hover:text-violet-600 dark:hover:text-violet-400"
+                  className="font-medium text-slate-700 hover:text-violet-600 dark:text-slate-300 dark:hover:text-violet-400 transition-colors"
                 >
                   Pricing Plans
                 </Link>
@@ -86,15 +85,15 @@ const Footer = () => {
           </div>
 
           {/* Quick Links: For Collaborators */}
-          <div className="col-span-6 md:col-span-2 text-left">
-            <p className="pb-3 text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100 font-mono">
+          <div className="col-span-6 sm:col-span-3 md:col-span-2 text-left">
+            <p className="pb-4 text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white font-mono">
               Collaborators
             </p>
-            <ul className="space-y-2.5 text-sm">
+            <ul className="space-y-3 text-sm">
               <li>
                 <Link
                   href="/opportunities"
-                  className="text-slate-600 dark:text-slate-400 transition-colors hover:text-violet-600 dark:hover:text-violet-400"
+                  className="font-medium text-slate-700 hover:text-violet-600 dark:text-slate-300 dark:hover:text-violet-400 transition-colors"
                 >
                   Browse Roles
                 </Link>
@@ -102,7 +101,7 @@ const Footer = () => {
               <li>
                 <Link
                   href="/startups"
-                  className="text-slate-600 dark:text-slate-400 transition-colors hover:text-violet-600 dark:hover:text-violet-400"
+                  className="font-medium text-slate-700 hover:text-violet-600 dark:text-slate-300 dark:hover:text-violet-400 transition-colors"
                 >
                   Explore Startups
                 </Link>
@@ -110,7 +109,7 @@ const Footer = () => {
               <li>
                 <Link
                   href="/dashboard/collaborator/my-applications"
-                  className="text-slate-600 dark:text-slate-400 transition-colors hover:text-violet-600 dark:hover:text-violet-400"
+                  className="font-medium text-slate-700 hover:text-violet-600 dark:text-slate-300 dark:hover:text-violet-400 transition-colors"
                 >
                   Application Tracker
                 </Link>
@@ -118,7 +117,7 @@ const Footer = () => {
               <li>
                 <Link
                   href="/dashboard/collaborator/profile"
-                  className="text-slate-600 dark:text-slate-400 transition-colors hover:text-violet-600 dark:hover:text-violet-400"
+                  className="font-medium text-slate-700 hover:text-violet-600 dark:text-slate-300 dark:hover:text-violet-400 transition-colors"
                 >
                   Profile Settings
                 </Link>
@@ -127,38 +126,46 @@ const Footer = () => {
           </div>
 
           {/* Contact Information */}
-          <div className="col-span-full md:col-span-3 text-left">
-            <p className="pb-3 text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100 font-mono">
-              Contact Us
+          <div className="col-span-full sm:col-span-6 md:col-span-3 text-left">
+            <p className="pb-4 text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white font-mono">
+              Contact &amp; Support
             </p>
-            <ul className="space-y-2.5 text-sm text-slate-600 dark:text-slate-400">
-              <li className="flex items-center space-x-2">
-                <span>📍 San Francisco, CA &amp; Remote</span>
+            <ul className="space-y-3 text-sm text-slate-700 dark:text-slate-300 font-medium">
+              <li className="flex items-center gap-2.5">
+                <MapPin className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" />
+                <span>San Francisco, CA &amp; Global Remote</span>
               </li>
-              <li className="flex items-center space-x-2">
-                <span>✉️ support@startupforge.com</span>
+              <li className="flex items-center gap-2.5">
+                <Mail className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" />
+                <a
+                  href="mailto:support@startupforge.com"
+                  className="hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+                >
+                  support@startupforge.com
+                </a>
               </li>
-              <li className="flex items-center space-x-2">
-                <span>💬 Live Chat (24/7 Support)</span>
+              <li className="flex items-center gap-2.5">
+                <MessageSquare className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" />
+                <span>24/7 Community Discord &amp; Live Chat</span>
               </li>
             </ul>
           </div>
         </div>
 
         {/* Bottom Bar: Copyright & Social Links */}
-        <div className="grid justify-center pt-6 lg:justify-between">
-          <div className="flex flex-col items-center justify-center text-sm text-slate-500 dark:text-slate-400 sm:flex-row sm:space-x-6 lg:col-start-1">
+        <div className="border-t border-slate-200/90 dark:border-slate-800/90 pt-8 flex flex-col items-center justify-between gap-4 sm:flex-row">
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-xs text-slate-600 dark:text-slate-400 font-medium">
             <span>
-              © {new Date().getFullYear()} StartupForge Inc. All rights
-              reserved.
+              © {new Date().getFullYear()} StartupForge Inc. All rights reserved.
             </span>
-            <div className="mt-2 flex space-x-4 sm:mt-0">
+            <div className="flex items-center gap-4">
               <Link
                 href="/privacy"
                 className="transition-colors hover:text-violet-600 dark:hover:text-violet-400"
               >
                 Privacy Policy
               </Link>
+              <span>•</span>
               <Link
                 href="/terms"
                 className="transition-colors hover:text-violet-600 dark:hover:text-violet-400"
@@ -168,32 +175,22 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Social Links */}
-          <div className="flex justify-center pt-4 space-x-3 lg:pt-0 lg:col-end-13">
-            {/* Email Contact */}
+          {/* Social Links with Strong Contrast Badges */}
+          <div className="flex items-center gap-2.5">
             <a
               href="mailto:support@startupforge.com"
-              title="Email Us"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-200 text-slate-700 transition-colors hover:bg-violet-600 hover:text-white dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-violet-600 dark:hover:text-white"
+              title="Email Support"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/90 bg-slate-100/90 text-slate-700 shadow-xs transition-all hover:bg-violet-600 hover:text-white hover:border-violet-600 active:scale-95 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-violet-600 dark:hover:text-white"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="h-4 w-4"
-              >
-                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
-                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
-              </svg>
+              <Mail className="h-4 w-4" />
             </a>
 
-            {/* X (formerly Twitter) */}
             <a
               href="https://twitter.com"
               target="_blank"
               rel="noopener noreferrer"
-              title="Twitter"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-200 text-slate-700 transition-colors hover:bg-violet-600 hover:text-white dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-violet-600 dark:hover:text-white"
+              title="Twitter / X"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/90 bg-slate-100/90 text-slate-700 shadow-xs transition-all hover:bg-violet-600 hover:text-white hover:border-violet-600 active:scale-95 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-violet-600 dark:hover:text-white"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -205,13 +202,12 @@ const Footer = () => {
               </svg>
             </a>
 
-            {/* GitHub */}
             <a
               href="https://github.com"
               target="_blank"
               rel="noopener noreferrer"
               title="GitHub"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-200 text-slate-700 transition-colors hover:bg-violet-600 hover:text-white dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-violet-600 dark:hover:text-white"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/90 bg-slate-100/90 text-slate-700 shadow-xs transition-all hover:bg-violet-600 hover:text-white hover:border-violet-600 active:scale-95 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-violet-600 dark:hover:text-white"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

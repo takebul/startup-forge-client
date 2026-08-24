@@ -181,20 +181,20 @@
 
 /* Subtle Ambient Background Grids */
 .bg-dot-pattern-light {
-  background-image: radial-gradient(rgba(124, 58, 237, 0.08) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(100, 116, 139, 0.045) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
 .bg-dot-pattern-dark {
-  background-image: radial-gradient(rgba(139, 92, 246, 0.12) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
 .bg-grid-pattern-light {
   background-size: 40px 40px;
   background-image: 
-    linear-gradient(to right, rgba(100, 116, 139, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(100, 116, 139, 0.04) 1px, transparent 1px);
+    linear-gradient(to right, rgba(100, 116, 139, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(100, 116, 139, 0.03) 1px, transparent 1px);
 }
 
 .bg-grid-pattern-dark {
@@ -203,4 +203,93 @@
     linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
 }
+
+@keyframes shimmerWave {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmerWave 2s infinite linear;
+}
+
+.dark .animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmerWave 2s infinite linear;
+}
+
+/* Ultra-Smooth, Subtle Luxury Ambient Aurora Keyframes */
+@keyframes aurora1 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(18px, -15px) scale(1.03);
+  }
+}
+
+@keyframes aurora2 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(-16px, 14px) scale(1.02);
+  }
+}
+
+@keyframes aurora3 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(12px, 16px) scale(1.04);
+  }
+}
+
+@keyframes lightMeshPulse {
+  0%, 100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+}
+
+.animate-aurora-1 {
+  animation: aurora1 32s ease-in-out infinite;
+}
+
+.animate-aurora-2 {
+  animation: aurora2 40s ease-in-out infinite;
+}
+
+.animate-aurora-3 {
+  animation: aurora3 36s ease-in-out infinite;
+}
+
+.animate-mesh-pulse {
+  animation: lightMeshPulse 20s ease-in-out infinite;
+}
+
+
+
 
