@@ -39,11 +39,11 @@ function parseArrayData(data, key) {
 const CustomBarTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl px-3.5 py-2.5 bg-[#0D1528] border border-slate-800 text-xs shadow-xl space-y-1 font-sans">
-      <p className="font-semibold text-slate-200">
+    <div className="rounded-xl px-3.5 py-2.5 bg-white dark:bg-[#0D1528] border border-slate-200 dark:border-slate-800 text-xs shadow-xl space-y-1 font-sans">
+      <p className="font-semibold text-slate-900 dark:text-slate-200">
         {payload[0]?.payload?.fullTitle || label}
       </p>
-      <p className="text-amber-400 font-mono font-bold">
+      <p className="text-violet-600 dark:text-violet-400 font-mono font-bold">
         Applications: {payload[0].value}
       </p>
     </div>
@@ -53,10 +53,10 @@ const CustomBarTooltip = ({ active, payload, label }) => {
 const CustomPieTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl px-3 py-2 bg-[#0D1528] border border-slate-800 text-xs shadow-xl font-sans">
-      <p className="text-slate-200">
+    <div className="rounded-xl px-3 py-2 bg-white dark:bg-[#0D1528] border border-slate-200 dark:border-slate-800 text-xs shadow-xl font-sans">
+      <p className="text-slate-900 dark:text-slate-200">
         {payload[0].name}:{" "}
-        <span className="font-mono font-bold text-amber-400">
+        <span className="font-mono font-bold text-violet-600 dark:text-violet-400">
           {payload[0].value}
         </span>
       </p>
@@ -157,39 +157,39 @@ export default function FounderDashboardOverviewPage({
   const statusPieData = useMemo(() => {
     return [
       { name: "Accepted", value: acceptedMembers, color: "#10B981" },
-      { name: "Pending", value: pendingApplications, color: "#F59E0B" },
+      { name: "Pending", value: pendingApplications, color: "#8B5CF6" },
       { name: "Rejected", value: rejectedApplications, color: "#EF4444" },
     ].filter((item) => item.value > 0);
   }, [acceptedMembers, pendingApplications, rejectedApplications]);
 
   return (
-    <div className="p-8 space-y-8 max-w-7xl mx-auto font-sans">
+    <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto font-sans">
       {/* Header with Welcome Greeting & Plan Badge */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h2 className="text-xl font-bold text-slate-100">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
               Welcome back, {user?.name || "Founder"}!
             </h2>
 
             {isUpgraded ? (
               <div
-                className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full"
+                className="flex items-center gap-1.5 bg-violet-100 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/20 text-violet-700 dark:text-violet-300 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full"
                 title="Verified Founder Account"
               >
-                <BadgeCheck className="h-4 w-4 fill-amber-500/20 text-amber-400 shrink-0" />
+                <BadgeCheck className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" />
                 <span>{planDisplayName.toUpperCase()}</span>
               </div>
             ) : (
-              <Link href="/dashboard/founder/pricing">
-                <span className="text-[11px] font-mono text-slate-400 bg-white/5 hover:bg-white/10 border border-slate-800 px-2.5 py-1 rounded-full transition-colors inline-flex items-center gap-1.5 cursor-pointer">
+              <Link href="/pricing">
+                <span className="text-[11px] font-mono text-slate-600 dark:text-slate-400 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-slate-800 px-2.5 py-1 rounded-full transition-colors inline-flex items-center gap-1.5 cursor-pointer">
                   <Sparkles className="h-3 w-3 text-amber-500 shrink-0" />
                   <span>Upgrade to Premium</span>
                 </span>
               </Link>
             )}
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Monitor your recruitment pipeline, applicant conversions, and role
             engagement.
           </p>
@@ -209,13 +209,13 @@ export default function FounderDashboardOverviewPage({
           label="Total Opportunities"
           value={totalOpportunities}
           sub="active roles posted"
-          color="#F59E0B"
+          color="#7C3AED"
         />
         <StatCard
           label="Total Applications"
           value={totalApplications}
           sub="across all roles"
-          color="#818CF8"
+          color="#6366F1"
         />
         <StatCard
           label="Accepted Members"
@@ -227,24 +227,24 @@ export default function FounderDashboardOverviewPage({
           label="Pending Review"
           value={pendingApplications}
           sub="awaiting review"
-          color="#3B82F6"
+          color="#EC4899"
         />
       </div>
 
       {/* Analytics Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Applications Per Opportunity Bar Chart */}
-        <div className="lg:col-span-2 rounded-2xl p-6 bg-[#0D1528] border border-slate-800/80 space-y-4 shadow-sm">
+        <div className="lg:col-span-2 rounded-3xl p-6 bg-white border border-slate-200/90 shadow-sm dark:bg-[#0D1528] dark:border-slate-800/80 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-slate-200 uppercase font-mono tracking-wider">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-200 uppercase font-mono tracking-wider">
                 Applications per Role
               </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Number of applicants received for each posted opportunity
               </p>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-amber-400 font-mono font-semibold">
+            <div className="flex items-center gap-1.5 text-xs text-violet-600 dark:text-violet-400 font-mono font-semibold">
               <TrendingUp className="w-4 h-4" /> Role Metrics
             </div>
           </div>
@@ -259,12 +259,12 @@ export default function FounderDashboardOverviewPage({
                 >
                   <CartesianGrid
                     vertical={false}
-                    stroke="rgba(255,255,255,0.05)"
+                    stroke="rgba(100,116,139,0.12)"
                   />
                   <XAxis
                     dataKey="role"
                     tick={{
-                      fill: "#5A6480",
+                      fill: "#64748B",
                       fontSize: 11,
                       fontFamily: "monospace",
                     }}
@@ -273,7 +273,7 @@ export default function FounderDashboardOverviewPage({
                   />
                   <YAxis
                     tick={{
-                      fill: "#5A6480",
+                      fill: "#64748B",
                       fontSize: 11,
                       fontFamily: "monospace",
                     }}
@@ -283,11 +283,11 @@ export default function FounderDashboardOverviewPage({
                   />
                   <Tooltip
                     content={<CustomBarTooltip />}
-                    cursor={{ fill: "rgba(255,255,255,0.03)" }}
+                    cursor={{ fill: "rgba(124,58,237,0.04)" }}
                   />
                   <Bar
                     dataKey="Applications"
-                    fill="#F59E0B"
+                    fill="#7C3AED"
                     radius={[6, 6, 0, 0]}
                   />
                 </BarChart>
@@ -301,12 +301,12 @@ export default function FounderDashboardOverviewPage({
         </div>
 
         {/* Application Status Breakdown Donut Chart */}
-        <div className="rounded-2xl p-6 bg-[#0D1528] border border-slate-800/80 flex flex-col justify-between space-y-4 shadow-sm">
+        <div className="rounded-3xl p-6 bg-white border border-slate-200/90 shadow-sm dark:bg-[#0D1528] dark:border-slate-800/80 flex flex-col justify-between space-y-4">
           <div>
-            <h3 className="text-sm font-bold text-slate-200 uppercase font-mono tracking-wider">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-200 uppercase font-mono tracking-wider">
               Status Breakdown
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Review status distribution of received applications
             </p>
           </div>
@@ -339,21 +339,21 @@ export default function FounderDashboardOverviewPage({
             )}
           </div>
 
-          <div className="space-y-2 pt-2 border-t border-slate-800/80">
+          <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800/80">
             {statusPieData.length > 0 ? (
               statusPieData.map((item) => (
                 <div
                   key={item.name}
                   className="flex items-center justify-between text-xs font-mono"
                 >
-                  <div className="flex items-center gap-2 text-slate-300">
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
                     <span
                       className="w-2.5 h-2.5 rounded-full"
                       style={{ backgroundColor: item.color }}
                     />
                     <span>{item.name}</span>
                   </div>
-                  <span className="font-bold text-slate-100">{item.value}</span>
+                  <span className="font-bold text-slate-900 dark:text-slate-100">{item.value}</span>
                 </div>
               ))
             ) : (
@@ -366,8 +366,8 @@ export default function FounderDashboardOverviewPage({
       </div>
 
       {/* Quick Actions Bar */}
-      <div className="rounded-2xl p-6 bg-[#0D1528] border border-slate-800/80 space-y-3 shadow-sm">
-        <h3 className="font-semibold text-sm text-slate-200">Quick Actions</h3>
+      <div className="rounded-3xl p-6 bg-white border border-slate-200/90 shadow-sm dark:bg-[#0D1528] dark:border-slate-800/80 space-y-3">
+        <h3 className="font-bold text-sm text-slate-900 dark:text-slate-200">Quick Actions</h3>
         <div className="flex flex-wrap gap-3">
           <Link href="/dashboard/founder/add-opportunity">
             <Btn variant="primary" size="sm">
@@ -379,12 +379,12 @@ export default function FounderDashboardOverviewPage({
               📬 Review Applications ({pendingApplications} New)
             </Btn>
           </Link>
-          <Link href="/dashboard/founder/opportunities">
+          <Link href="/dashboard/founder/manage-opportunities">
             <Btn variant="outline" size="sm">
               📋 Manage Active Roles ({totalOpportunities})
             </Btn>
           </Link>
-          <Link href="/dashboard/founder/startup">
+          <Link href="/dashboard/founder/my-startup">
             <Btn variant="ghost" size="sm">
               🏢 Startup Profile
             </Btn>
@@ -394,3 +394,4 @@ export default function FounderDashboardOverviewPage({
     </div>
   );
 }
+

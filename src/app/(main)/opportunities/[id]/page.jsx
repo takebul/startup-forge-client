@@ -5,6 +5,32 @@ import { getApplicationsById } from "@/lib/api/applications";
 import { getUserSession } from "@/lib/core/session";
 import OpportunityDetailsPage from "@/components/Opportunities/OpportunityDetailsPage";
 
+export async function generateMetadata({ params }) {
+  const { id } = await params;
+  const opp = await getOpportunityDetails(id).catch(() => null);
+  const roleTitle =
+    opp?.roleTitle || opp?.role_title || opp?.title || "Opportunity Details";
+  const startupName = opp?.startupName || opp?.startup_name || "Startup Team";
+  const description =
+    opp?.description?.slice(0, 160) ||
+    `Apply for the ${roleTitle} role at ${startupName} on StartupForge.`;
+
+  return {
+    title: `${roleTitle} at ${startupName} — StartupForge`,
+    description,
+    openGraph: {
+      title: `${roleTitle} at ${startupName} — StartupForge`,
+      description,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${roleTitle} at ${startupName} — StartupForge`,
+      description,
+    },
+  };
+}
+
 const OpportunityDetailsPageWrapper = async ({ params }) => {
   const { id } = await params;
 
@@ -47,3 +73,4 @@ const OpportunityDetailsPageWrapper = async ({ params }) => {
 };
 
 export default OpportunityDetailsPageWrapper;
+

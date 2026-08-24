@@ -1,29 +1,71 @@
 @import "tailwindcss";
 @import "@heroui/styles";
 
-@theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display:
-    "Bricolage Grotesque", "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+@custom-variant dark (&:where(.dark, .dark *));
 
-  --color-bg: #09090b;
-  --color-surface: #111113;
-  --color-surface-2: #18181b;
-  --color-border: #27272a;
-  --color-border-subtle: #1d1d20;
-  --color-muted: #3f3f46;
-  --color-muted-fg: #71717a;
-  --color-fg: #fafafa;
-  --color-fg-muted: #a1a1aa;
-  --color-accent: #6366f1;
-  --color-accent-hover: #4f46e5;
-  --color-accent-glow: rgba(99, 102, 241, 0.15);
-  --color-success: #22c55e;
-  --color-error: #ef4444;
+/* =============================================================================
+   1. TAILWIND V4 THEME CONFIGURATION (FONTS & TOKENS)
+   ============================================================================= */
+@theme {
+  --font-sans:
+    var(--font-inter), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+  --font-mono:
+    var(--font-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Brand Accents */
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a5b4fc;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+  --color-primary-800: #3730a3;
+  --color-primary-900: #312e81;
+
+  /* Semantic Highlights */
+  --color-success: #10b981;
   --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-admin: #a855f7;
 }
 
+/* =============================================================================
+   2. DYNAMIC CSS DESIGN TOKENS (LIGHT & DARK SURFACES)
+   ============================================================================= */
+:root {
+  --bg-app: #ffffff;
+  --bg-surface: #f8fafc;
+  --bg-surface-elevated: #f1f5f9;
+  --border-subtle: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+
+  --autofill-bg: #f8fafc;
+  --autofill-text: #0f172a;
+}
+
+.dark {
+  --bg-app: #0a0c10;
+  --bg-surface: #0d1528;
+  --bg-surface-elevated: #12141d;
+  --border-subtle: #1e212b;
+  --border-strong: #2a2e3d;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  --autofill-bg: #0d1528;
+  --autofill-text: #f8fafc;
+}
+
+/* =============================================================================
+   3. BASE APPLICATION STYLING & RESETS
+   ============================================================================= */
 @layer base {
   *,
   *::before,
@@ -34,6 +76,7 @@
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
     scrollbar-width: none;
   }
 
@@ -42,19 +85,122 @@
   }
 
   body {
-    background-color: var(--color-bg);
-    color: var(--color-fg);
+    background-color: var(--bg-app);
+    color: var(--text-primary);
     font-family: var(--font-sans);
     margin: 0;
     padding: 0;
+    min-height: 100vh;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
   }
 
+  /* Dual-Theme Webkit Autofill Normalization */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
-  input:-webkit-autofill:focus {
-    -webkit-box-shadow: 0 0 0px 1000px #18181b inset !important;
-    -webkit-text-fill-color: #fafafa !important;
-    caret-color: #fafafa;
-    border-color: #27272a !important;
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0px 1000px var(--autofill-bg) inset !important;
+    -webkit-text-fill-color: var(--autofill-text) !important;
+    caret-color: var(--autofill-text);
+    border-color: var(--border-subtle) !important;
+    transition: background-color 5000s ease-in-out 0s;
   }
 }
+
+/* =============================================================================
+   4. UTILITY HELPERS & AMBIENT ANIMATIONS
+   ============================================================================= */
+
+/* Ambient Glow & Floating Animations */
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-16px) scale(1.03);
+  }
+}
+
+@keyframes floatReverse {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(16px) scale(0.97);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.65;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-float-slow {
+  animation: floatSlow 12s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: floatReverse 15s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 8s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spinSlow 16s linear infinite;
+}
+
+/* Respect Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-slow,
+  .animate-float-reverse,
+  .animate-pulse-glow,
+  .animate-spin-slow {
+    animation: none !important;
+  }
+}
+
+/* Subtle Ambient Background Grids */
+.bg-dot-pattern-light {
+  background-image: radial-gradient(rgba(124, 58, 237, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.bg-dot-pattern-dark {
+  background-image: radial-gradient(rgba(139, 92, 246, 0.12) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.bg-grid-pattern-light {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(100, 116, 139, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(100, 116, 139, 0.04) 1px, transparent 1px);
+}
+
+.bg-grid-pattern-dark {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}
+

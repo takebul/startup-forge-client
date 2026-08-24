@@ -1,4 +1,5 @@
 import { Star } from "lucide-react";
+import Image from "next/image";
 
 const TESTIMONIALS = [
   {
@@ -31,10 +32,13 @@ export default function PricingTestimonials() {
   return (
     <section className="mt-28">
       <div className="mx-auto max-w-2xl text-center">
-        <h2 className="text-3xl font-extrabold text-white">
+        <span className="rounded-full bg-violet-100 px-3.5 py-1 text-xs font-mono font-semibold uppercase tracking-wider text-violet-700 dark:bg-violet-500/10 dark:text-violet-300">
+          Member Testimonials
+        </span>
+        <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
           Built for High-Velocity Growth
         </h2>
-        <p className="mt-2 text-xs text-slate-400">
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
           Real results from builders who scaled their ventures and careers with
           us
         </p>
@@ -44,27 +48,34 @@ export default function PricingTestimonials() {
         {TESTIMONIALS.map((t, i) => (
           <div
             key={i}
-            className="flex flex-col justify-between rounded-2xl border border-[#1E212B] bg-[#12141D] p-6"
+            className="flex flex-col justify-between rounded-3xl border border-slate-200/90 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-violet-300 hover:shadow-xl dark:border-slate-800/90 dark:bg-slate-900/80 dark:hover:border-violet-500/40"
           >
             <div>
-              <div className="flex space-x-1 text-amber-400">
+              <div className="flex space-x-1 text-amber-500 dark:text-amber-400">
                 {[...Array(5)].map((_, s) => (
-                  <Star key={s} className="h-4 w-4 fill-amber-400" />
+                  <Star
+                    key={s}
+                    className="h-4 w-4 fill-amber-500 dark:fill-amber-400"
+                  />
                 ))}
               </div>
-              <p className="mt-4 text-xs leading-relaxed text-slate-300 italic">
+              <p className="mt-4 text-xs leading-relaxed text-slate-700 dark:text-slate-300 italic">
                 &quot;{t.quote}&quot;
               </p>
             </div>
-            <div className="mt-6 flex items-center space-x-3 border-t border-[#1E212B] pt-4">
+            <div className="mt-6 flex items-center space-x-3 border-t border-slate-100 dark:border-slate-800/80 pt-4">
               <img
                 src={t.avatar}
                 alt={t.author}
-                className="h-9 w-9 rounded-full object-cover"
+                className="h-9 w-9 rounded-full object-cover ring-2 ring-violet-500/20"
               />
               <div>
-                <p className="text-xs font-bold text-white">{t.author}</p>
-                <p className="text-[10px] text-slate-500">{t.role}</p>
+                <p className="text-xs font-bold text-slate-900 dark:text-white">
+                  {t.author}
+                </p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                  {t.role}
+                </p>
               </div>
             </div>
           </div>
@@ -73,3 +84,4 @@ export default function PricingTestimonials() {
     </section>
   );
 }
+

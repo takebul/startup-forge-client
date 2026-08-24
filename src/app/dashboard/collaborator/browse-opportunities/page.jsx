@@ -6,6 +6,12 @@ import { getUserSession } from "@/lib/core/session";
 import { getProfileData } from "@/lib/api/users";
 import BrowseOpportunities from "./BrowseOpportunities";
 
+export const metadata = {
+  title: "Explore Opportunities — StartupForge Dashboard",
+  description:
+    "Discover early-stage startup roles, filter by technical work type and industry domain, and submit collaborative pitches.",
+};
+
 const BrowseOpportunitiesPage = async ({ searchParams }) => {
   const query = await searchParams;
 
@@ -63,3 +69,4 @@ const BrowseOpportunitiesPage = async ({ searchParams }) => {
 };
 
 export default BrowseOpportunitiesPage;
+

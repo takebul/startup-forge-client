@@ -2,6 +2,12 @@ import { getUserSession } from "@/lib/core/session";
 import PremiumPage from "./PremiumPage";
 import { getPlansById } from "@/lib/api/plans";
 
+export const metadata = {
+  title: "Upgrade Plan — StartupForge Collaborator",
+  description:
+    "Unlock unlimited pitch applications, direct founder messaging, and featured talent visibility.",
+};
+
 const PremiumPageWrapper = async () => {
   const user = await getUserSession();
 
@@ -16,3 +22,4 @@ const PremiumPageWrapper = async () => {
 };
 
 export default PremiumPageWrapper;
+

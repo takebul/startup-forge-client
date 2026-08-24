@@ -3,15 +3,21 @@ import FounderDashboardOverviewPage from "./FounderDashboardOverviewPage";
 import { getUserSession } from "@/lib/core/session";
 import { getApplicationsByStartupId } from "@/lib/api/applications";
 
+export const metadata = {
+  title: "Founder Overview — StartupForge Dashboard",
+  description:
+    "Review open opportunity metrics, applications received, and team recruitment performance.",
+};
+
 const FounderDashboardOverviewPageWrapper = async () => {
   const user = await getUserSession();
   const opportunities = await getOpportunitiesByUserId(user?.id);
   const applications = await getApplicationsByStartupId(user?.id);
 
-  console.log({ opportunities, applications });
   return (
     <div>
       <FounderDashboardOverviewPage
+        user={user}
         opportunities={opportunities}
         applications={applications}
       />
@@ -20,3 +26,4 @@ const FounderDashboardOverviewPageWrapper = async () => {
 };
 
 export default FounderDashboardOverviewPageWrapper;
+

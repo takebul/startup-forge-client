@@ -46,38 +46,38 @@ const Footer = () => {
 
           {/* Quick Links: For Founders */}
           <div className="col-span-6 md:col-span-2 text-left">
-            <p className="pb-3 text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+            <p className="pb-3 text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100 font-mono">
               Founders
             </p>
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-2.5 text-sm">
               <li>
                 <Link
-                  href="/founder/post-role"
-                  className="transition-colors hover:text-violet-600 dark:hover:text-violet-400"
+                  href="/dashboard/founder/add-opportunity"
+                  className="text-slate-600 dark:text-slate-400 transition-colors hover:text-violet-600 dark:hover:text-violet-400"
                 >
-                  Post Requirements
+                  Post Opportunity
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/founder/applications"
-                  className="transition-colors hover:text-violet-600 dark:hover:text-violet-400"
+                  href="/dashboard/founder/applications"
+                  className="text-slate-600 dark:text-slate-400 transition-colors hover:text-violet-600 dark:hover:text-violet-400"
                 >
                   Review Applicants
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/talents"
-                  className="transition-colors hover:text-violet-600 dark:hover:text-violet-400"
+                  href="/startups"
+                  className="text-slate-600 dark:text-slate-400 transition-colors hover:text-violet-600 dark:hover:text-violet-400"
                 >
-                  Talent Directory
+                  Startup Directory
                 </Link>
               </li>
               <li>
                 <Link
                   href="/pricing"
-                  className="transition-colors hover:text-violet-600 dark:hover:text-violet-400"
+                  className="text-slate-600 dark:text-slate-400 transition-colors hover:text-violet-600 dark:hover:text-violet-400"
                 >
                   Pricing Plans
                 </Link>
@@ -87,40 +87,40 @@ const Footer = () => {
 
           {/* Quick Links: For Collaborators */}
           <div className="col-span-6 md:col-span-2 text-left">
-            <p className="pb-3 text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+            <p className="pb-3 text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100 font-mono">
               Collaborators
             </p>
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-2.5 text-sm">
               <li>
                 <Link
-                  href="/explore"
-                  className="transition-colors hover:text-violet-600 dark:hover:text-violet-400"
+                  href="/opportunities"
+                  className="text-slate-600 dark:text-slate-400 transition-colors hover:text-violet-600 dark:hover:text-violet-400"
+                >
+                  Browse Roles
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/startups"
+                  className="text-slate-600 dark:text-slate-400 transition-colors hover:text-violet-600 dark:hover:text-violet-400"
                 >
                   Explore Startups
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/collaborator/my-applications"
-                  className="transition-colors hover:text-violet-600 dark:hover:text-violet-400"
+                  href="/dashboard/collaborator/my-applications"
+                  className="text-slate-600 dark:text-slate-400 transition-colors hover:text-violet-600 dark:hover:text-violet-400"
                 >
                   Application Tracker
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/collaborator/profile"
-                  className="transition-colors hover:text-violet-600 dark:hover:text-violet-400"
+                  href="/dashboard/collaborator/profile"
+                  className="text-slate-600 dark:text-slate-400 transition-colors hover:text-violet-600 dark:hover:text-violet-400"
                 >
                   Profile Settings
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/resources"
-                  className="transition-colors hover:text-violet-600 dark:hover:text-violet-400"
-                >
-                  Collaborator Guide
                 </Link>
               </li>
             </ul>
@@ -128,12 +128,12 @@ const Footer = () => {
 
           {/* Contact Information */}
           <div className="col-span-full md:col-span-3 text-left">
-            <p className="pb-3 text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+            <p className="pb-3 text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100 font-mono">
               Contact Us
             </p>
-            <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+            <ul className="space-y-2.5 text-sm text-slate-600 dark:text-slate-400">
               <li className="flex items-center space-x-2">
-                <span>📍 San Francisco, CA & Remote</span>
+                <span>📍 San Francisco, CA &amp; Remote</span>
               </li>
               <li className="flex items-center space-x-2">
                 <span>✉️ support@startupforge.com</span>

@@ -18,6 +18,7 @@ import {
   User,
   Users,
   Zap,
+  Flame,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -159,14 +160,14 @@ const DashboardSidebar = ({ initialUser }) => {
   };
 
   return (
-    <aside className="w-60 bg-[#080E1C] border-r border-slate-800 flex flex-col h-screen sticky top-0 font-sans z-30 select-none">
+    <aside className="w-64 bg-white dark:bg-[#080E1C] border-r border-slate-200 dark:border-slate-800 flex flex-col h-screen sticky top-0 font-sans z-30 select-none transition-colors duration-200">
       {/* Brand Logo */}
-      <div className="flex h-20 items-center px-6 border-b border-slate-800/50">
-        <Link href="/" className="flex items-center space-x-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500 text-slate-950 font-bold font-mono">
-            SF
+      <div className="flex h-16 items-center px-6 border-b border-slate-100 dark:border-slate-800/60">
+        <Link href="/" className="flex items-center space-x-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-violet-600 text-white font-bold font-mono shadow-sm">
+            <Flame className="w-4 h-4" />
           </div>
-          <span className="text-xl font-bold tracking-tight text-white">
+          <span className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
             StartupForge
           </span>
         </Link>
@@ -175,10 +176,10 @@ const DashboardSidebar = ({ initialUser }) => {
       {/* Main Navigation Links */}
       <div className="flex-1 overflow-y-auto px-4 py-4">
         <div className="mb-6">
-          <h3 className="mb-3 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
-            Main Menu
+          <h3 className="mb-2.5 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 font-mono">
+            Navigation
           </h3>
-          <nav className="space-y-1.5">
+          <nav className="space-y-1">
             {activeLinks.map((link) => {
               const isActive = pathname === link.href;
               const Icon = link.icon;
@@ -186,10 +187,10 @@ const DashboardSidebar = ({ initialUser }) => {
                 <Link
                   key={link.label}
                   href={link.href}
-                  className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                  className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-semibold transition-all ${
                     isActive
-                      ? "bg-amber-500/10 text-amber-500 border border-amber-500/20"
-                      : "text-slate-400 hover:bg-[#1A1D27] hover:text-slate-200"
+                      ? "bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300 border border-violet-200 dark:border-violet-500/30 font-bold shadow-xs"
+                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#1A1D27] hover:text-slate-900 dark:hover:text-slate-200"
                   }`}
                 >
                   <div className="flex items-center space-x-3">
@@ -204,9 +205,9 @@ const DashboardSidebar = ({ initialUser }) => {
       </div>
 
       {/* Profile Card & Badges */}
-      <div className="p-4 border-t border-slate-800/50">
-        <div className="flex items-center justify-between rounded-xl bg-[#151722] p-3 border border-[#232634]">
-          <div className="flex items-center space-x-3 min-w-0">
+      <div className="p-3 border-t border-slate-100 dark:border-slate-800/60">
+        <div className="flex items-center justify-between rounded-2xl bg-slate-50 dark:bg-[#151722] p-3 border border-slate-200/80 dark:border-[#232634] shadow-xs">
+          <div className="flex items-center space-x-2.5 min-w-0">
             <div className="relative shrink-0">
               <img
                 src={
@@ -214,51 +215,51 @@ const DashboardSidebar = ({ initialUser }) => {
                   "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80"
                 }
                 alt={user?.name || "User"}
-                className="h-8 w-8 rounded-full object-cover ring-2 ring-amber-500/30"
+                className="h-8 w-8 rounded-full object-cover ring-2 ring-violet-500/30"
               />
               {/* Badge overlay on Avatar */}
               {isAdmin ? (
-                <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-purple-600 text-white ring-2 ring-[#151722]">
+                <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-purple-600 text-white ring-2 ring-white dark:ring-[#151722]">
                   <Crown className="h-2.5 w-2.5" />
                 </div>
               ) : isUpgraded ? (
-                <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-sky-500 text-slate-950 ring-2 ring-[#151722]">
-                  <BadgeCheck className="h-3 w-3 fill-sky-500 text-[#151722]" />
+                <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-violet-600 text-white ring-2 ring-white dark:ring-[#151722]">
+                  <BadgeCheck className="h-3 w-3" />
                 </div>
               ) : null}
             </div>
 
             <div className="flex flex-col min-w-0">
               <div className="flex items-center space-x-1">
-                <span className="text-xs font-bold text-white truncate">
+                <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
                   {user?.name || "User"}
                 </span>
                 {/* Verified Badge Icon next to name */}
                 {isAdmin && (
                   <Crown
-                    className="h-3.5 w-3.5 text-purple-400 shrink-0"
+                    className="h-3 w-3 text-purple-600 dark:text-purple-400 shrink-0"
                     title="Platform Administrator"
                   />
                 )}
                 {!isAdmin && isUpgraded && (
                   <BadgeCheck
-                    className="h-3.5 w-3.5 text-sky-400 shrink-0 fill-sky-400/20"
+                    className="h-3 w-3 text-violet-600 dark:text-violet-400 shrink-0"
                     title="Verified Member"
                   />
                 )}
               </div>
 
               <div className="flex items-center space-x-1 mt-0.5">
-                <span className="text-[10px] text-slate-500 capitalize">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 capitalize font-mono">
                   {persona}
                 </span>
                 {isAdmin ? (
-                  <span className="text-[9px] font-mono font-bold text-purple-400 bg-purple-500/10 px-1.5 rounded border border-purple-500/20">
+                  <span className="text-[9px] font-mono font-bold text-purple-700 bg-purple-100 dark:text-purple-400 dark:bg-purple-500/10 px-1.5 rounded border border-purple-200 dark:border-purple-500/20">
                     ADMIN
                   </span>
                 ) : isUpgraded ? (
-                  <span className="text-[9px] font-mono font-bold text-amber-400 bg-amber-500/10 px-1.5 rounded border border-amber-500/20">
-                    VERIFIED
+                  <span className="text-[9px] font-mono font-bold text-violet-700 bg-violet-100 dark:text-violet-400 dark:bg-violet-500/10 px-1.5 rounded border border-violet-200 dark:border-violet-500/20">
+                    PRO
                   </span>
                 ) : null}
               </div>
@@ -267,7 +268,7 @@ const DashboardSidebar = ({ initialUser }) => {
 
           <button
             onClick={handleSignOut}
-            className="text-slate-500 hover:text-slate-300 ml-2 transition-colors cursor-pointer"
+            className="text-slate-400 hover:text-red-500 ml-2 transition-colors cursor-pointer p-1"
             title="Sign Out"
           >
             <LogOut className="h-4 w-4" />
@@ -279,3 +280,4 @@ const DashboardSidebar = ({ initialUser }) => {
 };
 
 export default DashboardSidebar;
+

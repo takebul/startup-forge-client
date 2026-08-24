@@ -37,10 +37,13 @@ export default function PricingFaq() {
   return (
     <section className="mt-28">
       <div className="mx-auto max-w-2xl text-center">
-        <h2 className="text-3xl font-extrabold text-white">
+        <span className="rounded-full bg-violet-100 px-3.5 py-1 text-xs font-mono font-semibold uppercase tracking-wider text-violet-700 dark:bg-violet-500/10 dark:text-violet-300">
+          Got Questions?
+        </span>
+        <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
           Frequently Asked Questions
         </h2>
-        <p className="mt-2 text-xs text-slate-400">
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
           Everything you need to know about plans, billing, and account upgrades
         </p>
       </div>
@@ -49,16 +52,18 @@ export default function PricingFaq() {
         {FAQ_ITEMS.map((faq, index) => (
           <div
             key={index}
-            className="overflow-hidden rounded-2xl border border-[#1E212B] bg-[#12141D]"
+            className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-xs dark:border-slate-800/90 dark:bg-slate-900/80"
           >
             <button
               onClick={() => toggleFaq(index)}
-              className="flex w-full items-center justify-between p-5 text-left text-sm font-bold text-white transition-colors hover:bg-[#151722]"
+              className="flex w-full items-center justify-between p-5 text-left text-sm font-bold text-slate-900 dark:text-white transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer"
             >
               <span>{faq.question}</span>
               <ChevronDown
-                className={`h-4 w-4 shrink-0 text-slate-500 transition-transform duration-200 ${
-                  openFaq === index ? "rotate-180 text-indigo-400" : ""
+                className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 ${
+                  openFaq === index
+                    ? "rotate-180 text-violet-600 dark:text-violet-400"
+                    : ""
                 }`}
               />
             </button>
@@ -69,7 +74,7 @@ export default function PricingFaq() {
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="border-t border-[#1E212B] px-5 py-4 text-xs leading-relaxed text-slate-400"
+                  className="border-t border-slate-100 dark:border-slate-800/80 px-5 py-4 text-xs leading-relaxed text-slate-600 dark:text-slate-400"
                 >
                   {faq.answer}
                 </motion.div>
@@ -81,3 +86,4 @@ export default function PricingFaq() {
     </section>
   );
 }
+

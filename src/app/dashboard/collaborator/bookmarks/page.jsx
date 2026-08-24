@@ -2,6 +2,12 @@ import { getBookmarksById } from "@/lib/api/bookmarks";
 import { getUserSession } from "@/lib/core/session";
 import BookmarkedPage from "./BookmarkedPage";
 
+export const metadata = {
+  title: "Saved Bookmarks — StartupForge Dashboard",
+  description:
+    "Review and apply to startup role opportunities you have saved for later.",
+};
+
 const BookmarkedPageWrapper = async () => {
   const user = await getUserSession();
   const userId = user?.id || user?._id;
@@ -16,3 +22,4 @@ const BookmarkedPageWrapper = async () => {
 };
 
 export default BookmarkedPageWrapper;
+

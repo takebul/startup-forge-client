@@ -3,8 +3,20 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { Button, Chip, ProgressBar } from "@heroui/react";
+import {
+  ArrowRight,
+  Plus,
+  Rocket,
+  Search,
+  Users,
+  ShieldCheck,
+  Building2,
+  FileCheck,
+  Sparkles,
+} from "lucide-react";
 
-// Helper parser to safely extract array data regardless of API response wrapping
+// Safe array extractor helper
 function parseArrayData(data, key) {
   if (!data) return [];
   if (Array.isArray(data)) return data;
@@ -13,9 +25,9 @@ function parseArrayData(data, key) {
   return [];
 }
 
-// Helper to calculate collaborator profile completion
+// Collaborator profile strength calculator
 function calculateProfileStrength(userData) {
-  if (!userData) return 0;
+  if (!userData) return 25;
   let score = 0;
   if (userData.name && String(userData.name).trim().length > 0) score += 25;
   if (userData.image && String(userData.image).trim().length > 0) score += 25;
@@ -27,31 +39,20 @@ function calculateProfileStrength(userData) {
   )
     score += 25;
   if (userData.bio && String(userData.bio).trim().length > 0) score += 25;
-  return score || 25; // default minimum baseline
+  return score || 25;
 }
 
-// -----------------------------------------------------------------------------
-// ANIMATION VARIANTS
-// -----------------------------------------------------------------------------
 const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 20 },
   show: (i = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] },
-  }),
-};
-
-const fadeIn = {
-  hidden: { opacity: 0 },
-  show: (i = 0) => ({
-    opacity: 1,
-    transition: { duration: 0.4, delay: i * 0.08 },
+    transition: { duration: 0.45, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] },
   }),
 };
 
 const scaleIn = {
-  hidden: { opacity: 0, scale: 0.95 },
+  hidden: { opacity: 0, scale: 0.96 },
   show: {
     opacity: 1,
     scale: 1,
@@ -59,127 +60,126 @@ const scaleIn = {
   },
 };
 
-// -----------------------------------------------------------------------------
-// 1. GUEST BANNER
-// -----------------------------------------------------------------------------
+// =============================================================================
+// 1. GUEST BANNER (Seamless Flow & Ambient Glow)
+// =============================================================================
 const GuestBanner = () => (
-  <section className="relative overflow-hidden py-20 lg:py-28 bg-[#ebebf5] dark:bg-[#0c0c16] transition-colors duration-300 font-sans">
-    {/* Ambient Glow Blob */}
-    <div className="pointer-events-none absolute left-1/2 top-0 h-[420px] w-[600px] -translate-x-1/2 -translate-y-1/3 rounded-full blur-3xl bg-violet-300/30 dark:bg-violet-600/15" />
+  <section className="relative overflow-hidden py-24 lg:py-32 font-sans transition-colors duration-300">
+    {/* Ambient Glow & Floating Orbs */}
+    <div className="pointer-events-none absolute left-1/2 top-0 h-[500px] w-[750px] -translate-x-1/2 -translate-y-1/4 rounded-full blur-3xl bg-gradient-to-tr from-violet-500/20 via-purple-500/15 to-indigo-500/20 dark:from-violet-600/25 dark:via-purple-600/20 dark:to-indigo-600/25 animate-pulse-glow" />
+    <div className="pointer-events-none absolute -left-20 top-32 h-72 w-72 rounded-full blur-3xl bg-violet-400/15 dark:bg-violet-600/15 animate-float-slow" />
+    <div className="pointer-events-none absolute -right-20 top-44 h-80 w-80 rounded-full blur-3xl bg-indigo-400/15 dark:bg-indigo-600/15 animate-float-reverse" />
 
-    <div className="relative mx-auto max-w-3xl px-6 text-center lg:px-12">
-      {/* Badge */}
+    <div className="relative mx-auto max-w-4xl px-6 text-center lg:px-12">
+      {/* Live Active Badge */}
       <motion.div variants={fadeUp} initial="hidden" animate="show" custom={0}>
-        <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold tracking-wide border-violet-300/60 bg-white/70 text-violet-700 dark:border-violet-500/25 dark:bg-violet-500/10 dark:text-violet-300">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-violet-500 dark:bg-violet-400" />
+        <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold tracking-wide border-violet-200 bg-white/80 text-violet-700 dark:border-violet-500/25 dark:bg-violet-500/10 dark:text-violet-300 shadow-xs backdrop-blur-md">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-violet-600 dark:bg-violet-400" />
           500+ active startups recruiting now
         </span>
       </motion.div>
 
-      {/* Heading */}
+      {/* Main Heading */}
       <motion.h1
         variants={fadeUp}
         initial="hidden"
         animate="show"
         custom={1}
-        className="mt-7 text-4xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-[52px]"
+        className="mt-8 text-4xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-6xl"
       >
         Build great startups
         <br />
-        <span className="bg-gradient-to-r from-violet-600 via-purple-500 to-indigo-600 bg-clip-text text-transparent dark:from-violet-400 dark:via-purple-300 dark:to-indigo-400">
+        <span className="bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-violet-400 dark:via-indigo-300 dark:to-purple-300">
           together on StartupForge
         </span>
       </motion.h1>
 
+      {/* Subheading */}
       <motion.p
         variants={fadeUp}
         initial="hidden"
         animate="show"
         custom={2}
-        className="mt-5 text-base leading-relaxed sm:text-lg text-slate-600 dark:text-slate-400"
+        className="mt-6 text-base leading-relaxed sm:text-lg lg:text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto"
       >
-        The bridge between visionary founders and world-class collaborators.
-        Publish your idea or join an ambitious team today.
+        Connect with high-potential early-stage ventures. Join passionate
+        engineering, design, and growth teams or post your vision to recruit
+        exceptional talent.
       </motion.p>
 
-      {/* CTAs */}
+      {/* Hero Action Buttons */}
       <motion.div
         variants={fadeUp}
         initial="hidden"
         animate="show"
         custom={3}
-        className="mt-9 flex flex-wrap justify-center gap-3"
+        className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
       >
-        <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-          <Link
-            href="/signup"
-            className="inline-block rounded-xl px-7 py-3.5 text-sm font-semibold text-white bg-violet-600 shadow-lg shadow-violet-600/25 hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-500 transition-colors"
+        <Link href="/opportunities" className="w-full sm:w-auto">
+          <Button
+            size="lg"
+            className="w-full sm:w-auto rounded-2xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm shadow-lg shadow-violet-600/25 hover:shadow-violet-600/35 hover:-translate-y-0.5 active:scale-95 transition-all px-7 py-4"
+            endContent={<ArrowRight className="w-4 h-4" />}
           >
-            Post your startup idea
-          </Link>
-        </motion.div>
+            Browse Opportunities
+          </Button>
+        </Link>
 
-        <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-          <Link
-            href="/opportunities"
-            className="inline-block rounded-xl border px-7 py-3.5 text-sm font-semibold border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-violet-500 dark:hover:bg-slate-800 transition-colors"
+        <Link href="/signup" className="w-full sm:w-auto">
+          <Button
+            size="lg"
+            variant="bordered"
+            className="w-full sm:w-auto rounded-2xl border border-slate-300/90 bg-white/80 hover:bg-white text-slate-800 font-bold text-sm shadow-xs hover:border-violet-400 hover:-translate-y-0.5 active:scale-95 transition-all dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-900 px-7 py-4"
           >
-            Explore open roles →
-          </Link>
-        </motion.div>
+            Post an Opportunity
+          </Button>
+        </Link>
       </motion.div>
 
-      {/* Stats Strip */}
+      {/* Metric Badges */}
       <motion.div
         variants={fadeUp}
         initial="hidden"
         animate="show"
         custom={4}
-        className="mt-14 grid grid-cols-2 sm:grid-cols-4 gap-px overflow-hidden rounded-2xl bg-slate-200 border border-slate-200 dark:bg-slate-800 dark:border-slate-800"
+        className="mt-14 flex flex-wrap items-center justify-center gap-6 sm:gap-12 border-t border-slate-200/80 dark:border-slate-800/80 pt-8 text-xs font-mono text-slate-500 dark:text-slate-400"
       >
-        {[
-          { num: "500+", label: "Active Startups" },
-          { num: "2,400+", label: "Collaborators" },
-          { num: "1,100+", label: "Roles Filled" },
-          { num: "98%", label: "Match Rate" },
-        ].map(({ num, label }, i) => (
-          <motion.div
-            key={label}
-            variants={fadeIn}
-            initial="hidden"
-            animate="show"
-            custom={5 + i}
-            className="bg-white px-4 py-5 text-center dark:bg-[#0c0c16]"
-          >
-            <p className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white font-mono">
-              {num}
-            </p>
-            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-              {label}
-            </p>
-          </motion.div>
-        ))}
+        <div className="flex items-center gap-2">
+          <span className="font-bold text-slate-900 dark:text-slate-100 text-base">
+            2,400+
+          </span>{" "}
+          Active Roles
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="font-bold text-slate-900 dark:text-slate-100 text-base">
+            1,100+
+          </span>{" "}
+          Vetted Startups
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="font-bold text-slate-900 dark:text-slate-100 text-base">
+            8,500+
+          </span>{" "}
+          Collaborators
+        </div>
       </motion.div>
     </div>
   </section>
 );
 
-// -----------------------------------------------------------------------------
+// =============================================================================
 // 2. FOUNDER BANNER
-// -----------------------------------------------------------------------------
+// =============================================================================
 const FounderBanner = ({
   user,
   founderApplications = [],
   founderOpportunities = [],
   founderStartup = [],
-  applications = [],
   opportunities = [],
 }) => {
   const appsList = useMemo(() => {
-    const raw =
-      founderApplications.length > 0 ? founderApplications : applications;
-    return parseArrayData(raw, "applications");
-  }, [founderApplications, applications]);
+    return parseArrayData(founderApplications, "founderApplications");
+  }, [founderApplications]);
 
   const oppsList = useMemo(() => {
     const raw =
@@ -200,120 +200,117 @@ const FounderBanner = ({
   const activeStartupsCount = startupList.length || 1;
 
   return (
-    <section className="py-16 transition-colors duration-300 bg-[#f0f0f8] dark:bg-[#0c0c16] font-sans">
-      <div className="mx-auto max-w-6xl px-6 lg:px-12">
+    <section className="relative overflow-hidden py-16 lg:py-20 font-sans transition-colors duration-300">
+      {/* Ambient background glow */}
+      <div className="pointer-events-none absolute -top-10 right-10 h-72 w-72 rounded-full blur-3xl bg-violet-400/10 dark:bg-violet-600/15 animate-float-slow" />
+      <div className="pointer-events-none absolute -bottom-10 left-10 h-64 w-64 rounded-full blur-3xl bg-indigo-400/10 dark:bg-indigo-600/15 animate-float-reverse" />
+
+      <div className="mx-auto max-w-6xl px-6 lg:px-12 relative">
         <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-          {/* Left — Copy */}
+          {/* Left Description */}
           <motion.div
             initial="hidden"
             animate="show"
-            variants={{ show: { transition: { staggerChildren: 0.09 } } }}
+            variants={{ show: { transition: { staggerChildren: 0.08 } } }}
           >
-            <motion.span
-              variants={fadeUp}
-              className="inline-block rounded-md px-3 py-1 text-xs font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400 dark:ring-1 dark:ring-inset dark:ring-indigo-500/20"
-            >
-              Founder Workspace
-            </motion.span>
+            <motion.div variants={fadeUp}>
+              <Chip
+                size="sm"
+                variant="flat"
+                className="bg-violet-100 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300 font-mono font-bold text-xs uppercase"
+              >
+                Founder Workspace
+              </Chip>
+            </motion.div>
 
             <motion.h1
               variants={fadeUp}
               className="mt-4 text-3xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-4xl lg:text-5xl"
             >
               Welcome back,{" "}
-              <span className="text-indigo-600 dark:text-indigo-400">
+              <span className="text-violet-600 dark:text-violet-400">
                 {user?.name || "Founder"}
               </span>
               !<br />
-              Ready to build your dream team?
+              Scale your venture team.
             </motion.h1>
 
             <motion.p
               variants={fadeUp}
               className="mt-4 text-sm leading-relaxed text-slate-600 dark:text-slate-400 sm:text-base"
             >
-              Post new team requirements, review incoming applications from
-              developers, designers, and marketers, and accelerate your
-              startup's journey.
+              Post new team roles, review candidate applications from developers
+              and designers, and coordinate matching pipelines.
             </motion.p>
 
-            {/* Buttons */}
             <motion.div
               variants={fadeUp}
               className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap"
             >
-              <motion.div
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                <Link
-                  href="/dashboard/founder/add-opportunity"
-                  className="inline-block rounded-xl px-6 py-3 text-sm font-semibold text-white bg-indigo-600 shadow-md shadow-indigo-600/20 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-500 transition-colors"
+              <Link href="/dashboard/founder/add-opportunity">
+                <Button
+                  color="primary"
+                  className="rounded-2xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs shadow-md shadow-violet-600/20 px-5 py-3 hover:-translate-y-0.5 transition-all"
+                  startContent={<Plus className="w-4 h-4" />}
                 >
-                  + Post new requirement
-                </Link>
-              </motion.div>
+                  Post Opportunity
+                </Button>
+              </Link>
 
-              <motion.div
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                <Link
-                  href="/dashboard/founder/applications"
-                  className="inline-block rounded-xl border px-6 py-3 text-sm font-semibold border-slate-300 bg-white text-slate-700 hover:border-indigo-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-indigo-500 dark:hover:bg-slate-800 transition-colors"
+              <Link href="/dashboard/founder/applications">
+                <Button
+                  variant="bordered"
+                  className="rounded-2xl border-slate-300/80 bg-white/80 text-slate-700 hover:bg-white dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-900 font-semibold text-xs px-5 py-3 hover:-translate-y-0.5 transition-all shadow-xs"
+                  startContent={<Users className="w-4 h-4" />}
                 >
-                  Review applications
-                </Link>
-              </motion.div>
+                  Review Applications ({pendingCount})
+                </Button>
+              </Link>
             </motion.div>
           </motion.div>
 
-          {/* Right — Recruitment Card */}
+          {/* Right Metrics Card */}
           <motion.div
             variants={scaleIn}
             initial="hidden"
             animate="show"
-            className="rounded-2xl border p-6 border-slate-200 bg-white dark:border-slate-800 dark:bg-[#1a1a2e]"
+            className="rounded-3xl border p-7 border-slate-200/90 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/80"
           >
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 font-mono">
-              Recruitment overview
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 font-mono">
+              Recruitment Pipeline Overview
             </p>
 
             <div className="mt-5 space-y-3">
-              {[
-                {
-                  label: "Pending applications",
-                  value: `${pendingCount} New`,
-                  valueClass:
-                    "rounded-full px-3 py-1 text-xs font-bold font-mono bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300",
-                },
-                {
-                  label: "Active startup listings",
-                  value: `${activeStartupsCount} Active`,
-                  valueClass:
-                    "text-sm font-semibold font-mono text-slate-900 dark:text-white",
-                },
-                {
-                  label: "Open team roles",
-                  value: `${openRolesCount} Positions`,
-                  valueClass:
-                    "text-sm font-semibold font-mono text-slate-900 dark:text-white",
-                },
-              ].map(({ label, value, valueClass }, i) => (
-                <motion.div
-                  key={label}
-                  variants={fadeUp}
-                  initial="hidden"
-                  animate="show"
-                  custom={i}
-                  className="flex items-center justify-between rounded-xl border px-4 py-3.5 border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60"
+              <div className="flex items-center justify-between rounded-2xl border px-4 py-3.5 border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60">
+                <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                  Pending Applications
+                </span>
+                <Chip
+                  size="sm"
+                  variant="flat"
+                  className="bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300 font-mono font-bold text-xs"
                 >
-                  <span className="text-sm text-slate-600 dark:text-slate-300">
-                    {label}
-                  </span>
-                  <span className={valueClass}>{value}</span>
-                </motion.div>
-              ))}
+                  {pendingCount} New
+                </Chip>
+              </div>
+
+              <div className="flex items-center justify-between rounded-2xl border px-4 py-3.5 border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60">
+                <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                  Active Startups
+                </span>
+                <span className="text-xs font-bold font-mono text-slate-900 dark:text-white">
+                  {activeStartupsCount} Active
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between rounded-2xl border px-4 py-3.5 border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60">
+                <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                  Open Positions
+                </span>
+                <span className="text-xs font-bold font-mono text-slate-900 dark:text-white">
+                  {openRolesCount} Listed
+                </span>
+              </div>
             </div>
           </motion.div>
         </div>
@@ -322,9 +319,9 @@ const FounderBanner = ({
   );
 };
 
-// -----------------------------------------------------------------------------
+// =============================================================================
 // 3. COLLABORATOR BANNER
-// -----------------------------------------------------------------------------
+// =============================================================================
 const CollaboratorBanner = ({
   user,
   collaboratorApplications = [],
@@ -346,150 +343,129 @@ const CollaboratorBanner = ({
   const profileStrength = useMemo(() => calculateProfileStrength(user), [user]);
 
   return (
-    <section className="py-16 transition-colors duration-300 bg-[#f0f0f8] dark:bg-[#0c0c16] font-sans">
-      <div className="mx-auto max-w-6xl px-6 lg:px-12">
+    <section className="relative overflow-hidden py-16 lg:py-20 font-sans transition-colors duration-300">
+      {/* Ambient background glow */}
+      <div className="pointer-events-none absolute -top-10 right-10 h-72 w-72 rounded-full blur-3xl bg-indigo-400/10 dark:bg-indigo-600/15 animate-float-slow" />
+      <div className="pointer-events-none absolute -bottom-10 left-10 h-64 w-64 rounded-full blur-3xl bg-violet-400/10 dark:bg-violet-600/15 animate-float-reverse" />
+
+      <div className="mx-auto max-w-6xl px-6 lg:px-12 relative">
         <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-          {/* Left — Copy */}
+          {/* Left Description */}
           <motion.div
             initial="hidden"
             animate="show"
-            variants={{ show: { transition: { staggerChildren: 0.09 } } }}
+            variants={{ show: { transition: { staggerChildren: 0.08 } } }}
           >
-            <motion.span
-              variants={fadeUp}
-              className="inline-block rounded-md px-3 py-1 text-xs font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-1 dark:ring-inset dark:ring-emerald-500/20"
-            >
-              Collaborator Hub
-            </motion.span>
+            <motion.div variants={fadeUp}>
+              <Chip
+                size="sm"
+                variant="flat"
+                className="bg-indigo-100 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400 font-mono font-bold text-xs uppercase"
+              >
+                Collaborator Hub
+              </Chip>
+            </motion.div>
 
             <motion.h1
               variants={fadeUp}
               className="mt-4 text-3xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-4xl lg:text-5xl"
             >
               Welcome back,{" "}
-              <span className="text-emerald-600 dark:text-emerald-400">
+              <span className="text-indigo-600 dark:text-indigo-400">
                 {user?.name || "Collaborator"}
               </span>
               !<br />
-              Discover your next big project.
+              Explore startup roles.
             </motion.h1>
 
             <motion.p
               variants={fadeUp}
               className="mt-4 text-sm leading-relaxed text-slate-600 dark:text-slate-400 sm:text-base"
             >
-              Explore early-stage startup ideas, filter open positions by tech
-              stack or role type, and track your application status in real
-              time.
+              Discover open startup opportunities, filter positions by tech
+              stack or commitment level, and manage active submissions.
             </motion.p>
 
             <motion.div
               variants={fadeUp}
               className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap"
             >
-              <motion.div
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                <Link
-                  href="/dashboard/collaborator/browse-opportunities"
-                  className="inline-block rounded-xl px-6 py-3 text-sm font-semibold text-white bg-emerald-600 shadow-md shadow-emerald-600/20 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 transition-colors"
+              <Link href="/dashboard/collaborator/browse-opportunities">
+                <Button
+                  color="primary"
+                  className="rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 px-5 py-3 hover:-translate-y-0.5 transition-all"
+                  startContent={<Search className="w-4 h-4" />}
                 >
-                  Explore startups
-                </Link>
-              </motion.div>
+                  Browse Roles
+                </Button>
+              </Link>
 
-              <motion.div
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                <Link
-                  href="/dashboard/collaborator/my-applications"
-                  className="inline-block rounded-xl border px-6 py-3 text-sm font-semibold border-slate-300 bg-white text-slate-700 hover:border-emerald-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-emerald-500 dark:hover:bg-slate-800 transition-colors"
+              <Link href="/dashboard/collaborator/my-applications">
+                <Button
+                  variant="bordered"
+                  className="rounded-2xl border-slate-300/80 bg-white/80 text-slate-700 hover:bg-white dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-900 font-semibold text-xs px-5 py-3 hover:-translate-y-0.5 transition-all shadow-xs"
+                  startContent={<FileCheck className="w-4 h-4" />}
                 >
-                  Track my applications
-                </Link>
-              </motion.div>
+                  My Applications ({appsList.length})
+                </Button>
+              </Link>
             </motion.div>
           </motion.div>
 
-          {/* Right — Activity Card */}
+          {/* Right Activity Card */}
           <motion.div
             variants={scaleIn}
             initial="hidden"
             animate="show"
-            className="rounded-2xl border p-6 border-slate-200 bg-white dark:border-slate-800 dark:bg-[#1a1a2e]"
+            className="rounded-3xl border p-7 border-slate-200/90 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/80"
           >
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 font-mono">
-              Your activity
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 font-mono">
+              Collaborator Summary
             </p>
 
             <div className="mt-5 space-y-3">
-              {[
-                {
-                  label: "Active applications",
-                  value: `${pendingCount} Pending`,
-                  valueClass:
-                    "rounded-full px-3 py-1 text-xs font-bold font-mono bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
-                },
-                {
-                  label: "Profile completeness",
-                  value: `${profileStrength}%`,
-                  valueClass:
-                    "text-sm font-semibold font-mono text-emerald-600 dark:text-emerald-400",
-                },
-                {
-                  label: "Account Status",
-                  value: user?.status || "Active",
-                  valueClass:
-                    "text-sm font-semibold font-mono capitalize text-slate-900 dark:text-white",
-                },
-              ].map(({ label, value, valueClass }, i) => (
-                <motion.div
-                  key={label}
-                  variants={fadeUp}
-                  initial="hidden"
-                  animate="show"
-                  custom={i}
-                  className="flex items-center justify-between rounded-xl border px-4 py-3.5 border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60"
-                >
-                  <span className="text-sm text-slate-600 dark:text-slate-300">
-                    {label}
-                  </span>
-                  <span className={valueClass}>{value}</span>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Dynamic Progress Bar */}
-            <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              animate="show"
-              custom={3}
-              className="mt-3 rounded-xl border px-4 py-3.5 border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60"
-            >
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-                  Profile strength
+              <div className="flex items-center justify-between rounded-2xl border px-4 py-3.5 border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60">
+                <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                  Active Applications
                 </span>
-                <span className="text-xs font-semibold font-mono text-emerald-600 dark:text-emerald-400">
-                  {profileStrength}%
+                <Chip
+                  size="sm"
+                  variant="flat"
+                  className="bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 font-mono font-bold text-xs"
+                >
+                  {pendingCount} In Review
+                </Chip>
+              </div>
+
+              <div className="flex items-center justify-between rounded-2xl border px-4 py-3.5 border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60">
+                <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                  Account Standing
+                </span>
+                <span className="text-xs font-bold font-mono text-emerald-600 dark:text-emerald-400 capitalize">
+                  {user?.status || "Active"}
                 </span>
               </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                <motion.div
-                  className="h-full rounded-full bg-emerald-500"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${profileStrength}%` }}
-                  transition={{
-                    duration: 1,
-                    delay: 0.5,
-                    ease: [0.22, 1, 0.36, 1],
-                  }}
+
+              {/* HeroUI Progress Component */}
+              <div className="rounded-2xl border px-4 py-3.5 border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 space-y-2">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-slate-500 dark:text-slate-400">
+                    Profile Readiness
+                  </span>
+                  <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                    {profileStrength}%
+                  </span>
+                </div>
+                <ProgressBar
+                  size="sm"
+                  radius="full"
+                  value={profileStrength}
+                  color="primary"
+                  className="max-w-full"
+                  aria-label="Profile Readiness"
                 />
               </div>
-            </motion.div>
+            </div>
           </motion.div>
         </div>
       </div>
@@ -497,15 +473,10 @@ const CollaboratorBanner = ({
   );
 };
 
-// -----------------------------------------------------------------------------
+// =============================================================================
 // 4. ADMIN BANNER
-// -----------------------------------------------------------------------------
-const AdminBanner = ({
-  user,
-  userData = [],
-  startups = [],
-  opportunities = [],
-}) => {
+// =============================================================================
+const AdminBanner = ({ userData = [], startups = [], opportunities = [] }) => {
   const usersList = useMemo(
     () => parseArrayData(userData, "userData"),
     [userData],
@@ -527,9 +498,11 @@ const AdminBanner = ({
   );
 
   return (
-    <section className="py-12 transition-colors duration-300 border-b border-slate-200 bg-[#f0f0f8] dark:border-slate-800 dark:bg-[#0c0c16] font-sans">
-      <div className="mx-auto max-w-6xl px-6 lg:px-12">
-        {/* Top row */}
+    <section className="relative overflow-hidden py-14 lg:py-16 font-sans transition-colors duration-300">
+      {/* Ambient background glow */}
+      <div className="pointer-events-none absolute -top-10 right-10 h-72 w-72 rounded-full blur-3xl bg-purple-400/10 dark:bg-purple-600/15 animate-float-slow" />
+
+      <div className="mx-auto max-w-6xl px-6 lg:px-12 relative">
         <motion.div
           initial="hidden"
           animate="show"
@@ -537,98 +510,101 @@ const AdminBanner = ({
           className="flex flex-col justify-between gap-6 md:flex-row md:items-start"
         >
           <div>
-            <motion.span
-              variants={fadeUp}
-              className="inline-block rounded-md px-2.5 py-1 text-xs font-bold font-mono uppercase tracking-wider bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400"
-            >
-              Admin Console
-            </motion.span>
+            <motion.div variants={fadeUp}>
+              <Chip
+                size="sm"
+                variant="flat"
+                className="bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400 font-mono font-bold text-xs uppercase"
+              >
+                Admin Governance
+              </Chip>
+            </motion.div>
+
             <motion.h1
               variants={fadeUp}
               className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl"
             >
-              System administration &amp; platform health
+              System Administration &amp; Moderation
             </motion.h1>
+
             <motion.p
               variants={fadeUp}
-              className="mt-1.5 text-sm text-slate-500 dark:text-slate-400"
+              className="mt-1.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400"
             >
-              Manage user accounts, review flagged startup pitches, and monitor
-              platform activity.
+              Oversee user accounts, moderate startup submissions, and audit
+              transactions platform-wide.
             </motion.p>
           </div>
 
           <motion.div
             variants={fadeUp}
-            className="flex flex-shrink-0 flex-wrap gap-3"
+            className="flex flex-shrink-0 flex-wrap gap-2.5"
           >
-            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-              <Link
-                href="/dashboard/admin/users"
-                className="inline-block rounded-xl px-5 py-2.5 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 transition-colors"
+            <Link href="/dashboard/admin/users">
+              <Button
+                color="primary"
+                className="rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-sm px-4 py-2 hover:-translate-y-0.5 transition-all"
+                startContent={<Users className="w-3.5 h-3.5" />}
               >
-                Manage users
-              </Link>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-              <Link
-                href="/dashboard/admin/startups"
-                className="inline-block rounded-xl border px-5 py-2.5 text-sm font-semibold border-slate-300 bg-white text-slate-700 hover:border-rose-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-rose-500 dark:hover:bg-slate-800 transition-colors"
+                Manage Users
+              </Button>
+            </Link>
+
+            <Link href="/dashboard/admin/startups">
+              <Button
+                variant="bordered"
+                className="rounded-2xl border-slate-300/80 bg-white/80 text-slate-700 hover:bg-white dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-900 font-semibold text-xs px-4 py-2 hover:-translate-y-0.5 transition-all shadow-xs"
+                startContent={<Building2 className="w-3.5 h-3.5" />}
               >
-                Moderate startups
-              </Link>
-            </motion.div>
+                Moderate Startups
+              </Button>
+            </Link>
           </motion.div>
         </motion.div>
 
-        {/* Stat chips */}
-        <div className="mt-8 flex flex-wrap gap-3 font-mono">
+        {/* Governance Stat Chips */}
+        <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
           {[
             {
-              label: "Total users",
+              label: "Total Users",
               value: usersList.length || "3,412",
               alert: false,
             },
             {
-              label: "Active startups",
+              label: "Active Startups",
               value: startupsList.length || "502",
               alert: false,
             },
             {
-              label: "Pending reviews",
+              label: "Pending Reviews",
               value: pendingStartups || "7",
               alert: pendingStartups > 0,
             },
             {
-              label: "Open roles",
+              label: "Open Roles",
               value: oppsList.length || "1,140",
               alert: false,
             },
           ].map(({ label, value, alert }, i) => (
-            <motion.div
+            <div
               key={label}
-              variants={fadeUp}
-              initial="hidden"
-              animate="show"
-              custom={i}
-              whileHover={{ y: -2 }}
-              className={`flex items-center gap-3 rounded-xl border px-4 py-3 transition-colors ${
+              className={`flex flex-col justify-center rounded-2xl border p-4 transition-colors ${
                 alert
                   ? "border-rose-200 bg-rose-50 dark:border-rose-500/25 dark:bg-rose-500/10"
-                  : "border-slate-200 bg-white dark:border-slate-800 dark:bg-[#1a1a2e]"
+                  : "border-slate-200/90 bg-white dark:border-slate-800 dark:bg-slate-900/70"
               }`}
             >
               <span
-                className={`text-xs ${
+                className={`text-[11px] ${
                   alert
-                    ? "text-rose-500 dark:text-rose-400"
+                    ? "text-rose-600 dark:text-rose-400 font-bold"
                     : "text-slate-500 dark:text-slate-400"
                 }`}
               >
                 {label}
               </span>
               <span
-                className={`text-sm font-bold ${
+                className={`text-lg font-bold mt-0.5 ${
                   alert
                     ? "text-rose-700 dark:text-rose-300"
                     : "text-slate-900 dark:text-white"
@@ -636,7 +612,7 @@ const AdminBanner = ({
               >
                 {value}
               </span>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
@@ -644,9 +620,10 @@ const AdminBanner = ({
   );
 };
 
-// -----------------------------------------------------------------------------
-// MAIN CLIENT COMPONENT
-// -----------------------------------------------------------------------------
+
+// =============================================================================
+// MAIN BANNER DISPATCHER
+// =============================================================================
 export default function BannerPage({
   user,
   role: overrideRole,
@@ -659,7 +636,6 @@ export default function BannerPage({
   startups = [],
   userData = [],
 }) {
-  // Resolves persona: 1. Admin, 2. overrideRole, 3. user.accountType, 4. user.role fallback
   const activeRole = useMemo(() => {
     if (!user) return null;
     if (user?.role === "admin") return "admin";

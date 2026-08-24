@@ -159,26 +159,26 @@ export default function NotificationDropdown({ user }) {
     <div ref={dropdownRef} className="relative font-sans">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative flex h-9 items-center justify-center space-x-2 rounded-xl bg-white/5 px-3.5 text-xs font-semibold text-slate-300 border border-slate-800 hover:bg-white/10 transition-colors cursor-pointer"
+        className="relative flex h-9 items-center justify-center space-x-2 rounded-xl bg-slate-50 dark:bg-white/5 px-3.5 text-xs font-semibold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer shadow-xs"
         title="Notifications"
       >
-        <Bell className="h-4 w-4 text-slate-400" />
+        <Bell className="h-4 w-4 text-slate-500 dark:text-slate-400" />
         {unreadCount > 0 && (
-          <span className="font-mono text-amber-500 font-bold text-xs">
+          <span className="font-mono text-violet-600 dark:text-violet-400 font-bold text-xs">
             {unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-80 sm:w-96 rounded-2xl bg-[#0D1528] border border-slate-800 shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800/80 bg-[#060C1A]">
+        <div className="absolute right-0 mt-3 w-80 sm:w-96 rounded-2xl bg-white dark:bg-[#0D1528] border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50 dark:bg-[#060C1A]">
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-bold text-slate-100 uppercase tracking-wider font-mono">
+              <span className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider font-mono">
                 Notifications
               </span>
               {unreadCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[10px] font-mono font-bold border border-amber-500/20">
+                <span className="px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400 text-[10px] font-mono font-bold border border-violet-200 dark:border-violet-500/20">
                   {unreadCount} new
                 </span>
               )}
@@ -187,14 +187,14 @@ export default function NotificationDropdown({ user }) {
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                className="text-[11px] font-mono text-amber-500 hover:text-amber-400 underline cursor-pointer"
+                className="text-[11px] font-mono text-violet-600 dark:text-violet-400 hover:underline cursor-pointer"
               >
                 Mark all read
               </button>
             )}
           </div>
 
-          <div className="max-h-80 overflow-y-auto divide-y divide-slate-800/60">
+          <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60">
             {isLoading && notifications.length === 0 ? (
               <div className="p-8 text-center text-xs text-slate-500 font-mono">
                 Loading notifications...
@@ -214,11 +214,11 @@ export default function NotificationDropdown({ user }) {
                     onClick={() => handleNotificationClick(n)}
                     className={`flex items-start space-x-3 p-3.5 transition-colors cursor-pointer ${
                       isRead
-                        ? "bg-transparent opacity-60 hover:opacity-100 hover:bg-white/[0.02]"
-                        : "bg-indigo-500/[0.04] hover:bg-white/[0.04]"
+                        ? "bg-transparent opacity-60 hover:opacity-100 hover:bg-slate-50 dark:hover:bg-white/[0.02]"
+                        : "bg-violet-500/[0.04] hover:bg-slate-50 dark:hover:bg-white/[0.04]"
                     }`}
                   >
-                    <div className="mt-0.5 p-1.5 rounded-lg bg-slate-900 border border-slate-800 shrink-0">
+                    <div className="mt-0.5 p-1.5 rounded-lg bg-slate-100 border border-slate-200 dark:bg-slate-900 dark:border-slate-800 shrink-0">
                       {renderIcon(n.type)}
                     </div>
 
@@ -226,19 +226,19 @@ export default function NotificationDropdown({ user }) {
                       <p
                         className={`text-xs leading-relaxed ${
                           isRead
-                            ? "text-slate-400"
-                            : "text-slate-200 font-medium"
+                            ? "text-slate-500 dark:text-slate-400"
+                            : "text-slate-900 dark:text-slate-200 font-medium"
                         }`}
                       >
                         {n.message}
                       </p>
-                      <p className="mt-1 font-mono text-[10px] text-slate-500">
+                      <p className="mt-1 font-mono text-[10px] text-slate-400 dark:text-slate-500">
                         {formatTimestamp(n.createdAt)}
                       </p>
                     </div>
 
                     {!isRead && (
-                      <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0 mt-1.5" />
+                      <span className="h-2 w-2 rounded-full bg-violet-600 dark:bg-violet-400 shrink-0 mt-1.5" />
                     )}
                   </div>
                 );
@@ -250,3 +250,4 @@ export default function NotificationDropdown({ user }) {
     </div>
   );
 }
+

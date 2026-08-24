@@ -46,50 +46,61 @@ const WHY_JOIN_STEPS = [
 
 const WhyJoinStartupForge = () => {
   return (
-    <section className="bg-slate-50 py-16 text-slate-900 transition-colors duration-200 dark:bg-[#0c0c16] dark:text-slate-100 lg:py-24 font-sans">
-      <div className="container mx-auto flex flex-col px-6 lg:px-12 max-w-6xl">
+    <section className="relative overflow-hidden py-20 lg:py-28 text-slate-900 transition-colors duration-300 dark:text-slate-100 font-sans">
+      {/* Subtle Ambient Glow */}
+      <div className="pointer-events-none absolute top-1/2 right-10 h-[450px] w-[450px] -translate-y-1/2 rounded-full bg-violet-500/5 blur-3xl dark:bg-violet-600/10 animate-float-slow" />
+
+      <div className="container relative mx-auto flex flex-col px-6 lg:px-12 max-w-6xl">
         {/* Header Title */}
         <div className="mx-auto max-w-3xl text-center">
-          <span className="rounded-full bg-violet-100 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-violet-700 dark:bg-violet-500/10 dark:text-violet-300 font-mono">
+          <span className="rounded-full bg-violet-100 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-violet-700 dark:bg-violet-500/10 dark:text-violet-300 font-mono">
             How It Works
           </span>
           <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl lg:text-5xl">
-            Why Join StartupForge?
+            Why Join{" "}
+            <span className="bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-violet-400 dark:via-indigo-300 dark:to-purple-300">
+              StartupForge
+            </span>
+            ?
           </h2>
-          <p className="mt-4 text-base text-slate-600 dark:text-slate-400 sm:text-lg leading-relaxed">
+          <p className="mt-4 text-base text-slate-600 dark:text-slate-400 sm:text-lg leading-relaxed max-w-2xl mx-auto">
             Whether you have an idea and need a team, or have skills and want to
             build something extraordinary, StartupForge makes collaboration
             effortless.
           </p>
         </div>
 
-        {/* Steps List */}
-        <div className="mt-14 divide-y divide-slate-200 border-y border-slate-200 dark:divide-slate-800/80 dark:border-slate-800/80">
+        {/* Steps Cards Grid */}
+        <div className="mt-14 grid gap-6 md:grid-cols-2">
           {WHY_JOIN_STEPS.map((step, index) => {
             const Icon = step.icon;
             return (
               <div
                 key={index}
-                className="grid grid-cols-1 items-center gap-6 py-10 lg:grid-cols-4 lg:gap-12 transition-colors hover:bg-slate-100/40 dark:hover:bg-white/[0.01] px-4 rounded-2xl"
+                className="group flex flex-col justify-between rounded-3xl border border-slate-200/90 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-violet-300 hover:shadow-xl dark:border-slate-800/90 dark:bg-slate-900/80 dark:hover:border-violet-500/40"
               >
-                {/* Icon Container */}
-                <div className="flex items-center justify-center lg:justify-start">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-200/80 dark:border-slate-800 dark:bg-[#121422]">
-                    <Icon className={`h-9 w-9 ${step.iconColor}`} />
-                  </div>
-                </div>
+                <div>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 border border-slate-200/80 dark:border-slate-800 dark:bg-[#060C1A] shadow-xs group-hover:scale-105 transition-transform">
+                      <Icon className={`h-7 w-7 ${step.iconColor}`} />
+                    </div>
 
-                {/* Text Description */}
-                <div className="flex flex-col justify-center text-center lg:col-span-3 lg:text-left">
-                  <span className="text-xs font-bold tracking-wider uppercase font-mono text-violet-600 dark:text-violet-400">
-                    {step.stepNumber} — {step.tagline}
-                  </span>
-                  <h3 className="mt-1 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl">
-                    {step.title}
-                  </h3>
-                  <p className="mt-2.5 text-sm text-slate-600 dark:text-slate-400 leading-relaxed sm:text-base">
-                    {step.description}
-                  </p>
+                    <span className="rounded-full border border-slate-200/80 bg-slate-100/90 px-3 py-1 text-xs font-mono font-bold text-slate-600 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-300">
+                      {step.stepNumber}
+                    </span>
+                  </div>
+
+                  <div className="mt-6">
+                    <span className="text-xs font-bold tracking-wider uppercase font-mono text-violet-600 dark:text-violet-400">
+                      {step.tagline}
+                    </span>
+                    <h3 className="mt-1 text-xl font-bold text-slate-900 dark:text-white transition-colors group-hover:text-violet-600 dark:group-hover:text-violet-400">
+                      {step.title}
+                    </h3>
+                    <p className="mt-3 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                      {step.description}
+                    </p>
+                  </div>
                 </div>
               </div>
             );
@@ -101,14 +112,14 @@ const WhyJoinStartupForge = () => {
           <div className="inline-flex flex-wrap items-center justify-center gap-4">
             <Link
               href="/signup"
-              className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-violet-600/25 transition-all hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-500"
+              className="inline-flex items-center gap-2 rounded-2xl bg-violet-600 px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-violet-600/25 transition-all hover:bg-violet-700 hover:-translate-y-0.5 active:scale-95 dark:bg-violet-600 dark:hover:bg-violet-500"
             >
               <span>Get Started as Founder</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/opportunities"
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-7 py-3.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-100 dark:border-slate-700 dark:bg-[#121422] dark:text-slate-200 dark:hover:bg-slate-800"
+              className="inline-flex items-center gap-2 rounded-2xl border border-slate-300/90 bg-white px-7 py-3.5 text-sm font-bold text-slate-800 shadow-xs transition-all hover:border-violet-400 hover:bg-slate-50 hover:text-violet-600 hover:-translate-y-0.5 active:scale-95 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:border-violet-500 dark:hover:bg-slate-900 dark:hover:text-violet-300"
             >
               <span>Explore Opportunities</span>
             </Link>
@@ -120,3 +131,4 @@ const WhyJoinStartupForge = () => {
 };
 
 export default WhyJoinStartupForge;
+

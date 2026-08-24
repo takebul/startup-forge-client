@@ -5,6 +5,31 @@ import { getApplicationsById } from "@/lib/api/applications";
 import { getUserSession } from "@/lib/core/session";
 import StartupDetails from "@/components/Startups/StartupDetails";
 
+export async function generateMetadata({ params }) {
+  const { id } = await params;
+  const startup = await getStartupDetails(id).catch(() => null);
+  const startupName =
+    startup?.startup_name || startup?.name || "Startup Details";
+  const description =
+    startup?.description?.slice(0, 160) ||
+    `Explore ${startupName} on StartupForge. View open roles, team members, and funding stage.`;
+
+  return {
+    title: `${startupName} — StartupForge`,
+    description,
+    openGraph: {
+      title: `${startupName} — StartupForge`,
+      description,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${startupName} — StartupForge`,
+      description,
+    },
+  };
+}
+
 const StartupDetailsPage = async ({ params }) => {
   const { id } = await params;
 
@@ -48,3 +73,4 @@ const StartupDetailsPage = async ({ params }) => {
 };
 
 export default StartupDetailsPage;
+

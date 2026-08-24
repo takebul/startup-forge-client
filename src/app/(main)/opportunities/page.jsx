@@ -2,6 +2,26 @@ import OpportunitiesPage from "@/components/Opportunities/OpportunitiesPage";
 import { getOpportunities } from "@/lib/api/opportunities";
 import { getStartups } from "@/lib/api/startups";
 
+export const metadata = {
+  title: "Browse Startup Opportunities — StartupForge",
+  description:
+    "Explore open roles across engineering, design, marketing, and operations at high-growth early-stage startups.",
+  openGraph: {
+    title: "Browse Startup Opportunities — StartupForge",
+    description:
+      "Find your next collaborative role. Connect directly with founders.",
+    url: "/opportunities",
+    siteName: "StartupForge",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Browse Startup Opportunities — StartupForge",
+    description:
+      "Find your next collaborative role. Connect directly with founders.",
+  },
+};
+
 const OpportunitiesPageWrapper = async ({ searchParams }) => {
   const query = await searchParams;
 
@@ -30,3 +50,4 @@ const OpportunitiesPageWrapper = async ({ searchParams }) => {
 };
 
 export default OpportunitiesPageWrapper;
+

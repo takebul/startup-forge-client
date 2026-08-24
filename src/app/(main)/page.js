@@ -20,6 +20,26 @@ import {
 import { getUsersData } from "@/lib/api/users";
 import { getUserSession } from "@/lib/core/session";
 
+export const metadata = {
+  title: "StartupForge — Build Great Startups Together",
+  description:
+    "Connect visionary startup founders with world-class engineers, designers, and growth specialists to build high-growth ventures.",
+  openGraph: {
+    title: "StartupForge — Build Great Startups Together",
+    description:
+      "Join early-stage startups or recruit top talent across engineering, design, and growth.",
+    url: "/",
+    siteName: "StartupForge",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "StartupForge — Build Great Startups Together",
+    description:
+      "The dedicated platform connecting startup founders with skilled collaborators.",
+  },
+};
+
 export default async function Home() {
   // 1. Read session and extract user persona
   const user = await getUserSession();
@@ -42,20 +62,20 @@ export default async function Home() {
     featuredStartups,
     featuredOpportunities,
   ] = await Promise.all([
-    resolvedRole === "founder"
-      ? getApplicationsByStartupId(user?.id)
+    resolvedRole === "founder" && user?.id
+      ? getApplicationsByStartupId(user.id)
       : Promise.resolve([]),
-    resolvedRole === "founder"
-      ? getOpportunitiesByUserId(user?.id)
+    resolvedRole === "founder" && user?.id
+      ? getOpportunitiesByUserId(user.id)
       : Promise.resolve([]),
-    resolvedRole === "founder"
-      ? getFounderStartup(user?.id)
+    resolvedRole === "founder" && user?.id
+      ? getFounderStartup(user.id)
       : Promise.resolve([]),
     getOpportunities(),
     resolvedRole === "admin" ? getUsersData() : Promise.resolve([]),
     getStartups(),
-    resolvedRole === "collaborator"
-      ? getApplicationsById(user?.id)
+    resolvedRole === "collaborator" && user?.id
+      ? getApplicationsById(user.id)
       : Promise.resolve([]),
     getFeaturedStartups(),
     getFeaturedOpportunities(),
