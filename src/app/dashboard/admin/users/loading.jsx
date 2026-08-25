@@ -1,0 +1,56 @@
+"use client";
+
+export default function ManageUsersLoading() {
+  return (
+    <div className="p-4 sm:p-8 space-y-6 max-w-7xl mx-auto font-sans">
+      {/* Header Skeleton */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="space-y-2">
+          <div className="h-7 w-44 rounded-xl bg-slate-200/80 dark:bg-slate-800/80 animate-pulse" />
+          <div className="h-4 w-72 rounded-lg bg-slate-200/60 dark:bg-slate-800/60 animate-pulse" />
+        </div>
+        <div className="h-8 w-36 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+      </div>
+
+      {/* Filter Controls Bar Skeleton */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200/90 shadow-sm dark:bg-slate-900/80 dark:border-slate-800/90">
+        <div className="h-9 w-full sm:w-72 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800 animate-pulse" />
+        <div className="flex gap-2 w-full sm:w-auto">
+          {[...Array(4)].map((_, i) => (
+            <div
+              key={i}
+              className="h-8 w-20 rounded-xl bg-slate-100 dark:bg-slate-800/60 animate-pulse"
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Users Table Skeleton */}
+      <div className="rounded-2xl overflow-hidden border border-slate-200/90 bg-white shadow-sm dark:border-slate-800/90 dark:bg-slate-900/80">
+        <div className="h-10 bg-slate-50 dark:bg-slate-950/60 border-b border-slate-200/90 dark:border-slate-800 animate-pulse" />
+        <div className="divide-y divide-slate-100 dark:divide-slate-800/80">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className="p-4 flex items-center justify-between gap-4"
+            >
+              <div className="flex items-center gap-3 flex-1">
+                <div className="w-9 h-9 rounded-full bg-slate-200/80 dark:bg-slate-800/80 animate-pulse shrink-0" />
+                <div className="space-y-1.5 min-w-0">
+                  <div className="h-4 w-36 rounded bg-slate-200/80 dark:bg-slate-800/80 animate-pulse" />
+                  <div className="h-3 w-48 rounded bg-slate-200/50 dark:bg-slate-800/50 animate-pulse" />
+                </div>
+              </div>
+
+              <div className="h-6 w-24 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" />
+              <div className="h-6 w-28 rounded-full bg-slate-100 dark:bg-slate-800 animate-pulse" />
+              <div className="h-4 w-24 rounded bg-slate-200/60 dark:bg-slate-800/60 animate-pulse" />
+              <div className="h-6 w-16 rounded-full bg-slate-100 dark:bg-slate-800 animate-pulse" />
+              <div className="h-8 w-16 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
