@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { DollarSign, Search, Receipt } from "lucide-react";
-import { Table } from "@heroui/react";
 import {
   StatusBadge,
   Badge,
@@ -111,23 +110,27 @@ export default function TransactionsPage({ subscriptions = [] }) {
   }, [transactions, search, statusFilter]);
 
   return (
-    <div className="p-8 space-y-6 max-w-7xl mx-auto font-sans">
+    <div className="p-4 sm:p-8 space-y-6 max-w-7xl mx-auto font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">Transactions</h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+            Transactions
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Review billing receipts, subscription renewals, and financial logs.
           </p>
         </div>
 
-        <div className="px-4 py-2.5 rounded-2xl bg-[#0D1528] border border-slate-800/80 flex items-center gap-3 w-fit shadow-sm">
-          <DollarSign className="w-5 h-5 text-amber-500" />
+        <div className="px-4 py-2.5 rounded-2xl bg-white border border-slate-200/90 flex items-center gap-3 w-fit shadow-xs dark:bg-slate-900/80 dark:border-slate-800/90">
+          <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400">
+            <DollarSign className="w-4 h-4" />
+          </div>
           <div>
-            <p className="text-[10px] font-mono uppercase text-slate-500">
+            <p className="text-[10px] font-mono uppercase text-slate-500 dark:text-slate-400 font-semibold">
               Total Revenue
             </p>
-            <p className="text-sm font-bold text-emerald-400 font-mono">
+            <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 font-mono">
               $
               {totalRevenue.toLocaleString("en-US", {
                 minimumFractionDigits: 2,
@@ -140,15 +143,15 @@ export default function TransactionsPage({ subscriptions = [] }) {
       </div>
 
       {/* Filter Controls Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#0D1528] p-3 rounded-2xl border border-slate-800/80 shadow-sm">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200/90 shadow-sm dark:bg-slate-900/80 dark:border-slate-800/90">
         <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by email, plan, or session ID..."
-            className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-[#060C1A] border border-slate-800/80 text-slate-200 outline-none focus:border-amber-500/40 transition-colors"
+            className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 outline-none focus:bg-white focus:border-violet-500 dark:bg-slate-950/60 dark:border-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-950 dark:focus:border-violet-500 [color-scheme:light] dark:[color-scheme:dark] transition-colors"
           />
         </div>
 
@@ -159,8 +162,8 @@ export default function TransactionsPage({ subscriptions = [] }) {
               onClick={() => setStatusFilter(st)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-mono capitalize transition-all cursor-pointer ${
                 statusFilter === st
-                  ? "bg-amber-500 text-slate-950 font-bold shadow-sm"
-                  : "bg-white/5 text-slate-400 hover:bg-white/10"
+                  ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold shadow-xs"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
               }`}
             >
               {st}
@@ -169,116 +172,103 @@ export default function TransactionsPage({ subscriptions = [] }) {
         </div>
       </div>
 
-      {/* HeroUI Table Component */}
-      <div className="rounded-2xl overflow-hidden border border-slate-800/80 bg-[#0D1528] text-xs shadow-sm">
-        <Table>
-          <Table.ScrollContainer>
-            <Table.Content
-              aria-label="Transactions Log Table"
-              className="w-full text-left"
-            >
-              <Table.Header className="bg-[#060C1A] text-slate-400 text-[11px] font-mono uppercase tracking-wider border-b border-slate-800/80 font-bold">
-                <Table.Column isRowHeader className="px-6 py-3.5">
-                  User & Session ID
-                </Table.Column>
-                <Table.Column className="px-6 py-3.5">
-                  Plan Package
-                </Table.Column>
-                <Table.Column className="px-6 py-3.5">Amount</Table.Column>
-                <Table.Column className="px-6 py-3.5">
-                  Subscription Date
-                </Table.Column>
-                <Table.Column className="px-6 py-3.5 text-right">
-                  Payment Status
-                </Table.Column>
-              </Table.Header>
+      {/* Semantic Transactions Table */}
+      <div className="rounded-2xl overflow-x-auto border border-slate-200/90 bg-white text-xs shadow-sm dark:border-slate-800/90 dark:bg-slate-900/80">
+        <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+          <thead className="bg-slate-50 text-slate-700 text-[11px] font-mono uppercase tracking-wider border-b border-slate-200/90 dark:bg-slate-950/60 dark:text-slate-400 dark:border-slate-800 font-bold">
+            <tr>
+              <th className="px-6 py-3.5">User &amp; Session ID</th>
+              <th className="px-6 py-3.5">Plan Package</th>
+              <th className="px-6 py-3.5">Amount</th>
+              <th className="px-6 py-3.5">Subscription Date</th>
+              <th className="px-6 py-3.5 text-right">Payment Status</th>
+            </tr>
+          </thead>
 
-              <Table.Body className="divide-y divide-slate-800/60">
-                {filteredTransactions.length === 0 ? (
-                  <Table.Row>
-                    <Table.Cell
-                      colSpan={5}
-                      className="p-8 text-center text-xs text-slate-500 italic"
-                    >
-                      No transaction records found.
-                    </Table.Cell>
-                  </Table.Row>
-                ) : (
-                  filteredTransactions.map((tx, idx) => {
-                    const txId = String(tx._id || tx.id || idx);
-                    const email = tx.email || tx.user || "N/A";
-                    const sessionId = tx.session_id || "N/A";
-                    const planTitle = formatPlanTitle(tx.planId || tx.plan);
-                    const isEnterprise = String(tx.planId || "").includes(
-                      "enterprise",
-                    );
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
+            {filteredTransactions.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={5}
+                  className="p-8 text-center text-xs text-slate-500 italic dark:text-slate-400"
+                >
+                  No transaction records found.
+                </td>
+              </tr>
+            ) : (
+              filteredTransactions.map((tx, idx) => {
+                const txId = String(tx._id || tx.id || idx);
+                const email = tx.email || tx.user || "N/A";
+                const sessionId = tx.session_id || "N/A";
+                const planTitle = formatPlanTitle(tx.planId || tx.plan);
+                const isEnterprise = String(tx.planId || "").includes(
+                  "enterprise",
+                );
 
-                    // Amount in DB is in cents (2900 -> 29.00)
-                    const amountFormatted = tx.amount
-                      ? `$${(tx.amount / 100).toFixed(2)}`
-                      : "$0.00";
+                // Amount in DB is in cents (2900 -> 29.00)
+                const amountFormatted = tx.amount
+                  ? `$${(tx.amount / 100).toFixed(2)}`
+                  : "$0.00";
 
-                    const dateFormatted = formatDate(
-                      tx.subscriptionAt || tx.createdAt || tx.date,
-                    );
-                    const statusFormatted = normalizeStatus(
-                      tx.payment_status || tx.paymentStatus,
-                    );
+                const dateFormatted = formatDate(
+                  tx.subscriptionAt || tx.createdAt || tx.date,
+                );
+                const statusFormatted = normalizeStatus(
+                  tx.payment_status || tx.paymentStatus,
+                );
 
-                    return (
-                      <Table.Row
-                        key={txId}
-                        className="hover:bg-white/[0.02] transition-colors"
-                      >
-                        {/* User Email & Session ID */}
-                        <Table.Cell className="px-6 py-4">
-                          <div className="space-y-0.5">
-                            <p className="font-semibold text-slate-100 truncate">
-                              {email}
-                            </p>
-                            <p
-                              className="text-[10px] font-mono text-slate-500 truncate max-w-[220px]"
-                              title={sessionId}
-                            >
-                              {sessionId}
-                            </p>
-                          </div>
-                        </Table.Cell>
+                return (
+                  <tr
+                    key={txId}
+                    className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
+                  >
+                    {/* User Email & Session ID */}
+                    <td className="px-6 py-4">
+                      <div className="space-y-0.5">
+                        <p className="font-semibold text-slate-900 dark:text-slate-100 truncate">
+                          {email}
+                        </p>
+                        <p
+                          className="text-[10px] font-mono text-slate-500 dark:text-slate-400 truncate max-w-[220px]"
+                          title={sessionId}
+                        >
+                          {sessionId}
+                        </p>
+                      </div>
+                    </td>
 
-                        {/* Plan Package */}
-                        <Table.Cell className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-slate-200">
-                              {planTitle}
-                            </span>
-                            {isEnterprise && (
-                              <Badge label="Enterprise" variant="indigo" />
-                            )}
-                          </div>
-                        </Table.Cell>
+                    {/* Plan Package */}
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-slate-800 dark:text-slate-200">
+                          {planTitle}
+                        </span>
+                        {isEnterprise && (
+                          <Badge label="Enterprise" variant="indigo" />
+                        )}
+                      </div>
+                    </td>
 
-                        {/* Amount */}
-                        <Table.Cell className="px-6 py-4 font-mono font-bold text-emerald-400 text-sm">
-                          {amountFormatted}
-                        </Table.Cell>
+                    {/* Amount */}
+                    <td className="px-6 py-4 font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">
+                      {amountFormatted}
+                    </td>
 
-                        {/* Subscription Date */}
-                        <Table.Cell className="px-6 py-4 font-mono text-slate-400">
-                          {dateFormatted}
-                        </Table.Cell>
+                    {/* Subscription Date */}
+                    <td className="px-6 py-4 font-mono text-slate-600 dark:text-slate-400">
+                      {dateFormatted}
+                    </td>
 
-                        {/* Payment Status */}
-                        <Table.Cell className="px-6 py-4 text-right">
-                          <StatusBadge status={statusFormatted} />
-                        </Table.Cell>
-                      </Table.Row>
-                    );
-                  })
-                )}
-              </Table.Body>
-            </Table.Content>
-          </Table.ScrollContainer>
-        </Table>
+                    {/* Payment Status */}
+                    <td className="px-6 py-4 text-right">
+                      <StatusBadge status={statusFormatted} />
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );

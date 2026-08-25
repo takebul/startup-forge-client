@@ -206,34 +206,36 @@ export default function FounderMyStartups({ founder, startups }) {
   // =========================================================================
   if (currentStartup && isRemovedOrRejected && !isCreating && !editingStartup) {
     return (
-      <div className="p-8 space-y-6 max-w-4xl mx-auto font-sans">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-4xl mx-auto font-sans">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">Startup Status</h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+            Startup Status
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Review your startup registration status and admin feedback.
           </p>
         </div>
 
-        <div className="rounded-2xl p-8 sm:p-12 bg-[#0D1528] border border-red-500/30 text-center space-y-6 shadow-2xl relative overflow-hidden">
+        <div className="rounded-3xl p-8 sm:p-12 bg-white border border-red-500/30 text-center space-y-6 shadow-xl dark:bg-[#0D1528] relative overflow-hidden">
           {/* Top Pill */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-mono font-semibold">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-50 text-red-600 border border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20 text-xs font-mono font-semibold">
             <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
             <span>STATUS: PROFILE REMOVED BY ADMIN</span>
           </div>
 
           {/* Icon */}
-          <div className="w-20 h-20 rounded-3xl bg-[#060C1A] border border-red-500/30 text-red-400 flex items-center justify-center mx-auto shadow-inner">
+          <div className="w-20 h-20 rounded-3xl bg-slate-50 border border-red-500/30 text-red-500 dark:bg-[#060C1A] dark:text-red-400 flex items-center justify-center mx-auto shadow-inner">
             <ShieldAlert className="w-10 h-10" />
           </div>
 
           {/* Message */}
           <div className="space-y-3 max-w-lg mx-auto">
-            <h3 className="text-2xl font-bold text-slate-100">
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
               Startup Listing Was Removed
             </h3>
-            <p className="text-sm text-slate-400 leading-relaxed">
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
               Your startup profile for{" "}
-              <span className="text-red-400 font-semibold font-mono">
+              <span className="text-red-600 dark:text-red-400 font-semibold font-mono">
                 @
                 {currentStartup.startup_name ||
                   currentStartup.name ||
@@ -242,12 +244,12 @@ export default function FounderMyStartups({ founder, startups }) {
               was reviewed and removed by the platform administration team.
             </p>
 
-            <div className="p-4 rounded-xl bg-[#060C1A] border border-slate-800 text-xs font-mono text-slate-300 text-left space-y-2">
-              <div className="flex items-center gap-2 text-red-400 font-bold">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 dark:bg-[#060C1A] dark:border-slate-800 text-xs font-mono text-slate-700 dark:text-slate-300 text-left space-y-2">
+              <div className="flex items-center gap-2 text-red-600 dark:text-red-400 font-bold">
                 <AlertTriangle className="w-4 h-4 shrink-0" />
                 <span>Action Required:</span>
               </div>
-              <p className="text-slate-400 text-[11px] leading-relaxed">
+              <p className="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
                 Please verify that your startup name, description, and logo meet
                 platform community guidelines. Click &quot;Edit &amp;
                 Resubmit&quot; to update your details and request a re-review
@@ -261,7 +263,7 @@ export default function FounderMyStartups({ founder, startups }) {
             <Button
               type="button"
               onClick={() => setEditingStartup(currentStartup)}
-              className="w-full sm:w-auto px-6 py-3 rounded-xl font-bold text-xs bg-amber-500 hover:bg-amber-600 text-slate-950 transition-all shadow-md cursor-pointer flex items-center gap-2 justify-center"
+              className="w-full sm:w-auto px-6 py-3 rounded-xl font-bold text-xs bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white transition-all shadow-md shadow-violet-600/20 cursor-pointer flex items-center gap-2 justify-center"
             >
               <Edit className="w-4 h-4" />
               <span>Edit &amp; Resubmit</span>
@@ -272,7 +274,7 @@ export default function FounderMyStartups({ founder, startups }) {
               onClick={() =>
                 setConfirmDeleteId(currentStartup._id || currentStartup.id)
               }
-              className="w-full sm:w-auto px-5 py-3 rounded-xl font-semibold text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-all cursor-pointer flex items-center gap-2 justify-center"
+              className="w-full sm:w-auto px-5 py-3 rounded-xl font-semibold text-xs bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 dark:border-red-500/20 transition-all cursor-pointer flex items-center gap-2 justify-center"
             >
               <Trash2 className="w-4 h-4" />
               <span>Delete Record</span>
@@ -286,7 +288,7 @@ export default function FounderMyStartups({ founder, startups }) {
             title="Delete Startup Record?"
             onClose={() => setConfirmDeleteId(null)}
           >
-            <p className="text-sm text-slate-400 mb-5 font-sans">
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-5 font-sans">
               Are you sure? This will remove the record permanently so you can
               start fresh.
             </p>
@@ -313,12 +315,12 @@ export default function FounderMyStartups({ founder, startups }) {
   // =========================================================================
   if (!startupList || startupList.length === 0 || isCreating) {
     return (
-      <div className="p-8 space-y-6 max-w-4xl font-sans">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-4xl font-sans">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
             Create Startup Profile
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Fill in the details below to publish your startup profile on
             StartupForge.
           </p>
@@ -326,15 +328,15 @@ export default function FounderMyStartups({ founder, startups }) {
 
         <Form
           onSubmit={handleCreateStartup}
-          className="rounded-2xl p-6 space-y-4 bg-[#0D1528] border border-slate-800 shadow-sm"
+          className="rounded-2xl p-6 sm:p-8 space-y-5 bg-white border border-slate-200 shadow-sm dark:bg-[#0D1528] dark:border-slate-800"
         >
           {/* Startup Name */}
           <TextField isRequired className="w-full">
-            <Label className="block text-xs font-medium mb-1.5 font-mono uppercase tracking-wider text-slate-400">
+            <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
               Startup Name
             </Label>
             <InputGroup>
-              <InputGroup.Prefix className="pl-3 text-slate-500">
+              <InputGroup.Prefix className="pl-3 text-slate-400 dark:text-slate-500">
                 🚀
               </InputGroup.Prefix>
               <InputGroup.Input
@@ -344,18 +346,18 @@ export default function FounderMyStartups({ founder, startups }) {
                 }
                 placeholder="e.g. NexusAI"
                 required
-                className="w-full px-3 py-2.5 text-sm outline-none bg-[#060C1A] text-slate-200"
+                className="w-full px-3 py-2.5 text-sm outline-none bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-violet-500 dark:bg-[#060C1A] dark:border-slate-800 dark:text-slate-100 dark:focus:bg-[#060C1A] dark:focus:border-violet-500 rounded-xl"
               />
             </InputGroup>
-            <Description className="text-[11px] text-slate-500 mt-1">
+            <Description className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
               Your registered business or platform brand name.
             </Description>
-            <FieldError className="text-xs text-red-400" />
+            <FieldError className="text-xs text-red-500 dark:text-red-400" />
           </TextField>
 
           {/* Logo Upload */}
           <div>
-            <Label className="block text-xs font-medium mb-1.5 font-mono uppercase tracking-wider text-slate-400">
+            <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
               Logo
             </Label>
             <ImageUpload
@@ -366,7 +368,7 @@ export default function FounderMyStartups({ founder, startups }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label className="block text-xs font-medium mb-1.5 font-mono uppercase tracking-wider text-slate-400">
+              <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
                 Industry
               </Label>
               <Select
@@ -376,7 +378,7 @@ export default function FounderMyStartups({ founder, startups }) {
               />
             </div>
             <div>
-              <Label className="block text-xs font-medium mb-1.5 font-mono uppercase tracking-wider text-slate-400">
+              <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
                 Funding Stage
               </Label>
               <Select
@@ -391,25 +393,25 @@ export default function FounderMyStartups({ founder, startups }) {
 
           {/* Founder Email */}
           <TextField isDisabled className="w-full">
-            <Label className="block text-xs font-medium mb-1.5 font-mono uppercase tracking-wider text-slate-400">
+            <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
               Founder Email
             </Label>
             <InputGroup>
-              <InputGroup.Prefix className="pl-3 text-slate-500">
+              <InputGroup.Prefix className="pl-3 text-slate-400 dark:text-slate-500">
                 ✉️
               </InputGroup.Prefix>
               <InputGroup.Input
                 type="email"
                 value={newStartup.founder_email || founder?.email || ""}
                 disabled
-                className="w-full px-3 py-2.5 text-sm outline-none bg-[#060C1A] text-slate-400 cursor-not-allowed"
+                className="w-full px-3 py-2.5 text-sm outline-none bg-slate-100 border border-slate-200 text-slate-500 dark:bg-[#060C1A] dark:border-slate-800 dark:text-slate-400 cursor-not-allowed rounded-xl"
               />
             </InputGroup>
           </TextField>
 
           {/* Description */}
           <TextField className="w-full">
-            <Label className="block text-xs font-medium mb-1.5 font-mono uppercase tracking-wider text-slate-400">
+            <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
               Description
             </Label>
             <InputGroup>
@@ -420,7 +422,7 @@ export default function FounderMyStartups({ founder, startups }) {
                 }
                 placeholder="Describe your startup's core mission, product, and vision..."
                 rows={3}
-                className="w-full px-3 py-2.5 text-sm outline-none bg-[#060C1A] text-slate-200 resize-none"
+                className="w-full px-3 py-2.5 text-sm outline-none bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-violet-500 dark:bg-[#060C1A] dark:border-slate-800 dark:text-slate-100 dark:focus:bg-[#060C1A] dark:focus:border-violet-500 resize-none rounded-xl"
               />
             </InputGroup>
           </TextField>
@@ -429,7 +431,7 @@ export default function FounderMyStartups({ founder, startups }) {
             <Button
               type="submit"
               isDisabled={loading}
-              className="px-5 py-2.5 rounded-xl font-semibold text-sm bg-amber-500 hover:bg-amber-600 text-slate-950 transition-all cursor-pointer disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-md shadow-violet-600/20 transition-all cursor-pointer disabled:opacity-50"
             >
               {loading ? "Creating..." : "Create Startup"}
             </Button>
@@ -437,7 +439,7 @@ export default function FounderMyStartups({ founder, startups }) {
               <Button
                 type="button"
                 onClick={() => setIsCreating(false)}
-                className="px-5 py-2.5 rounded-xl font-semibold text-sm bg-white/5 hover:bg-white/10 text-slate-400 border border-slate-800 transition-all cursor-pointer"
+                className="px-5 py-2.5 rounded-xl font-semibold text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 dark:border-slate-800 transition-all cursor-pointer"
               >
                 Cancel
               </Button>
@@ -453,14 +455,14 @@ export default function FounderMyStartups({ founder, startups }) {
   // =========================================================================
   if (editingStartup) {
     return (
-      <div className="p-8 space-y-6 max-w-4xl font-sans">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-4xl font-sans">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
             {isRemovedOrRejected
               ? "Edit & Resubmit Startup Profile"
               : "Update Startup"}
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             {isRemovedOrRejected
               ? "Make necessary corrections and save your changes to resubmit for admin review."
               : "Update your public startup details and recruitment profile."}
@@ -469,10 +471,10 @@ export default function FounderMyStartups({ founder, startups }) {
 
         <Form
           onSubmit={handleEditing}
-          className="rounded-2xl p-6 space-y-4 bg-[#0D1528] border border-slate-800 shadow-sm"
+          className="rounded-2xl p-6 sm:p-8 space-y-5 bg-white border border-slate-200 shadow-sm dark:bg-[#0D1528] dark:border-slate-800"
         >
           <TextField className="w-full">
-            <Label className="block text-xs font-medium mb-1.5 font-mono uppercase tracking-wider text-slate-400">
+            <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
               Startup Name
             </Label>
             <Input
@@ -483,12 +485,12 @@ export default function FounderMyStartups({ founder, startups }) {
                   startup_name: e.target.value,
                 })
               }
-              className="w-full px-3 py-2.5 rounded-xl text-sm outline-none bg-[#060C1A] border border-slate-800 text-slate-200 focus:border-amber-500/50"
+              className="w-full px-3 py-2.5 rounded-xl text-sm outline-none bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-violet-500 dark:bg-[#060C1A] dark:border-slate-800 dark:text-slate-100 dark:focus:bg-[#060C1A] dark:focus:border-violet-500"
             />
           </TextField>
 
           <div>
-            <Label className="block text-xs font-medium mb-1.5 font-mono uppercase tracking-wider text-slate-400">
+            <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
               Logo
             </Label>
             <ImageUpload
@@ -501,7 +503,7 @@ export default function FounderMyStartups({ founder, startups }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label className="block text-xs font-medium mb-1.5 font-mono uppercase tracking-wider text-slate-400">
+              <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
                 Industry
               </Label>
               <Select
@@ -513,7 +515,7 @@ export default function FounderMyStartups({ founder, startups }) {
               />
             </div>
             <div>
-              <Label className="block text-xs font-medium mb-1.5 font-mono uppercase tracking-wider text-slate-400">
+              <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
                 Funding Stage
               </Label>
               <Select
@@ -531,7 +533,7 @@ export default function FounderMyStartups({ founder, startups }) {
           </div>
 
           <TextField isDisabled className="w-full">
-            <Label className="block text-xs font-medium mb-1.5 font-mono uppercase tracking-wider text-slate-400">
+            <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
               Founder Email
             </Label>
             <Input
@@ -543,12 +545,12 @@ export default function FounderMyStartups({ founder, startups }) {
                 founder?.email ||
                 ""
               }
-              className="w-full px-3 py-2.5 rounded-xl text-sm outline-none bg-[#060C1A] border border-slate-800 text-slate-400 cursor-not-allowed"
+              className="w-full px-3 py-2.5 rounded-xl text-sm outline-none bg-slate-100 border border-slate-200 text-slate-500 dark:bg-[#060C1A] dark:border-slate-800 dark:text-slate-400 cursor-not-allowed"
             />
           </TextField>
 
           <TextField className="w-full">
-            <Label className="block text-xs font-medium mb-1.5 font-mono uppercase tracking-wider text-slate-400">
+            <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
               Description
             </Label>
             <Textarea
@@ -566,7 +568,7 @@ export default function FounderMyStartups({ founder, startups }) {
             <Button
               type="submit"
               isDisabled={loading}
-              className="px-5 py-2.5 rounded-xl font-semibold text-sm bg-amber-500 hover:bg-amber-600 text-slate-950 transition-all cursor-pointer disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-md shadow-violet-600/20 transition-all cursor-pointer disabled:opacity-50"
             >
               {loading
                 ? "Submitting..."
@@ -577,7 +579,7 @@ export default function FounderMyStartups({ founder, startups }) {
             <Button
               type="button"
               onClick={() => setEditingStartup(null)}
-              className="px-5 py-2.5 rounded-xl font-semibold text-sm bg-white/5 hover:bg-white/10 text-slate-400 border border-slate-800 transition-all cursor-pointer"
+              className="px-5 py-2.5 rounded-xl font-semibold text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 dark:border-slate-800 transition-all cursor-pointer"
             >
               Cancel
             </Button>
@@ -591,10 +593,12 @@ export default function FounderMyStartups({ founder, startups }) {
   // 4. DETAILED CARD DISPLAY STATE
   // =========================================================================
   return (
-    <div className="p-8 space-y-6 max-w-4xl font-sans">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-4xl font-sans">
       <div>
-        <h2 className="text-xl font-bold text-slate-100">My Startup</h2>
-        <p className="text-xs text-slate-400 mt-1">
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+          My Startup
+        </h2>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
           Manage your registered startup profile and recruitment details.
         </p>
       </div>
@@ -611,10 +615,10 @@ export default function FounderMyStartups({ founder, startups }) {
           return (
             <div
               key={itemId}
-              className="rounded-2xl bg-[#0D1528] border border-slate-800 p-6 space-y-5 shadow-sm"
+              className="rounded-3xl bg-white border border-slate-200 p-6 sm:p-8 space-y-5 shadow-sm dark:bg-[#0D1528] dark:border-slate-800"
             >
               <div className="flex items-start gap-4">
-                <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-[#060C1A] border border-slate-800 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 bg-slate-50 border border-slate-200 dark:bg-[#060C1A] dark:border-slate-800 flex items-center justify-center shadow-inner">
                   {item.logo ? (
                     <img
                       src={item.logo}
@@ -622,7 +626,7 @@ export default function FounderMyStartups({ founder, startups }) {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-amber-500 font-bold text-lg">
+                    <span className="text-violet-600 dark:text-violet-400 font-bold text-xl">
                       {name[0]}
                     </span>
                   )}
@@ -630,7 +634,9 @@ export default function FounderMyStartups({ founder, startups }) {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 flex-wrap">
-                    <h3 className="text-lg font-bold text-slate-100">{name}</h3>
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                      {name}
+                    </h3>
                     <Badge
                       label={
                         isApproved
@@ -643,26 +649,26 @@ export default function FounderMyStartups({ founder, startups }) {
                         isApproved
                           ? "green"
                           : isResubmitted
-                            ? "indigo"
-                            : "amber"
+                            ? "purple"
+                            : "yellow"
                       }
                     />
                   </div>
-                  <p className="text-sm text-slate-400 mt-1">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                     {item.industry} ·{" "}
                     {item.funding_stage || item.fundingStage || "N/A"}
                   </p>
-                  <p className="text-xs font-mono text-slate-500 mt-0.5">
+                  <p className="text-xs font-mono text-slate-500 dark:text-slate-400 mt-0.5">
                     {item.founder_email || item.founderEmail || "N/A"}
                   </p>
                 </div>
               </div>
 
-              <p className="text-sm text-slate-300 leading-relaxed">
+              <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-[#060C1A] p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
                 {item.description || "No description provided."}
               </p>
 
-              <div className="flex gap-3 pt-4 border-t border-slate-800/80">
+              <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                 <Btn
                   onClick={() => setEditingStartup(item)}
                   variant="outline"
@@ -686,7 +692,7 @@ export default function FounderMyStartups({ founder, startups }) {
       {/* Delete Confirmation Modal */}
       {confirmDeleteId !== null && (
         <Modal title="Delete Startup?" onClose={() => setConfirmDeleteId(null)}>
-          <p className="text-sm text-slate-400 mb-5 font-sans">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-5 font-sans">
             Are you sure? This action cannot be undone and will permanently
             delete your startup record.
           </p>

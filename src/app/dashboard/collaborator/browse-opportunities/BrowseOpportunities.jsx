@@ -31,7 +31,7 @@ import ApplyModal from "@/components/ApplyModal/ApplyModal";
 const WORK_TYPE_VARIANTS = {
   Remote: "green",
   Hybrid: "indigo",
-  "On-site": "amber",
+  "On-site": "blue",
 };
 
 const PAGE_SIZE = 4;
@@ -90,16 +90,17 @@ function PaginationControls({
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-6 pt-5 border-t border-slate-800 font-sans">
-      <p className="text-xs font-mono text-slate-500">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-6 pt-5 border-t border-slate-200 dark:border-slate-800 font-sans">
+      <p className="text-xs font-mono text-slate-500 dark:text-slate-400">
         Showing {total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–
         {Math.min(page * PAGE_SIZE, total)} of {total} results
       </p>
       <div className="flex items-center gap-1">
         <button
+          type="button"
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1 || loading}
-          className="px-3 py-1.5 rounded-xl text-xs font-medium bg-white/5 hover:bg-white/10 text-slate-400 border border-slate-800 transition-colors disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+          className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 dark:border-slate-800 transition-colors disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
         >
           ← Prev
         </button>
@@ -112,7 +113,10 @@ function PaginationControls({
           ) {
             if (Math.abs(p - page) === 2) {
               return (
-                <span key={p} className="px-1 text-xs text-slate-500 font-mono">
+                <span
+                  key={p}
+                  className="px-1 text-xs text-slate-400 dark:text-slate-500 font-mono"
+                >
                   ...
                 </span>
               );
@@ -122,13 +126,14 @@ function PaginationControls({
 
           return (
             <button
+              type="button"
               key={p}
               onClick={() => onPageChange(p)}
               disabled={loading}
-              className={`w-8 h-8 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 p === page
-                  ? "bg-amber-500 text-slate-950 font-bold"
-                  : "bg-transparent text-slate-400 hover:bg-white/5"
+                  ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-xs"
+                  : "bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5"
               }`}
             >
               {p}
@@ -136,9 +141,10 @@ function PaginationControls({
           );
         })}
         <button
+          type="button"
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages || loading}
-          className="px-3 py-1.5 rounded-xl text-xs font-medium bg-white/5 hover:bg-white/10 text-slate-400 border border-slate-800 transition-colors disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+          className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 dark:border-slate-800 transition-colors disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
         >
           Next →
         </button>
@@ -152,6 +158,7 @@ function PaginationControls({
 export default function BrowseOpportunities({
   opportunitiesData,
   startups = [],
+  rawBookmarks = [],
   initialBookmarks = [],
   initialAppliedOppIds = [],
   user,
@@ -169,6 +176,7 @@ export default function BrowseOpportunities({
 
   const [searchInput, setSearchInput] = useState(urlSearch);
   const [filterMode, setFilterMode] = useState("all"); // 'all' | 'bookmarked'
+  const [bookmarkedPage, setBookmarkedPage] = useState(1);
   const [fullUser, setFullUser] = useState(() => user || {});
 
   useEffect(() => {
@@ -204,12 +212,13 @@ export default function BrowseOpportunities({
     fetchLatestProfile();
   }, [fetchLatestProfile]);
 
-  // Parse datasets
+  // Parse Startups dataset
   const parsedStartups = useMemo(
     () => parseArrayData(startups, "startups"),
     [startups],
   );
 
+  // Parse Raw Opportunities dataset (from server-side paginated API)
   const rawOpportunities = useMemo(() => {
     return parseArrayData(
       opportunitiesData?.data ||
@@ -250,68 +259,125 @@ export default function BrowseOpportunities({
 
       return {
         ...opp,
-        resolvedStartupId: String(resolvedStartupId),
+        roleTitle:
+          opp.roleTitle || opp.role_title || opp.title || "Collaborator Role",
         startupName:
           matchedStartup?.startup_name ||
           matchedStartup?.name ||
           opp.startupName ||
           opp.startup_name ||
           "Startup",
-        industry: opp.industry || matchedStartup?.industry || "Technology",
-        startupLogo: matchedStartup?.logo || null,
+        industry:
+          matchedStartup?.industry ||
+          opp.industry ||
+          "Technology",
+        logo: matchedStartup?.logo || opp.logo || null,
+        resolvedStartupId: String(resolvedStartupId),
       };
     });
   }, [rawOpportunities, parsedStartups]);
 
-  // 1. EXTRACT REAL DYNAMIC INDUSTRIES FROM DATABASE STARTUPS
+  // Parse Full Bookmarked Opportunities from database
+  const fullBookmarkedList = useMemo(() => {
+    const list = Array.isArray(rawBookmarks)
+      ? rawBookmarks
+      : Array.isArray(rawBookmarks?.data)
+        ? rawBookmarks.data
+        : [];
+
+    return list
+      .map((item) => {
+        const opp =
+          Array.isArray(item.opportunityDetails) &&
+          item.opportunityDetails.length > 0
+            ? item.opportunityDetails[0]
+            : item;
+
+        const oppId = String(item.opportunityId || opp._id || opp.id || "");
+        if (!oppId) return null;
+
+        const oppStartupId = String(opp.startupId || item.startupId || "");
+        const oppStartupName = String(
+          opp.startupName || item.startupName || "",
+        )
+          .toLowerCase()
+          .trim();
+
+        const matchedStartup = parsedStartups.find((s) => {
+          const sId = String(s._id || s.id || "");
+          const customId = String(s.startupId || "");
+          const sName = String(s.startup_name || s.name || "")
+            .toLowerCase()
+            .trim();
+
+          return (
+            (oppStartupId &&
+              (sId === oppStartupId || customId === oppStartupId)) ||
+            (oppStartupName && sName === oppStartupName)
+          );
+        });
+
+        const resolvedStartupId =
+          matchedStartup?._id ||
+          matchedStartup?.id ||
+          opp.startupId ||
+          item.startupId ||
+          "";
+
+        return {
+          _id: oppId,
+          id: oppId,
+          opportunityId: oppId,
+          roleTitle:
+            opp.roleTitle ||
+            opp.role_title ||
+            item.roleTitle ||
+            "Collaborator Role",
+          startupName:
+            matchedStartup?.startup_name ||
+            matchedStartup?.name ||
+            opp.startupName ||
+            item.startupName ||
+            "Startup",
+          workType: opp.workType || item.workType || "Remote",
+          commitmentLevel:
+            opp.commitmentLevel || item.commitmentLevel || "Part-Time",
+          deadline: opp.deadline || item.deadline || "Open",
+          requiredSkills: getSkillsArray(
+            opp.requiredSkills || item.requiredSkills,
+          ),
+          description: opp.description || item.description || "",
+          industry:
+            matchedStartup?.industry ||
+            opp.industry ||
+            item.industry ||
+            "Technology",
+          logo: matchedStartup?.logo || opp.logo || null,
+          resolvedStartupId: String(resolvedStartupId),
+        };
+      })
+      .filter(Boolean);
+  }, [rawBookmarks, parsedStartups]);
+
+  // Extraction of dynamic industries from MongoDB startups
   const industries = useMemo(() => {
-    const list = parsedStartups
-      .map((item) => item.industry)
-      .filter((ind) => ind && typeof ind === "string" && ind.trim().length > 0)
-      .map((ind) => ind.trim());
-
-    // Also include any industries explicitly on opportunities
-    opportunitiesList.forEach((opp) => {
-      if (
-        opp.industry &&
-        typeof opp.industry === "string" &&
-        opp.industry.trim().length > 0
-      ) {
-        list.push(opp.industry.trim());
-      }
+    const set = new Set();
+    parsedStartups.forEach((s) => {
+      if (s.industry && s.industry.trim()) set.add(s.industry.trim());
     });
+    opportunitiesList.forEach((o) => {
+      if (o.industry && o.industry.trim()) set.add(o.industry.trim());
+    });
+    fullBookmarkedList.forEach((b) => {
+      if (b.industry && b.industry.trim()) set.add(b.industry.trim());
+    });
+    return ["All", ...Array.from(set)];
+  }, [parsedStartups, opportunitiesList, fullBookmarkedList]);
 
-    const uniqueIndustries = Array.from(new Set(list));
-    return ["All", ...uniqueIndustries];
-  }, [parsedStartups, opportunitiesList]);
+  const workTypes = ["All", "Remote", "Hybrid", "On-site"];
 
-  // 2. EXTRACT REAL DYNAMIC WORK TYPES FROM DATABASE LISTINGS
-  const workTypes = useMemo(() => {
-    const list = opportunitiesList
-      .map((item) => item.workType || item.work_type)
-      .filter(Boolean)
-      .map((w) => w.trim());
-
-    const defaults = ["Remote", "Hybrid", "On-site"];
-    const uniqueTypes = Array.from(new Set([...defaults, ...list]));
-    return ["All", ...uniqueTypes];
-  }, [opportunitiesList]);
-
-  const totalItems = Number(
-    opportunitiesData?.total_data ??
-      opportunitiesData?.totalData ??
-      opportunitiesData?.totalCount ??
-      opportunitiesList.length,
-  );
-
-  const totalPages = Number(
-    opportunitiesData?.total_page ??
-      opportunitiesData?.totalPages ??
-      (totalItems > 0 ? Math.ceil(totalItems / PAGE_SIZE) : 1),
-  );
-
-  // Normalize Bookmarks
-  const parseBookmarks = (data) => {
+  // Normalize Bookmarks IDs
+  const parseBookmarkIds = (data) => {
     if (!data) return [];
     const list = Array.isArray(data)
       ? data
@@ -326,19 +392,26 @@ export default function BrowseOpportunities({
     return Array.from(new Set(ids));
   };
 
-  const [bookmarks, setBookmarks] = useState(() =>
-    parseBookmarks(initialBookmarks),
-  );
+  const [bookmarks, setBookmarks] = useState(() => {
+    const fromProps = parseBookmarkIds(initialBookmarks);
+    if (fromProps.length > 0) return fromProps;
+    return parseBookmarkIds(rawBookmarks);
+  });
 
-  const [submitted, setSubmitted] = useState(() =>
-    Array.isArray(initialAppliedOppIds)
+  const [submitted, setSubmitted] = useState(() => {
+    return Array.isArray(initialAppliedOppIds)
       ? Array.from(new Set(initialAppliedOppIds.map(String)))
-      : [],
-  );
+      : [];
+  });
 
   useEffect(() => {
-    setBookmarks(parseBookmarks(initialBookmarks));
-  }, [initialBookmarks]);
+    const fromProps = parseBookmarkIds(initialBookmarks);
+    if (fromProps.length > 0) {
+      setBookmarks(fromProps);
+    } else if (rawBookmarks?.length > 0) {
+      setBookmarks(parseBookmarkIds(rawBookmarks));
+    }
+  }, [initialBookmarks, rawBookmarks]);
 
   useEffect(() => {
     setSubmitted(
@@ -348,6 +421,7 @@ export default function BrowseOpportunities({
     );
   }, [initialAppliedOppIds]);
 
+  // Modals & form state
   const [selected, setSelected] = useState(null);
   const [applyModal, setApplyModal] = useState(null);
   const [showIncompleteModal, setShowIncompleteModal] = useState(false);
@@ -358,7 +432,7 @@ export default function BrowseOpportunities({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [form, setForm] = useState({
-    email: fullUser?.email || "",
+    email: user?.email || "",
     portfolio: "",
     motivation: "",
   });
@@ -372,37 +446,100 @@ export default function BrowseOpportunities({
   const currentPersona = useMemo(() => getUserPersona(fullUser), [fullUser]);
 
   // Centralized URL Param updater
-  const updateQueryParam = (updates = {}) => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value && value !== "All" && String(value).trim() !== "") {
-        params.set(key, String(value).trim());
-      } else {
-        params.delete(key);
-      }
-    });
-
-    if (!updates.page) {
-      params.set("page", "1");
-    }
-
-    router.push(`${pathname}?${params.toString()}`);
-  };
+  const updateQueryParam = useCallback(
+    (newParams) => {
+      const params = new URLSearchParams(searchParams.toString());
+      Object.entries(newParams).forEach(([key, val]) => {
+        if (val === "" || val === "All" || (key === "page" && val === 1)) {
+          params.delete(key);
+        } else {
+          params.set(key, String(val));
+        }
+      });
+      router.push(`${pathname}?${params.toString()}`);
+    },
+    [router, pathname, searchParams],
+  );
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    updateQueryParam({ search: searchInput });
+    if (filterMode === "bookmarked") {
+      setBookmarkedPage(1);
+    }
+    updateQueryParam({ search: searchInput, page: 1 });
   };
 
   const clearAllFilters = () => {
     setSearchInput("");
-    setFilterMode("all");
+    setBookmarkedPage(1);
     router.push(pathname);
   };
 
   const hasActiveFilters =
     urlSearch !== "" || urlWorkType !== "All" || urlIndustry !== "All";
+
+  // Filtered Bookmarked list with in-memory search and filter criteria
+  const filteredBookmarkedList = useMemo(() => {
+    return fullBookmarkedList.filter((b) => {
+      // Must be currently bookmarked
+      if (!bookmarks.includes(String(b._id || b.id || b.opportunityId))) {
+        return false;
+      }
+
+      // Filter by search term
+      if (urlSearch) {
+        const query = urlSearch.toLowerCase();
+        const titleMatch = b.roleTitle?.toLowerCase().includes(query);
+        const startupMatch = b.startupName?.toLowerCase().includes(query);
+        const skillsMatch = b.requiredSkills?.some((s) =>
+          s.toLowerCase().includes(query),
+        );
+        if (!titleMatch && !startupMatch && !skillsMatch) return false;
+      }
+
+      // Filter by workType
+      if (urlWorkType !== "All" && b.workType !== urlWorkType) {
+        return false;
+      }
+
+      // Filter by industry
+      if (urlIndustry !== "All" && b.industry !== urlIndustry) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [fullBookmarkedList, bookmarks, urlSearch, urlWorkType, urlIndustry]);
+
+  // Compute pagination parameters depending on active mode
+  const isBookmarkedMode = filterMode === "bookmarked";
+
+  const totalItems = isBookmarkedMode
+    ? filteredBookmarkedList.length
+    : Number(
+        opportunitiesData?.total_data ??
+          opportunitiesData?.totalData ??
+          opportunitiesData?.totalCount ??
+          opportunitiesList.length,
+      );
+
+  const totalPages = isBookmarkedMode
+    ? Math.max(1, Math.ceil(filteredBookmarkedList.length / PAGE_SIZE))
+    : Number(
+        opportunitiesData?.total_page ??
+          opportunitiesData?.totalPages ??
+          (totalItems > 0 ? Math.ceil(totalItems / PAGE_SIZE) : 1),
+      );
+
+  const currentDisplayPage = isBookmarkedMode ? bookmarkedPage : activePage;
+
+  const displayedOpportunities = useMemo(() => {
+    if (isBookmarkedMode) {
+      const startIndex = (bookmarkedPage - 1) * PAGE_SIZE;
+      return filteredBookmarkedList.slice(startIndex, startIndex + PAGE_SIZE);
+    }
+    return opportunitiesList;
+  }, [isBookmarkedMode, filteredBookmarkedList, bookmarkedPage, opportunitiesList]);
 
   // Profile completion calculator
   const getProfileCompletion = (userData) => {
@@ -482,9 +619,9 @@ export default function BrowseOpportunities({
       if (isBookmarked) {
         await deleteBookmark(targetId, activeUserId);
       } else {
-        const targetOpp = opportunitiesList.find(
-          (o) => String(o._id || o.id) === targetId,
-        );
+        const targetOpp =
+          opportunitiesList.find((o) => String(o._id || o.id) === targetId) ||
+          fullBookmarkedList.find((b) => String(b._id || b.id) === targetId);
 
         await createBookmark({
           opportunityId: targetId,
@@ -505,15 +642,6 @@ export default function BrowseOpportunities({
       );
     }
   };
-
-  const displayedOpportunities = useMemo(() => {
-    if (filterMode === "bookmarked") {
-      return opportunitiesList.filter((o) =>
-        bookmarks.includes(String(o._id || o.id)),
-      );
-    }
-    return opportunitiesList;
-  }, [opportunitiesList, bookmarks, filterMode]);
 
   const submitApplication = async (e) => {
     e.preventDefault();
@@ -563,36 +691,44 @@ export default function BrowseOpportunities({
   };
 
   return (
-    <div className="p-8 space-y-6 font-sans max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 font-sans max-w-7xl mx-auto">
       {/* Header & Filter Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
             Browse Opportunities
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Explore open roles posted by verified startups and apply directly.
           </p>
         </div>
 
         {/* View Mode Toggle */}
-        <div className="flex items-center gap-1.5 rounded-xl p-1 bg-[#0D1528] border border-slate-800">
+        <div className="flex items-center gap-1.5 rounded-xl p-1 bg-slate-100 border border-slate-200 dark:bg-[#0D1528] dark:border-slate-800">
           <button
-            onClick={() => setFilterMode("all")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+            type="button"
+            onClick={() => {
+              setFilterMode("all");
+              setBookmarkedPage(1);
+            }}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               filterMode === "all"
-                ? "bg-amber-500 text-slate-950 font-bold"
-                : "text-slate-400 hover:text-slate-200"
+                ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-xs"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
             }`}
           >
             All
           </button>
           <button
-            onClick={() => setFilterMode("bookmarked")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+            type="button"
+            onClick={() => {
+              setFilterMode("bookmarked");
+              setBookmarkedPage(1);
+            }}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               filterMode === "bookmarked"
-                ? "bg-amber-500 text-slate-950 font-bold"
-                : "text-slate-400 hover:text-slate-200"
+                ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-xs"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
             }`}
           >
             🔖 Bookmarked ({bookmarks.length})
@@ -601,7 +737,7 @@ export default function BrowseOpportunities({
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-[#0D1528] p-5 shadow-sm">
+      <div className="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-[#0D1528]">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           {/* Search Input */}
           <div className="relative flex-1">
@@ -610,18 +746,18 @@ export default function BrowseOpportunities({
               className="flex items-center gap-2"
             >
               <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
                 <input
                   type="text"
                   placeholder="Search by role title or skills (e.g. React, Node, Python)..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  className="w-full rounded-xl border border-slate-800 bg-[#060C1A] py-2.5 pl-10 pr-4 text-sm text-slate-200 outline-none transition-colors focus:border-amber-500"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-colors focus:bg-white focus:border-violet-500 dark:border-slate-800 dark:bg-[#060C1A] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-[#060C1A] dark:focus:border-violet-500"
                 />
               </div>
               <button
                 type="submit"
-                className="rounded-xl bg-amber-500 text-slate-950 font-bold text-xs px-4 h-10 hover:bg-amber-600 transition-colors cursor-pointer"
+                className="rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-xs px-5 h-10 transition-all cursor-pointer shadow-md shadow-violet-600/20 shrink-0"
               >
                 Search
               </button>
@@ -632,16 +768,23 @@ export default function BrowseOpportunities({
           <div className="flex flex-wrap items-center gap-3">
             {/* Work Type Filter */}
             <div className="flex items-center space-x-2">
-              <label className="text-xs font-semibold text-slate-400 whitespace-nowrap">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">
                 Work Type:
               </label>
               <select
                 value={urlWorkType}
-                onChange={(e) => updateQueryParam({ workType: e.target.value })}
-                className="rounded-xl border border-slate-800 bg-[#060C1A] px-3 py-2 text-xs font-medium text-slate-200 outline-none focus:border-amber-500 cursor-pointer"
+                onChange={(e) => {
+                  if (filterMode === "bookmarked") setBookmarkedPage(1);
+                  updateQueryParam({ workType: e.target.value, page: 1 });
+                }}
+                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-900 outline-none focus:bg-white focus:border-violet-500 cursor-pointer dark:border-slate-800 dark:bg-[#060C1A] dark:text-slate-100 dark:focus:bg-[#060C1A] dark:focus:border-violet-500 [color-scheme:light] dark:[color-scheme:dark]"
               >
                 {workTypes.map((type, index) => (
-                  <option key={index} value={type}>
+                  <option
+                    key={index}
+                    value={type}
+                    className="bg-white text-slate-900 dark:bg-[#0D1528] dark:text-slate-100"
+                  >
                     {type}
                   </option>
                 ))}
@@ -650,16 +793,23 @@ export default function BrowseOpportunities({
 
             {/* Real Industry Filter from Startups */}
             <div className="flex items-center space-x-2">
-              <label className="text-xs font-semibold text-slate-400 whitespace-nowrap">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">
                 Industry:
               </label>
               <select
                 value={urlIndustry}
-                onChange={(e) => updateQueryParam({ industry: e.target.value })}
-                className="rounded-xl border border-slate-800 bg-[#060C1A] px-3 py-2 text-xs font-medium text-slate-200 outline-none focus:border-amber-500 cursor-pointer"
+                onChange={(e) => {
+                  if (filterMode === "bookmarked") setBookmarkedPage(1);
+                  updateQueryParam({ industry: e.target.value, page: 1 });
+                }}
+                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-900 outline-none focus:bg-white focus:border-violet-500 cursor-pointer dark:border-slate-800 dark:bg-[#060C1A] dark:text-slate-100 dark:focus:bg-[#060C1A] dark:focus:border-violet-500 [color-scheme:light] dark:[color-scheme:dark]"
               >
                 {industries.map((ind, index) => (
-                  <option key={index} value={ind}>
+                  <option
+                    key={index}
+                    value={ind}
+                    className="bg-white text-slate-900 dark:bg-[#0D1528] dark:text-slate-100"
+                  >
                     {ind}
                   </option>
                 ))}
@@ -670,31 +820,32 @@ export default function BrowseOpportunities({
 
         {/* Active Filter Pills Bar */}
         {hasActiveFilters && (
-          <div className="flex flex-wrap items-center justify-between border-t border-slate-800 pt-3">
+          <div className="flex flex-wrap items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3">
             <div className="flex flex-wrap items-center gap-2 text-xs">
-              <span className="font-semibold text-slate-500 font-mono">
+              <span className="font-semibold text-slate-500 dark:text-slate-400 font-mono">
                 Active Filters:
               </span>
               {urlSearch && (
-                <span className="rounded-md bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 font-medium text-amber-400">
+                <span className="rounded-lg bg-violet-50 text-violet-700 border border-violet-200 dark:bg-violet-500/10 dark:border-violet-500/20 dark:text-violet-300 px-2.5 py-0.5 font-medium">
                   &quot;{urlSearch}&quot;
                 </span>
               )}
               {urlWorkType !== "All" && (
-                <span className="rounded-md bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 font-medium text-amber-400">
+                <span className="rounded-lg bg-violet-50 text-violet-700 border border-violet-200 dark:bg-violet-500/10 dark:border-violet-500/20 dark:text-violet-300 px-2.5 py-0.5 font-medium">
                   Type: {urlWorkType}
                 </span>
               )}
               {urlIndustry !== "All" && (
-                <span className="rounded-md bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 font-medium text-amber-400">
+                <span className="rounded-lg bg-violet-50 text-violet-700 border border-violet-200 dark:bg-violet-500/10 dark:border-violet-500/20 dark:text-violet-300 px-2.5 py-0.5 font-medium">
                   Industry: {urlIndustry}
                 </span>
               )}
             </div>
 
             <button
+              type="button"
               onClick={clearAllFilters}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-rose-400 transition-colors hover:underline cursor-pointer"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-rose-500 hover:text-rose-600 dark:text-rose-400 transition-colors hover:underline cursor-pointer"
             >
               <RotateCcw className="w-3 h-3" />
               <span>Reset Filters</span>
@@ -709,55 +860,65 @@ export default function BrowseOpportunities({
           icon="🔖"
           title={
             filterMode === "bookmarked"
-              ? "No bookmarks saved yet"
+              ? "No saved opportunities"
               : "No opportunities found"
           }
           sub={
             filterMode === "bookmarked"
-              ? "Click the bookmark icon on an opportunity to save it here."
+              ? "Click the bookmark icon on an opportunity in 'All' to save it here."
               : "Try searching for a different skill or reset your filters."
           }
         />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {displayedOpportunities.map((o, idx) => {
-            const itemId = String(o._id || o.id || idx);
+            const itemId = String(o._id || o.id || o.opportunityId || idx);
             const isBookmarked = bookmarks.includes(itemId);
             const isApplied = submitted.includes(itemId);
             const isDeadlinePassed = checkIsDeadlinePassed(o.deadline);
-            const variant = WORK_TYPE_VARIANTS[o.workType] || "gray";
             const skillsList = getSkillsArray(o.requiredSkills);
 
             return (
               <div
                 key={itemId}
-                className={`rounded-2xl p-5 bg-[#0D1528] border transition-all duration-200 flex flex-col justify-between ${
+                className={`group flex flex-col justify-between rounded-3xl border bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg dark:bg-[#0D1528] ${
                   isBookmarked
-                    ? "border-amber-500/30"
-                    : "border-slate-800 hover:border-slate-700"
+                    ? "border-violet-500/40 shadow-violet-500/5 ring-1 ring-violet-500/20"
+                    : "border-slate-200 hover:border-violet-300 dark:border-slate-800 dark:hover:border-violet-500/40"
                 }`}
               >
                 <div>
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex flex-wrap gap-1.5">
-                      <Badge label={o.workType || "Remote"} variant={variant} />
-                      <Badge
-                        label={o.commitmentLevel || "Part-Time"}
-                        variant="gray"
-                      />
+                  {/* Header Tags: Work Type, Commitment, Expired & Bookmark Button */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span
+                        className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-mono font-semibold transition-colors ${
+                          o.workType === "Remote"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20"
+                            : o.workType === "Hybrid"
+                              ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20"
+                              : "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-500/10 dark:text-violet-300 dark:border-violet-500/20"
+                        }`}
+                      >
+                        {o.workType || "Remote"}
+                      </span>
+                      <span className="rounded-full border border-slate-200/80 bg-slate-100/90 px-2.5 py-0.5 text-[11px] font-mono font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-300">
+                        {o.commitmentLevel || "Part-Time"}
+                      </span>
                       {isDeadlinePassed && (
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-red-500/10 text-red-400 border border-red-500/20">
-                          Deadline Passed
+                        <span className="rounded-full border border-red-500/20 bg-red-50 px-2.5 py-0.5 text-[10px] font-mono font-bold text-red-600 dark:bg-red-500/10 dark:text-red-400">
+                          Closed
                         </span>
                       )}
                     </div>
 
                     <button
+                      type="button"
                       onClick={() => toggleBookmark(itemId)}
-                      className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs transition-colors cursor-pointer ${
+                      className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs transition-colors cursor-pointer shrink-0 ${
                         isBookmarked
-                          ? "bg-amber-500/10 text-amber-500 border border-amber-500/20"
-                          : "bg-white/5 text-slate-500 hover:bg-white/10"
+                          ? "bg-violet-50 text-violet-700 border border-violet-200 dark:bg-violet-500/10 dark:text-violet-400 dark:border-violet-500/20"
+                          : "bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10"
                       }`}
                       title={isBookmarked ? "Remove bookmark" : "Bookmark role"}
                     >
@@ -765,82 +926,128 @@ export default function BrowseOpportunities({
                     </button>
                   </div>
 
-                  <h4 className="font-semibold text-base text-slate-100 mb-0.5">
-                    {o.roleTitle}
-                  </h4>
+                  {/* Role Title & Startup Info */}
+                  <div className="mt-4">
+                    <h3 className="text-lg font-bold tracking-tight text-slate-900 transition-colors group-hover:text-violet-600 dark:text-white dark:group-hover:text-violet-400 line-clamp-1">
+                      {o.roleTitle}
+                    </h3>
 
-                  {/* Interactive Startup Link */}
-                  <div className="flex items-center gap-2 mb-3">
-                    {o.resolvedStartupId ? (
-                      <Link
-                        href={`/startups/${o.resolvedStartupId}`}
-                        className="text-xs text-amber-500 hover:text-amber-400 font-medium flex items-center gap-1 transition-colors hover:underline"
-                      >
-                        <Building2 className="w-3.5 h-3.5 text-slate-500" />
-                        <span>@{o.startupName}</span>
-                      </Link>
-                    ) : (
-                      <p className="text-xs text-amber-500 font-medium flex items-center gap-1">
-                        <Building2 className="w-3.5 h-3.5 text-slate-500" />
-                        <span>@{o.startupName}</span>
-                      </p>
-                    )}
+                    <div className="mt-2 flex items-center gap-2">
+                      {o.logo ? (
+                        <img
+                          src={o.logo}
+                          alt={o.startupName}
+                          className="h-5 w-5 rounded-lg object-cover ring-1 ring-slate-200 dark:ring-slate-700 shrink-0"
+                        />
+                      ) : (
+                        <div className="flex h-5 w-5 items-center justify-center rounded-lg bg-violet-100 text-[10px] font-bold text-violet-700 ring-1 ring-violet-200 dark:bg-violet-950/80 dark:text-violet-300 dark:ring-violet-800/60 shrink-0">
+                          {o.startupName?.[0]?.toUpperCase() || "S"}
+                        </div>
+                      )}
 
-                    {o.industry && (
-                      <span className="text-[10px] font-mono text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded">
-                        {o.industry}
-                      </span>
-                    )}
+                      {o.resolvedStartupId ? (
+                        <Link
+                          href={`/startups/${o.resolvedStartupId}`}
+                          className="text-xs font-semibold text-slate-600 transition-colors hover:text-violet-600 hover:underline dark:text-slate-400 dark:hover:text-violet-400 truncate max-w-[160px]"
+                        >
+                          @{o.startupName}
+                        </Link>
+                      ) : (
+                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 truncate max-w-[160px]">
+                          @{o.startupName}
+                        </span>
+                      )}
+
+                      {o.industry && (
+                        <span className="text-[10px] font-mono text-slate-600 bg-slate-100 border border-slate-200 dark:text-slate-400 dark:bg-slate-800/80 dark:border-transparent px-2 py-0.5 rounded shrink-0">
+                          {o.industry}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-1.5 mb-4">
-                    {skillsList.map((sk, i) => (
-                      <span
-                        key={i}
-                        className="text-[11px] px-2 py-0.5 rounded-md font-mono bg-white/5 text-slate-400 border border-slate-800"
-                      >
-                        {sk}
-                      </span>
-                    ))}
+                  {/* Required Skills Badges */}
+                  <div className="mt-5">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">
+                      Required Skills
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1.5 min-h-[48px]">
+                      {skillsList.length > 0 ? (
+                        <>
+                          {skillsList.slice(0, 3).map((skill, index) => (
+                            <span
+                              key={index}
+                              className="rounded-xl border border-slate-200/80 bg-slate-50 px-2.5 py-0.5 text-[11px] font-mono font-medium text-slate-700 transition-colors group-hover:border-violet-200 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-200 dark:group-hover:border-violet-500/30"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                          {skillsList.length > 3 && (
+                            <span className="rounded-xl border border-slate-200/80 bg-slate-100 px-2 py-0.5 text-[11px] font-mono font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300">
+                              +{skillsList.length - 3}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-xs text-slate-400 italic">
+                          Skills described in role details
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-3 border-t border-slate-800/80">
-                  <span className="text-[11px] font-mono text-slate-500">
-                    Deadline: {o.deadline || "Open"}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <Btn
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setSelected(o)}
-                    >
-                      Details
-                    </Btn>
+                {/* Card Footer: Apply By Date & Action Buttons */}
+                <div className="mt-6 border-t border-slate-100 dark:border-slate-800 pt-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 font-mono">
+                        Apply By
+                      </p>
+                      <p
+                        className={`text-xs font-bold font-mono ${
+                          isDeadlinePassed
+                            ? "text-red-500"
+                            : "text-slate-800 dark:text-slate-200"
+                        }`}
+                      >
+                        {o.deadline || "Open"}
+                      </p>
+                    </div>
 
-                    {/* Action Button States */}
-                    {isDeadlinePassed ? (
-                      <button
-                        type="button"
-                        disabled
-                        className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold bg-red-500/10 text-red-400 border border-red-500/20 cursor-not-allowed opacity-90"
+                    <div className="flex items-center gap-2">
+                      <Btn
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setSelected(o)}
                       >
-                        Closed
-                      </button>
-                    ) : isApplied ? (
-                      <button
-                        type="button"
-                        disabled
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 cursor-not-allowed opacity-90"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>Applied</span>
-                      </button>
-                    ) : (
-                      <Btn size="sm" onClick={() => handleInitiateApply(o)}>
-                        Apply
+                        Details
                       </Btn>
-                    )}
+
+                      {/* Action Button States */}
+                      {isDeadlinePassed ? (
+                        <button
+                          type="button"
+                          disabled
+                          className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold bg-red-50 text-red-600 border border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20 cursor-not-allowed opacity-90"
+                        >
+                          Closed
+                        </button>
+                      ) : isApplied ? (
+                        <button
+                          type="button"
+                          disabled
+                          className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 cursor-not-allowed opacity-90"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>Applied</span>
+                        </button>
+                      ) : (
+                        <Btn size="sm" onClick={() => handleInitiateApply(o)}>
+                          Apply
+                        </Btn>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -849,13 +1056,19 @@ export default function BrowseOpportunities({
         </div>
       )}
 
-      {/* Pagination Controls */}
+      {/* Pagination Controls for BOTH 'all' and 'bookmarked' modes */}
       {totalPages > 1 && (
         <PaginationControls
-          page={activePage}
+          page={currentDisplayPage}
           totalPages={totalPages}
           total={totalItems}
-          onPageChange={(p) => updateQueryParam({ page: p })}
+          onPageChange={(p) => {
+            if (isBookmarkedMode) {
+              setBookmarkedPage(p);
+            } else {
+              updateQueryParam({ page: p });
+            }
+          }}
         />
       )}
 
@@ -863,7 +1076,9 @@ export default function BrowseOpportunities({
       {selected && (
         <Modal title="Opportunity Details" onClose={() => setSelected(null)}>
           {(() => {
-            const selectedId = String(selected._id || selected.id);
+            const selectedId = String(
+              selected._id || selected.id || selected.opportunityId,
+            );
             const isBookmarked = bookmarks.includes(selectedId);
             const isApplied = submitted.includes(selectedId);
             const isDeadlinePassed = checkIsDeadlinePassed(selected.deadline);
@@ -872,57 +1087,70 @@ export default function BrowseOpportunities({
             return (
               <div className="space-y-4 font-sans">
                 <div>
-                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 mb-1">
+                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 font-semibold">
                     Role
                   </p>
-                  <h3 className="font-bold text-lg text-slate-100">
+                  <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100">
                     {selected.roleTitle}
                   </h3>
 
-                  {selected.resolvedStartupId ? (
-                    <Link
-                      href={`/startups/${selected.resolvedStartupId}`}
-                      className="text-sm text-amber-500 hover:text-amber-400 font-medium mt-0.5 inline-block hover:underline"
-                    >
-                      @{selected.startupName}{" "}
-                      {selected.industry && `• ${selected.industry}`}
-                    </Link>
-                  ) : (
-                    <p className="text-sm text-amber-500 font-medium mt-0.5">
-                      @{selected.startupName}{" "}
-                      {selected.industry && `• ${selected.industry}`}
-                    </p>
-                  )}
+                  <div className="flex items-center gap-2 mt-1.5">
+                    {selected.logo ? (
+                      <img
+                        src={selected.logo}
+                        alt={selected.startupName}
+                        className="h-5 w-5 rounded-lg object-cover ring-1 ring-slate-200 dark:ring-slate-700"
+                      />
+                    ) : (
+                      <div className="flex h-5 w-5 items-center justify-center rounded-lg bg-violet-100 text-[10px] font-bold text-violet-700 ring-1 ring-violet-200 dark:bg-violet-950/80 dark:text-violet-300 dark:ring-violet-800/60">
+                        {selected.startupName?.[0]?.toUpperCase() || "S"}
+                      </div>
+                    )}
+                    {selected.resolvedStartupId ? (
+                      <Link
+                        href={`/startups/${selected.resolvedStartupId}`}
+                        className="text-sm text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 font-semibold font-mono inline-block hover:underline"
+                      >
+                        @{selected.startupName}{" "}
+                        {selected.industry && `• ${selected.industry}`}
+                      </Link>
+                    ) : (
+                      <p className="text-sm text-violet-600 dark:text-violet-400 font-semibold font-mono">
+                        @{selected.startupName}{" "}
+                        {selected.industry && `• ${selected.industry}`}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs font-mono uppercase tracking-wider text-slate-500 mb-1">
+                    <p className="text-xs font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 font-semibold">
                       Work Type
                     </p>
-                    <p className="text-sm text-slate-200">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-200">
                       {selected.workType}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs font-mono uppercase tracking-wider text-slate-500 mb-1">
+                    <p className="text-xs font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 font-semibold">
                       Commitment
                     </p>
-                    <p className="text-sm text-slate-200">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-200">
                       {selected.commitmentLevel}
                     </p>
                   </div>
                 </div>
 
                 <div>
-                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 mb-2">
+                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 font-semibold">
                     Required Skills
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {skillsList.map((sk, i) => (
                       <span
                         key={i}
-                        className="text-[11px] px-2.5 py-1 rounded-md font-mono bg-white/5 text-slate-300 border border-slate-800"
+                        className="text-[11px] px-2.5 py-1 rounded-md font-mono bg-slate-100 text-slate-800 border border-slate-200 dark:bg-white/5 dark:text-slate-300 dark:border-slate-800"
                       >
                         {sk}
                       </span>
@@ -931,14 +1159,14 @@ export default function BrowseOpportunities({
                 </div>
 
                 <div>
-                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 mb-1">
+                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 font-semibold">
                     Application Deadline
                   </p>
                   <p
-                    className={`text-sm font-mono ${
+                    className={`text-sm font-mono font-semibold ${
                       isDeadlinePassed
-                        ? "text-red-400 font-bold"
-                        : "text-slate-200"
+                        ? "text-red-500 dark:text-red-400"
+                        : "text-slate-800 dark:text-slate-200"
                     }`}
                   >
                     {selected.deadline} {isDeadlinePassed && "(Closed)"}
@@ -947,11 +1175,11 @@ export default function BrowseOpportunities({
 
                 <div className="flex gap-3 pt-2">
                   {isDeadlinePassed ? (
-                    <div className="flex-1 flex items-center justify-center py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-semibold text-xs font-mono">
+                    <div className="flex-1 flex items-center justify-center py-2.5 rounded-xl bg-red-50 text-red-600 border border-red-200 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-400 font-semibold text-xs font-mono">
                       Applications Closed
                     </div>
                   ) : isApplied ? (
-                    <div className="flex-1 flex items-center justify-center py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold text-xs font-mono">
+                    <div className="flex-1 flex items-center justify-center py-2.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400 font-semibold text-xs font-mono">
                       ✓ Already Applied
                     </div>
                   ) : (
@@ -967,11 +1195,12 @@ export default function BrowseOpportunities({
                     </Btn>
                   )}
                   <button
+                    type="button"
                     onClick={() => toggleBookmark(selectedId)}
                     className={`px-4 py-2 rounded-xl text-sm transition-colors border font-medium cursor-pointer ${
                       isBookmarked
-                        ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
-                        : "bg-white/5 text-slate-400 border-slate-800 hover:bg-white/10"
+                        ? "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-500/10 dark:text-violet-400 dark:border-violet-500/20"
+                        : "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-300 dark:border-slate-800 dark:hover:bg-white/10"
                     }`}
                   >
                     🔖 {isBookmarked ? "Saved" : "Save"}
@@ -990,17 +1219,17 @@ export default function BrowseOpportunities({
           onClose={() => setShowFounderRoleModal(false)}
         >
           <div className="space-y-4 text-center py-2 font-sans">
-            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-2xl mx-auto font-bold">
+            <div className="w-14 h-14 rounded-2xl bg-violet-50 text-violet-600 border border-violet-200 dark:bg-violet-500/10 dark:border-violet-500/20 dark:text-violet-400 flex items-center justify-center text-2xl mx-auto font-bold">
               <Rocket className="w-7 h-7" />
             </div>
 
             <div>
-              <h3 className="text-lg font-bold text-slate-100">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
                 Founder Account Detected
               </h3>
-              <p className="text-xs text-slate-400 mt-1.5 max-w-sm mx-auto leading-relaxed">
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 max-w-sm mx-auto leading-relaxed">
                 You are currently signed in with a{" "}
-                <span className="text-amber-400 font-semibold font-mono">
+                <span className="text-violet-600 dark:text-violet-400 font-semibold font-mono">
                   Founder Account
                 </span>
                 . Role applications are designated for Collaborators. As a
@@ -1038,17 +1267,17 @@ export default function BrowseOpportunities({
           onClose={() => setShowIncompleteModal(false)}
         >
           <div className="space-y-4 text-center py-2 font-sans">
-            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center text-2xl mx-auto font-bold">
+            <div className="w-14 h-14 rounded-2xl bg-violet-50 text-violet-600 border border-violet-200 dark:bg-violet-500/10 dark:border-violet-500/20 dark:text-violet-400 flex items-center justify-center text-2xl mx-auto font-bold">
               ⚠️
             </div>
 
             <div>
-              <h3 className="text-lg font-bold text-slate-100">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
                 Complete Your Profile First
               </h3>
-              <p className="text-xs text-slate-400 mt-1.5 max-w-sm mx-auto leading-relaxed">
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 max-w-sm mx-auto leading-relaxed">
                 Your profile is currently{" "}
-                <span className="text-amber-500 font-bold font-mono">
+                <span className="text-violet-600 dark:text-violet-400 font-bold font-mono">
                   {completionPercentage}%
                 </span>{" "}
                 complete. Startup founders require a 100% completed profile
@@ -1057,9 +1286,9 @@ export default function BrowseOpportunities({
               </p>
             </div>
 
-            <div className="w-full bg-slate-900 border border-slate-800 rounded-full h-2 overflow-hidden my-3">
+            <div className="w-full bg-slate-100 border border-slate-200 dark:bg-slate-900 dark:border-slate-800 rounded-full h-2.5 overflow-hidden my-3">
               <div
-                className="bg-amber-500 h-full rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-violet-600 to-indigo-600 h-full rounded-full transition-all duration-300"
                 style={{ width: `${completionPercentage}%` }}
               />
             </div>
@@ -1093,28 +1322,28 @@ export default function BrowseOpportunities({
           onClose={() => setShowLimitModal(false)}
         >
           <div className="space-y-4 text-center py-2 font-sans">
-            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center text-2xl mx-auto font-bold">
+            <div className="w-14 h-14 rounded-2xl bg-violet-50 text-violet-600 border border-violet-200 dark:bg-violet-500/10 dark:border-violet-500/20 dark:text-violet-400 flex items-center justify-center text-2xl mx-auto font-bold">
               🔒
             </div>
 
             <div>
-              <h3 className="text-lg font-bold text-slate-100">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
                 Monthly Application Limit Reached
               </h3>
-              <p className="text-xs text-slate-400 mt-1.5 max-w-sm mx-auto leading-relaxed">
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 max-w-sm mx-auto leading-relaxed">
                 You have submitted{" "}
-                <span className="text-amber-500 font-bold font-mono">
+                <span className="text-violet-600 dark:text-violet-400 font-bold font-mono">
                   {appliedCount} / {planInfo.limit}
                 </span>{" "}
                 applications this month on your{" "}
-                <span className="text-slate-200 font-semibold">
+                <span className="text-slate-800 dark:text-slate-200 font-semibold">
                   {planInfo.name}
                 </span>{" "}
                 plan. Upgrade your membership to unlock more applications.
               </p>
             </div>
 
-            <div className="w-full bg-slate-900 border border-slate-800 rounded-full h-2 overflow-hidden my-3">
+            <div className="w-full bg-slate-100 border border-slate-200 dark:bg-slate-900 dark:border-slate-800 rounded-full h-2.5 overflow-hidden my-3">
               <div className="bg-red-500 h-full rounded-full w-full" />
             </div>
 
@@ -1161,7 +1390,7 @@ export default function BrowseOpportunities({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowSuccessModal(false)}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
             />
 
             <motion.div
@@ -1169,23 +1398,23 @@ export default function BrowseOpportunities({
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
               transition={{ type: "spring", duration: 0.3 }}
-              className="relative w-full max-w-md rounded-2xl border border-slate-800 bg-[#0D1528] p-6 shadow-2xl text-center font-sans"
+              className="relative w-full max-w-md rounded-3xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-[#0D1528] p-6 sm:p-8 shadow-2xl text-center font-sans"
             >
-              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-4">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400 flex items-center justify-center mx-auto mb-4">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
 
-              <h3 className="text-xl font-bold text-slate-100">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
                 Application Submitted!
               </h3>
 
-              <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
                 Your pitch for{" "}
-                <span className="font-semibold text-slate-200">
+                <span className="font-semibold text-slate-900 dark:text-slate-200">
                   {submittedRoleInfo?.roleTitle || "this role"}
                 </span>{" "}
                 at{" "}
-                <span className="font-semibold text-amber-500">
+                <span className="font-semibold text-violet-600 dark:text-violet-400">
                   @{submittedRoleInfo?.startupName || "the startup"}
                 </span>{" "}
                 has been recorded and sent to the founder.
@@ -1194,7 +1423,7 @@ export default function BrowseOpportunities({
               <div className="mt-6 flex flex-col sm:flex-row gap-3">
                 <Link
                   href="/dashboard/collaborator/my-applications"
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-600 transition-colors shadow-md shadow-amber-500/10"
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 px-4 py-2.5 text-xs font-bold text-white transition-colors shadow-md shadow-violet-600/20"
                 >
                   <Inbox className="w-4 h-4" />
                   <span>Go to Applications</span>
@@ -1203,7 +1432,7 @@ export default function BrowseOpportunities({
                 <button
                   type="button"
                   onClick={() => setShowSuccessModal(false)}
-                  className="flex-1 rounded-xl border border-slate-800 bg-white/5 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/10 transition-colors cursor-pointer"
+                  className="flex-1 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:border-slate-800 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 px-4 py-2.5 text-xs font-semibold transition-colors cursor-pointer"
                 >
                   Continue Browsing
                 </button>

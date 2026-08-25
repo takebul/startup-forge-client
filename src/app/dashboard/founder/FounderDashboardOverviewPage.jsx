@@ -40,7 +40,7 @@ const CustomBarTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-xl px-3.5 py-2.5 bg-white dark:bg-[#0D1528] border border-slate-200 dark:border-slate-800 text-xs shadow-xl space-y-1 font-sans">
-      <p className="font-semibold text-slate-900 dark:text-slate-200">
+      <p className="font-semibold text-slate-900 dark:text-slate-100">
         {payload[0]?.payload?.fullTitle || label}
       </p>
       <p className="text-violet-600 dark:text-violet-400 font-mono font-bold">
@@ -54,7 +54,7 @@ const CustomPieTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-xl px-3 py-2 bg-white dark:bg-[#0D1528] border border-slate-200 dark:border-slate-800 text-xs shadow-xl font-sans">
-      <p className="text-slate-900 dark:text-slate-200">
+      <p className="text-slate-900 dark:text-slate-100">
         {payload[0].name}:{" "}
         <span className="font-mono font-bold text-violet-600 dark:text-violet-400">
           {payload[0].value}
@@ -157,24 +157,24 @@ export default function FounderDashboardOverviewPage({
   const statusPieData = useMemo(() => {
     return [
       { name: "Accepted", value: acceptedMembers, color: "#10B981" },
-      { name: "Pending", value: pendingApplications, color: "#8B5CF6" },
+      { name: "Pending", value: pendingApplications, color: "#F59E0B" },
       { name: "Rejected", value: rejectedApplications, color: "#EF4444" },
     ].filter((item) => item.value > 0);
   }, [acceptedMembers, pendingApplications, rejectedApplications]);
 
   return (
-    <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto font-sans">
+    <div className="p-3 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto font-sans">
       {/* Header with Welcome Greeting & Plan Badge */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
               Welcome back, {user?.name || "Founder"}!
             </h2>
 
             {isUpgraded ? (
               <div
-                className="flex items-center gap-1.5 bg-violet-100 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/20 text-violet-700 dark:text-violet-300 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full"
+                className="flex items-center gap-1.5 bg-violet-50 text-violet-700 border border-violet-200 dark:bg-violet-500/10 dark:text-violet-300 dark:border-violet-500/20 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full"
                 title="Verified Founder Account"
               >
                 <BadgeCheck className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" />
@@ -182,8 +182,8 @@ export default function FounderDashboardOverviewPage({
               </div>
             ) : (
               <Link href="/pricing">
-                <span className="text-[11px] font-mono text-slate-600 dark:text-slate-400 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-slate-800 px-2.5 py-1 rounded-full transition-colors inline-flex items-center gap-1.5 cursor-pointer">
-                  <Sparkles className="h-3 w-3 text-amber-500 shrink-0" />
+                <span className="text-[11px] font-mono text-slate-700 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-slate-800 px-2.5 py-1 rounded-full transition-colors inline-flex items-center gap-1.5 cursor-pointer">
+                  <Sparkles className="h-3 w-3 text-violet-600 dark:text-violet-400 shrink-0" />
                   <span>Upgrade to Premium</span>
                 </span>
               </Link>
@@ -196,7 +196,7 @@ export default function FounderDashboardOverviewPage({
         </div>
 
         <Link href="/dashboard/founder/add-opportunity">
-          <Btn variant="primary" size="sm" className="gap-1.5">
+          <Btn variant="primary" size="sm" className="gap-1.5 shadow-md">
             <Plus className="w-4 h-4" />
             <span>Post New Role</span>
           </Btn>
@@ -227,17 +227,17 @@ export default function FounderDashboardOverviewPage({
           label="Pending Review"
           value={pendingApplications}
           sub="awaiting review"
-          color="#EC4899"
+          color="#F59E0B"
         />
       </div>
 
       {/* Analytics Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Applications Per Opportunity Bar Chart */}
-        <div className="lg:col-span-2 rounded-3xl p-6 bg-white border border-slate-200/90 shadow-sm dark:bg-[#0D1528] dark:border-slate-800/80 space-y-4">
+        <div className="lg:col-span-2 rounded-3xl p-6 bg-white border border-slate-200 shadow-sm dark:bg-[#0D1528] dark:border-slate-800 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-200 uppercase font-mono tracking-wider">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase font-mono tracking-wider">
                 Applications per Role
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -259,7 +259,7 @@ export default function FounderDashboardOverviewPage({
                 >
                   <CartesianGrid
                     vertical={false}
-                    stroke="rgba(100,116,139,0.12)"
+                    stroke="rgba(100,116,139,0.15)"
                   />
                   <XAxis
                     dataKey="role"
@@ -283,7 +283,7 @@ export default function FounderDashboardOverviewPage({
                   />
                   <Tooltip
                     content={<CustomBarTooltip />}
-                    cursor={{ fill: "rgba(124,58,237,0.04)" }}
+                    cursor={{ fill: "rgba(124,58,237,0.06)" }}
                   />
                   <Bar
                     dataKey="Applications"
@@ -293,7 +293,7 @@ export default function FounderDashboardOverviewPage({
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="text-center py-12 text-xs text-slate-500 italic">
+              <div className="text-center py-12 text-xs text-slate-500 dark:text-slate-400 italic">
                 No opportunities posted yet to show application metrics.
               </div>
             )}
@@ -301,9 +301,9 @@ export default function FounderDashboardOverviewPage({
         </div>
 
         {/* Application Status Breakdown Donut Chart */}
-        <div className="rounded-3xl p-6 bg-white border border-slate-200/90 shadow-sm dark:bg-[#0D1528] dark:border-slate-800/80 flex flex-col justify-between space-y-4">
+        <div className="rounded-3xl p-6 bg-white border border-slate-200 shadow-sm dark:bg-[#0D1528] dark:border-slate-800 flex flex-col justify-between space-y-4">
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-200 uppercase font-mono tracking-wider">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase font-mono tracking-wider">
               Status Breakdown
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -333,13 +333,13 @@ export default function FounderDashboardOverviewPage({
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="text-center py-6 text-xs text-slate-500 italic">
+              <div className="text-center py-6 text-xs text-slate-500 dark:text-slate-400 italic">
                 No applications received yet.
               </div>
             )}
           </div>
 
-          <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+          <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
             {statusPieData.length > 0 ? (
               statusPieData.map((item) => (
                 <div
@@ -353,11 +353,13 @@ export default function FounderDashboardOverviewPage({
                     />
                     <span>{item.name}</span>
                   </div>
-                  <span className="font-bold text-slate-900 dark:text-slate-100">{item.value}</span>
+                  <span className="font-bold text-slate-900 dark:text-slate-100">
+                    {item.value}
+                  </span>
                 </div>
               ))
             ) : (
-              <p className="text-[11px] font-mono text-slate-500 text-center">
+              <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400 text-center">
                 Applicant statuses will be graphed here
               </p>
             )}
@@ -366,8 +368,10 @@ export default function FounderDashboardOverviewPage({
       </div>
 
       {/* Quick Actions Bar */}
-      <div className="rounded-3xl p-6 bg-white border border-slate-200/90 shadow-sm dark:bg-[#0D1528] dark:border-slate-800/80 space-y-3">
-        <h3 className="font-bold text-sm text-slate-900 dark:text-slate-200">Quick Actions</h3>
+      <div className="rounded-3xl p-6 bg-white border border-slate-200 shadow-sm dark:bg-[#0D1528] dark:border-slate-800 space-y-3">
+        <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100">
+          Quick Actions
+        </h3>
         <div className="flex flex-wrap gap-3">
           <Link href="/dashboard/founder/add-opportunity">
             <Btn variant="primary" size="sm">
@@ -394,4 +398,3 @@ export default function FounderDashboardOverviewPage({
     </div>
   );
 }
-

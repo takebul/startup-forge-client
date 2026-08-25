@@ -139,8 +139,8 @@ export default function AdminDashboardOverviewPage({
       value: totalStartups,
       sub: "active venture ventures",
       icon: Building2,
-      color: "text-amber-600 dark:text-amber-400",
-      bg: "bg-amber-50 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20",
+      color: "text-indigo-600 dark:text-indigo-400",
+      bg: "bg-indigo-50 border-indigo-200 dark:bg-indigo-500/10 dark:border-indigo-500/20",
     },
     {
       label: "Open Positions",
@@ -275,7 +275,7 @@ export default function AdminDashboardOverviewPage({
 
     return [
       { name: "Collaborators", value: collaborators, color: "#8B5CF6" },
-      { name: "Founders", value: founders, color: "#F59E0B" },
+      { name: "Founders", value: founders, color: "#6366F1" },
       { name: "Admins", value: admins, color: "#A855F7" },
     ];
   }, [usersList]);
@@ -307,7 +307,7 @@ export default function AdminDashboardOverviewPage({
           return (
             <div
               key={i}
-              className="rounded-3xl p-5 bg-white border border-slate-200/90 flex items-start justify-between shadow-sm dark:bg-[#0D1528] dark:border-slate-800/80"
+              className="rounded-3xl p-5 bg-white border border-slate-200/90 flex items-start justify-between shadow-sm dark:bg-slate-900/80 dark:border-slate-800/90"
             >
               <div>
                 <p className="text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold">
@@ -332,7 +332,7 @@ export default function AdminDashboardOverviewPage({
       {/* Analytics Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Revenue Bar Chart Card with Monthly/Daily Toggle */}
-        <div className="lg:col-span-2 rounded-3xl p-6 bg-white border border-slate-200/90 shadow-sm dark:bg-[#0D1528] dark:border-slate-800/80 space-y-4">
+        <div className="lg:col-span-2 rounded-3xl p-6 bg-white border border-slate-200/90 shadow-sm dark:bg-slate-900/80 dark:border-slate-800/90 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-slate-200 uppercase font-mono tracking-wider flex items-center gap-2">
@@ -347,7 +347,7 @@ export default function AdminDashboardOverviewPage({
             </div>
 
             {/* View Mode Switcher (Monthly vs Daily) */}
-            <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#060C1A] p-1 rounded-2xl border border-slate-200 dark:border-slate-800 self-start sm:self-auto">
+            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950/60 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 self-start sm:self-auto">
               <button
                 onClick={() => setRevenueView("monthly")}
                 className={`px-3 py-1 text-xs font-mono font-medium rounded-xl transition-all cursor-pointer ${
@@ -412,7 +412,7 @@ export default function AdminDashboardOverviewPage({
         </div>
 
         {/* User Role Donut Breakdown */}
-        <div className="rounded-3xl p-6 bg-white border border-slate-200/90 shadow-sm dark:bg-[#0D1528] dark:border-slate-800/80 flex flex-col justify-between space-y-4">
+        <div className="rounded-3xl p-6 bg-white border border-slate-200/90 shadow-sm dark:bg-slate-900/80 dark:border-slate-800/90 flex flex-col justify-between space-y-4">
           <div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-200 uppercase font-mono tracking-wider">
               User Distribution

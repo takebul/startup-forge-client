@@ -7,6 +7,7 @@ import {
   Select,
   Textarea,
   ImageUpload,
+  Btn,
 } from "@/components/Dashboard/founder-dashboard-shared";
 import { updateStartup } from "@/lib/actions/startup";
 
@@ -55,11 +56,13 @@ export default function EditingStartupPage({ startup, onCancel }) {
   }
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-4xl font-sans">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">Update Startup</h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+            Update Startup
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Modify details for {formData.startup_name || "your startup"}.
           </p>
         </div>
@@ -67,7 +70,7 @@ export default function EditingStartupPage({ startup, onCancel }) {
           <Button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 rounded-xl font-medium text-xs bg-white/5 hover:bg-white/10 text-slate-300 border border-slate-800 transition-all cursor-pointer"
+            className="px-4 py-2 rounded-xl font-medium text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 dark:border-slate-800 transition-all cursor-pointer"
           >
             ← Back to List
           </Button>
@@ -76,10 +79,10 @@ export default function EditingStartupPage({ startup, onCancel }) {
 
       <Form
         onSubmit={handleUpdate}
-        className="rounded-2xl p-6 space-y-4 bg-[#0D1528] border border-slate-800"
+        className="rounded-2xl p-6 sm:p-8 space-y-5 bg-white border border-slate-200 shadow-sm dark:bg-[#0D1528] dark:border-slate-800"
       >
         <TextField className="w-full">
-          <Label className="block text-xs font-medium mb-1.5 font-mono uppercase tracking-wider text-slate-400">
+          <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
             Startup Name
           </Label>
           <Input
@@ -88,12 +91,12 @@ export default function EditingStartupPage({ startup, onCancel }) {
               setFormData({ ...formData, startup_name: e.target.value })
             }
             required
-            className="w-full px-3 py-2.5 rounded-xl text-sm outline-none bg-[#060C1A] border border-slate-800 text-slate-200 focus:border-amber-500/50"
+            className="w-full px-3 py-2.5 rounded-xl text-sm outline-none bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-violet-500 dark:bg-[#060C1A] dark:border-slate-800 dark:text-slate-100 dark:focus:bg-[#060C1A] dark:focus:border-violet-500"
           />
         </TextField>
 
         <div>
-          <Label className="block text-xs font-medium mb-1.5 font-mono uppercase tracking-wider text-slate-400">
+          <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
             Logo
           </Label>
           <ImageUpload
@@ -104,7 +107,7 @@ export default function EditingStartupPage({ startup, onCancel }) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <Label className="block text-xs font-medium mb-1.5 font-mono uppercase tracking-wider text-slate-400">
+            <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
               Industry
             </Label>
             <Select
@@ -114,7 +117,7 @@ export default function EditingStartupPage({ startup, onCancel }) {
             />
           </div>
           <div>
-            <Label className="block text-xs font-medium mb-1.5 font-mono uppercase tracking-wider text-slate-400">
+            <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
               Funding Stage
             </Label>
             <Select
@@ -126,21 +129,22 @@ export default function EditingStartupPage({ startup, onCancel }) {
         </div>
 
         <TextField className="w-full">
-          <Label className="block text-xs font-medium mb-1.5 font-mono uppercase tracking-wider text-slate-400">
+          <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
             Founder Email
           </Label>
           <Input
             type="email"
+            disabled
             value={formData.founder_email}
             onChange={(e) =>
               setFormData({ ...formData, founder_email: e.target.value })
             }
-            className="w-full px-3 py-2.5 rounded-xl text-sm outline-none bg-[#060C1A] border border-slate-800 text-slate-200 focus:border-amber-500/50"
+            className="w-full px-3 py-2.5 rounded-xl text-sm outline-none bg-slate-100 border border-slate-200 text-slate-500 dark:bg-[#060C1A] dark:border-slate-800 dark:text-slate-400 cursor-not-allowed"
           />
         </TextField>
 
         <TextField className="w-full">
-          <Label className="block text-xs font-medium mb-1.5 font-mono uppercase tracking-wider text-slate-400">
+          <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
             Description
           </Label>
           <Textarea
@@ -153,7 +157,7 @@ export default function EditingStartupPage({ startup, onCancel }) {
           <Button
             type="submit"
             isDisabled={loading}
-            className="px-5 py-2.5 rounded-xl font-semibold text-sm bg-amber-500 hover:bg-amber-600 text-slate-950 transition-all cursor-pointer disabled:opacity-50"
+            className="px-6 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-md shadow-violet-600/20 transition-all cursor-pointer disabled:opacity-50"
           >
             {loading ? "Saving Changes..." : "Save Changes"}
           </Button>
@@ -161,7 +165,7 @@ export default function EditingStartupPage({ startup, onCancel }) {
             <Button
               type="button"
               onClick={onCancel}
-              className="px-5 py-2.5 rounded-xl font-semibold text-sm bg-white/5 hover:bg-white/10 text-slate-400 border border-slate-800 transition-all cursor-pointer"
+              className="px-5 py-2.5 rounded-xl font-semibold text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 dark:border-slate-800 transition-all cursor-pointer"
             >
               Cancel
             </Button>

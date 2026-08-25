@@ -46,7 +46,7 @@ const CustomBarTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-xl px-3.5 py-2.5 bg-white dark:bg-[#0D1528] border border-slate-200 dark:border-slate-800 text-xs shadow-xl space-y-1 font-sans">
-      <p className="font-semibold text-slate-900 dark:text-slate-200">{label}</p>
+      <p className="font-semibold text-slate-900 dark:text-slate-100">{label}</p>
       <p
         className="font-mono font-bold"
         style={{ color: payload[0].payload.fill }}
@@ -61,7 +61,7 @@ const CustomPieTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-xl px-3 py-2 bg-white dark:bg-[#0D1528] border border-slate-200 dark:border-slate-800 text-xs shadow-xl font-sans">
-      <p className="text-slate-900 dark:text-slate-200">
+      <p className="text-slate-900 dark:text-slate-100">
         {payload[0].name}:{" "}
         <span className="font-mono font-bold text-violet-600 dark:text-violet-400">
           {payload[0].value}
@@ -136,9 +136,9 @@ export default function CollaboratorDashboardPage({
     return [
       { name: "Total Apply", value: totalApplications, fill: "#7C3AED" },
       { name: "Accepted", value: acceptedRoles, fill: "#10B981" },
-      { name: "Pending", value: pendingRoles, fill: "#8B5CF6" },
+      { name: "Pending", value: pendingRoles, fill: "#F59E0B" },
       { name: "Rejected", value: rejectedRoles, fill: "#EF4444" },
-      { name: "Bookmarks", value: totalBookmarks, fill: "#38BDF8" },
+      { name: "Bookmarks", value: totalBookmarks, fill: "#0284C7" },
     ];
   }, [
     totalApplications,
@@ -152,25 +152,25 @@ export default function CollaboratorDashboardPage({
   const statusPieData = useMemo(() => {
     return [
       { name: "Accepted", value: acceptedRoles, color: "#10B981" },
-      { name: "Pending", value: pendingRoles, color: "#8B5CF6" },
+      { name: "Pending", value: pendingRoles, color: "#F59E0B" },
       { name: "Rejected", value: rejectedRoles, color: "#EF4444" },
     ].filter((item) => item.value > 0);
   }, [acceptedRoles, pendingRoles, rejectedRoles]);
 
   return (
-    <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto font-sans">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto font-sans">
       {/* Header with Welcome Greeting & Verified Badge */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
               Welcome back, {user?.name || "Collaborator"}!
             </h2>
 
             {/* Verified Badge or Upgrade Link */}
             {planInfo.isUpgraded ? (
               <div
-                className="flex items-center gap-1.5 bg-violet-100 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/20 text-violet-700 dark:text-violet-300 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full"
+                className="flex items-center gap-1.5 bg-violet-50 text-violet-700 border border-violet-200 dark:bg-violet-500/10 dark:text-violet-300 dark:border-violet-500/20 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full"
                 title="Verified Collaborator Account"
               >
                 <BadgeCheck className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" />
@@ -178,8 +178,8 @@ export default function CollaboratorDashboardPage({
               </div>
             ) : (
               <Link href="/pricing">
-                <span className="text-[11px] font-mono text-slate-600 dark:text-slate-400 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-slate-800 px-2.5 py-1 rounded-full transition-colors inline-flex items-center gap-1.5 cursor-pointer">
-                  <Sparkles className="h-3 w-3 text-amber-500 shrink-0" />
+                <span className="text-[11px] font-mono text-slate-700 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-slate-800 px-2.5 py-1 rounded-full transition-colors inline-flex items-center gap-1.5 cursor-pointer">
+                  <Sparkles className="h-3 w-3 text-violet-600 dark:text-violet-400 shrink-0" />
                   <span>Upgrade to Premium</span>
                 </span>
               </Link>
@@ -193,7 +193,7 @@ export default function CollaboratorDashboardPage({
         </div>
 
         {/* Quota Indicator */}
-        <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-white border border-slate-200 shadow-xs dark:bg-[#0D1528] dark:border-slate-800/80 text-xs font-mono">
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-white border border-slate-200 shadow-xs dark:bg-[#0D1528] dark:border-slate-800 text-xs font-mono">
           <span className="text-slate-500 dark:text-slate-400">Monthly Quota:</span>
           <span className="text-violet-600 dark:text-violet-400 font-bold">
             {totalApplications} / {planInfo.limit} Used
@@ -219,23 +219,23 @@ export default function CollaboratorDashboardPage({
           label="Pending Review"
           value={pendingRoles}
           sub="under founder review"
-          color="#8B5CF6"
+          color="#F59E0B"
         />
         <StatCard
           label="Bookmarks"
           value={totalBookmarks}
           sub="saved opportunities"
-          color="#38BDF8"
+          color="#0284C7"
         />
       </div>
 
       {/* Recharts Analytics Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Metric Bar Chart */}
-        <div className="lg:col-span-2 rounded-3xl p-6 bg-white border border-slate-200/90 shadow-sm dark:bg-[#0D1528] dark:border-slate-800/80 space-y-4">
+        <div className="lg:col-span-2 rounded-3xl p-6 bg-white border border-slate-200 shadow-sm dark:bg-[#0D1528] dark:border-slate-800 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-200 uppercase font-mono tracking-wider">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase font-mono tracking-wider">
                 Activity Overview
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -256,7 +256,7 @@ export default function CollaboratorDashboardPage({
               >
                 <CartesianGrid
                   vertical={false}
-                  stroke="rgba(100,116,139,0.12)"
+                  stroke="rgba(100,116,139,0.15)"
                 />
                 <XAxis
                   dataKey="name"
@@ -280,7 +280,7 @@ export default function CollaboratorDashboardPage({
                 />
                 <Tooltip
                   content={<CustomBarTooltip />}
-                  cursor={{ fill: "rgba(124,58,237,0.04)" }}
+                  cursor={{ fill: "rgba(124,58,237,0.06)" }}
                 />
                 <Bar dataKey="value" radius={[6, 6, 0, 0]}>
                   {metricsChartData.map((entry, index) => (
@@ -293,9 +293,9 @@ export default function CollaboratorDashboardPage({
         </div>
 
         {/* Status Breakdown Donut Chart */}
-        <div className="rounded-3xl p-6 bg-white border border-slate-200/90 shadow-sm dark:bg-[#0D1528] dark:border-slate-800/80 flex flex-col justify-between space-y-4">
+        <div className="rounded-3xl p-6 bg-white border border-slate-200 shadow-sm dark:bg-[#0D1528] dark:border-slate-800 flex flex-col justify-between space-y-4">
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-200 uppercase font-mono tracking-wider">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase font-mono tracking-wider">
               Application Status
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -325,13 +325,13 @@ export default function CollaboratorDashboardPage({
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="text-center py-6 text-xs text-slate-500 italic">
+              <div className="text-center py-6 text-xs text-slate-500 dark:text-slate-400 italic">
                 No applications submitted yet.
               </div>
             )}
           </div>
 
-          <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+          <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
             {statusPieData.length > 0 ? (
               statusPieData.map((item) => (
                 <div
@@ -345,11 +345,13 @@ export default function CollaboratorDashboardPage({
                     />
                     <span>{item.name}</span>
                   </div>
-                  <span className="font-bold text-slate-900 dark:text-slate-100">{item.value}</span>
+                  <span className="font-bold text-slate-900 dark:text-slate-100">
+                    {item.value}
+                  </span>
                 </div>
               ))
             ) : (
-              <p className="text-[11px] font-mono text-slate-500 text-center">
+              <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400 text-center">
                 Submit applications to view breakdown
               </p>
             )}
@@ -358,8 +360,10 @@ export default function CollaboratorDashboardPage({
       </div>
 
       {/* Quick Actions Bar */}
-      <div className="rounded-3xl p-6 bg-white border border-slate-200/90 shadow-sm dark:bg-[#0D1528] dark:border-slate-800/80 space-y-3">
-        <h3 className="font-bold text-sm text-slate-900 dark:text-slate-200">Quick Actions</h3>
+      <div className="rounded-3xl p-6 bg-white border border-slate-200 shadow-sm dark:bg-[#0D1528] dark:border-slate-800 space-y-3">
+        <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100">
+          Quick Actions
+        </h3>
         <div className="flex flex-wrap gap-3">
           <Link href="/dashboard/collaborator/browse-opportunities">
             <Btn variant="primary" size="sm">
@@ -386,4 +390,3 @@ export default function CollaboratorDashboardPage({
     </div>
   );
 }
-

@@ -63,6 +63,18 @@ function checkIsDeadlinePassed(deadlineStr) {
   return new Date() > deadlineDate;
 }
 
+// Work type badge styling helper
+const getWorkTypeBadgeStyle = (workType = "") => {
+  const type = workType.toLowerCase();
+  if (type.includes("remote")) {
+    return "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300";
+  }
+  if (type.includes("hybrid")) {
+    return "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300";
+  }
+  return "border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-500/20 dark:bg-violet-500/10 dark:text-violet-300";
+};
+
 export default function OpportunitiesPage({
   opportunities = {},
   startups = [],
@@ -90,7 +102,10 @@ export default function OpportunitiesPage({
 
   // 1. Resolve Pagination Bounds
   const rawDataList =
-    opportunities?.data || opportunities?.opportunities || opportunities;
+    opportunities?.data ||
+    opportunities?.opportunities ||
+    opportunities?.result ||
+    opportunities;
 
   const activePage = Number(opportunities?.page) || Number(currentPage) || 1;
 
@@ -144,8 +159,9 @@ export default function OpportunitiesPage({
           matchedStartup?.startup_name || opp.startupName || "Startup Team",
         resolvedStartupId:
           matchedStartup?._id || matchedStartup?.id || opp.startupId || "",
+        logo: matchedStartup?.logo || opp.logo || null,
         resolvedIndustry:
-          opp.industry || matchedStartup?.industry || "Technology",
+          matchedStartup?.industry || opp.industry || "Technology",
         parsedSkillsList: parseSkills(
           opp.requiredSkills || opp.required_skills,
         ),
@@ -384,63 +400,94 @@ export default function OpportunitiesPage({
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.96 }}
                     transition={{ duration: 0.25 }}
-                    className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-violet-300 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/80 dark:hover:border-violet-500/50"
+                    className="group flex flex-col justify-between rounded-3xl border border-slate-200/90 bg-white p-6 shadow-sm hover:border-violet-300 hover:shadow-xl hover:shadow-violet-500/5 dark:border-slate-800/90 dark:bg-slate-900/80 dark:hover:border-violet-500/40 dark:hover:shadow-2xl dark:hover:shadow-violet-500/10"
                   >
                     <div>
-                      {/* Header Tags */}
+                      {/* Header Tags: Work Type & Commitment */}
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="rounded-md bg-emerald-100 px-2.5 py-1 text-[11px] font-mono font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+                        <span
+                          className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-mono font-semibold transition-colors ${getWorkTypeBadgeStyle(workType)}`}
+                        >
                           {workType}
                         </span>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                          <span className="rounded-full border border-slate-200/80 bg-slate-100/90 px-2.5 py-0.5 text-[11px] font-mono font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-300">
                             {commitmentLevel}
                           </span>
                           {item.isExpired && (
-                            <span className="rounded-md bg-red-100 px-2 py-0.5 text-[10px] font-mono font-bold text-red-700 dark:bg-red-500/10 dark:text-red-400 border border-red-500/20">
+                            <span className="rounded-full border border-red-500/20 bg-red-50 px-2.5 py-0.5 text-[10px] font-mono font-bold text-red-600 dark:bg-red-500/10 dark:text-red-400">
                               Closed
                             </span>
                           )}
                         </div>
                       </div>
 
-                      {/* Role Title & Startup Name */}
+                      {/* Role Title & Startup Info */}
                       <div className="mt-4">
-                        <h3 className="text-lg font-bold text-slate-900 transition-colors group-hover:text-violet-600 dark:text-white dark:group-hover:text-violet-400 line-clamp-1">
+                        <h3 className="text-lg font-bold tracking-tight text-slate-900 transition-colors group-hover:text-violet-600 dark:text-white dark:group-hover:text-violet-400 line-clamp-1">
                           {roleTitle}
                         </h3>
-                        {item.resolvedStartupId ? (
-                          <Link
-                            href={`/startups/${item.resolvedStartupId}`}
-                            className="inline-block text-xs font-semibold text-violet-600 hover:underline dark:text-violet-400 mt-0.5 truncate max-w-full"
-                          >
-                            @{item.resolvedStartupName}
-                          </Link>
-                        ) : (
-                          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5 truncate block">
-                            @{item.resolvedStartupName}
-                          </span>
-                        )}
+
+                        {/* Startup Identity / Link */}
+                        <div className="mt-2 flex items-center gap-2">
+                          {item.logo ? (
+                            <img
+                              src={item.logo}
+                              alt={item.resolvedStartupName}
+                              className="h-5 w-5 rounded-lg object-cover ring-1 ring-slate-200 dark:ring-slate-700 shrink-0"
+                            />
+                          ) : (
+                            <div className="flex h-5 w-5 items-center justify-center rounded-lg bg-violet-100 text-[10px] font-bold text-violet-700 ring-1 ring-violet-200 dark:bg-violet-950/80 dark:text-violet-300 dark:ring-violet-800/60 shrink-0">
+                              {item.resolvedStartupName?.[0]?.toUpperCase() || "S"}
+                            </div>
+                          )}
+
+                          {item.resolvedStartupId ? (
+                            <Link
+                              href={`/startups/${item.resolvedStartupId}`}
+                              className="text-xs font-semibold text-slate-600 transition-colors hover:text-violet-600 hover:underline dark:text-slate-400 dark:hover:text-violet-400 truncate max-w-[200px]"
+                            >
+                              @{item.resolvedStartupName}
+                            </Link>
+                          ) : (
+                            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 truncate max-w-[200px]">
+                              @{item.resolvedStartupName}
+                            </span>
+                          )}
+
+                          {item.resolvedIndustry && (
+                            <span className="text-[10px] font-mono text-slate-600 bg-slate-100 border border-slate-200 dark:text-slate-400 dark:bg-slate-800/80 dark:border-transparent px-2 py-0.5 rounded shrink-0">
+                              {item.resolvedIndustry}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       {/* Required Skills Badges */}
                       <div className="mt-5">
-                        <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 font-mono">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">
                           Required Skills
                         </p>
                         <div className="mt-2 flex flex-wrap gap-1.5 min-h-[52px]">
                           {item.parsedSkillsList.length > 0 ? (
-                            item.parsedSkillsList.map((skill, index) => (
-                              <span
-                                key={index}
-                                className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-mono font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
-                              >
-                                {skill}
-                              </span>
-                            ))
+                            <>
+                              {item.parsedSkillsList.slice(0, 3).map((skill, index) => (
+                                <span
+                                  key={index}
+                                  className="rounded-xl border border-slate-200/80 bg-slate-50 px-2.5 py-0.5 text-[11px] font-mono font-medium text-slate-700 transition-colors group-hover:border-violet-200 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-200 dark:group-hover:border-violet-500/30"
+                                >
+                                  {skill}
+                                </span>
+                              ))}
+                              {item.parsedSkillsList.length > 3 && (
+                                <span className="rounded-xl border border-slate-200/80 bg-slate-100 px-2 py-0.5 text-[11px] font-mono font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300">
+                                  +{item.parsedSkillsList.length - 3}
+                                </span>
+                              )}
+                            </>
                           ) : (
-                            <span className="text-xs text-slate-400 italic">
-                              Skills described in role details
+                            <span className="text-xs italic text-slate-400 dark:text-slate-500 self-center">
+                              Role details outline skills
                             </span>
                           )}
                         </div>
@@ -448,31 +495,24 @@ export default function OpportunitiesPage({
                     </div>
 
                     {/* Card Footer */}
-                    <div className="mt-6 border-t border-slate-100 pt-4 dark:border-slate-800">
-                      <div className="flex items-center justify-between">
+                    <div className="mt-6 border-t border-slate-100 pt-4 dark:border-slate-800/80">
+                      <div className="flex items-center justify-between gap-2">
                         <div>
-                          <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 font-mono">
-                            Apply By
-                          </p>
-                          <p
-                            className={`text-xs font-bold font-mono ${
-                              item.isExpired
-                                ? "text-red-500"
-                                : "text-slate-800 dark:text-slate-200"
-                            }`}
-                          >
+                          <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400 font-mono">
+                            <Calendar className="h-3 w-3 text-slate-400 dark:text-slate-400" />
+                            <span>Deadline</span>
+                          </div>
+                          <p className="mt-0.5 text-xs font-bold font-mono text-slate-800 dark:text-slate-200">
                             {deadlineFormatted}
                           </p>
                         </div>
 
                         <Link
                           href={`/opportunities/${oppId}`}
-                          className="inline-flex items-center gap-1 text-xs font-bold text-violet-600 transition-colors hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition-all hover:bg-violet-700 hover:-translate-y-0.5 active:scale-95 dark:bg-violet-600 dark:hover:bg-violet-500"
                         >
-                          <span>
-                            {item.isExpired ? "View Details" : "Apply Now"}
-                          </span>
-                          <ArrowRight className="h-3.5 w-3.5" />
+                          <span>{item.isExpired ? "View Details" : "Apply"}</span>
+                          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                         </Link>
                       </div>
                     </div>

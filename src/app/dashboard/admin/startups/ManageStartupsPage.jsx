@@ -162,12 +162,14 @@ export default function ManageStartupsPage({ ALL_STARTUPS = [] }) {
   );
 
   return (
-    <div className="p-8 space-y-6 max-w-7xl mx-auto font-sans">
+    <div className="p-4 sm:p-8 space-y-6 max-w-7xl mx-auto font-sans">
       {/* Header & Metrics */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">Manage Startups</h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+            Manage Startups
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Review submitted and resubmitted startup profiles, approve listings,
             or remove non-compliant accounts.
           </p>
@@ -175,34 +177,34 @@ export default function ManageStartupsPage({ ALL_STARTUPS = [] }) {
 
         <div className="flex flex-wrap items-center gap-2">
           {resubmittedCount > 0 && (
-            <span className="text-xs font-mono text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5">
-              <RefreshCw className="w-3.5 h-3.5 text-indigo-400 animate-spin-slow" />
+            <span className="text-xs font-mono text-indigo-700 bg-indigo-50 border border-indigo-200 dark:text-indigo-400 dark:bg-indigo-500/10 dark:border-indigo-500/20 px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5">
+              <RefreshCw className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 animate-spin-slow" />
               <span>{resubmittedCount} Resubmitted</span>
             </span>
           )}
 
           {pendingCount > 0 && (
-            <span className="text-xs font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-xl font-bold">
+            <span className="text-xs font-mono text-amber-800 bg-amber-50 border border-amber-200 dark:text-amber-300 dark:bg-amber-500/10 dark:border-amber-500/20 px-3 py-1.5 rounded-xl font-bold">
               {pendingCount} Pending
             </span>
           )}
 
-          <span className="text-xs font-mono text-slate-400 bg-[#0D1528] border border-slate-800 px-3.5 py-1.5 rounded-xl">
-            Total: <strong className="text-slate-100">{startups.length}</strong>
+          <span className="text-xs font-mono text-slate-600 bg-white border border-slate-200/90 dark:bg-slate-900/80 dark:border-slate-800/90 dark:text-slate-300 px-3.5 py-1.5 rounded-xl shadow-xs">
+            Total: <strong className="text-slate-900 dark:text-white font-bold">{startups.length}</strong>
           </span>
         </div>
       </div>
 
       {/* Error Banner */}
       {error && (
-        <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-mono flex items-center justify-between shadow-sm">
+        <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-600 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-400 text-xs font-mono flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-red-400 shrink-0" />
+            <ShieldAlert className="w-4 h-4 text-red-500 shrink-0" />
             <span>{error}</span>
           </div>
           <button
             onClick={() => setError(null)}
-            className="underline hover:text-red-300 cursor-pointer font-semibold"
+            className="underline hover:text-red-700 dark:hover:text-red-300 cursor-pointer font-semibold"
           >
             Dismiss
           </button>
@@ -210,16 +212,16 @@ export default function ManageStartupsPage({ ALL_STARTUPS = [] }) {
       )}
 
       {/* Search & Filter Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-[#0D1528] border border-slate-800">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm dark:bg-slate-900/80 dark:border-slate-800/90">
         {/* Search Input */}
         <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
           <input
             type="text"
             placeholder="Search by name, founder email, industry..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#060C1A] border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-200 outline-none focus:border-amber-500 transition-colors"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:bg-white focus:border-violet-500 dark:bg-slate-950/60 dark:border-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-950 dark:focus:border-violet-500 [color-scheme:light] dark:[color-scheme:dark] transition-colors"
           />
         </div>
 
@@ -234,8 +236,8 @@ export default function ManageStartupsPage({ ALL_STARTUPS = [] }) {
                   onClick={() => setStatusFilter(status)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer whitespace-nowrap ${
                     isActive
-                      ? "bg-amber-500 text-slate-950 shadow-sm font-bold"
-                      : "bg-white/5 text-slate-400 hover:text-slate-200 hover:bg-white/10"
+                      ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-xs font-bold"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800"
                   }`}
                 >
                   {status}
@@ -249,7 +251,7 @@ export default function ManageStartupsPage({ ALL_STARTUPS = [] }) {
       {/* Startups List */}
       <div className="space-y-3">
         {filteredStartups.length === 0 ? (
-          <div className="p-12 text-center text-xs text-slate-500 italic bg-[#0D1528] rounded-2xl border border-slate-800">
+          <div className="p-12 text-center text-xs text-slate-500 italic bg-white rounded-2xl border border-slate-200/90 dark:bg-slate-900/80 dark:border-slate-800/90 dark:text-slate-400">
             No startup listings match your current filters.
           </div>
         ) : (
@@ -273,16 +275,16 @@ export default function ManageStartupsPage({ ALL_STARTUPS = [] }) {
             return (
               <div
                 key={startupId}
-                className={`rounded-2xl p-5 bg-[#0D1528] border transition-all duration-200 shadow-sm ${
+                className={`rounded-2xl p-5 bg-white border transition-all duration-200 shadow-sm dark:bg-slate-900/80 ${
                   isResubmitted
                     ? "border-indigo-500/40 shadow-indigo-500/5 ring-1 ring-indigo-500/20"
-                    : "border-slate-800 hover:border-slate-700/80"
+                    : "border-slate-200/90 hover:border-slate-300 dark:border-slate-800/90 dark:hover:border-slate-700/80"
                 }`}
               >
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                   <div className="flex items-start gap-4 flex-1 min-w-0">
                     {/* Logo */}
-                    <div className="w-14 h-14 rounded-2xl bg-[#060C1A] border border-slate-800 flex items-center justify-center text-amber-500 font-bold text-lg overflow-hidden shrink-0">
+                    <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200 dark:bg-slate-950/60 dark:border-slate-800 flex items-center justify-center text-violet-600 dark:text-violet-400 font-bold text-lg overflow-hidden shrink-0">
                       {s.logo ? (
                         <img
                           src={s.logo}
@@ -297,42 +299,44 @@ export default function ManageStartupsPage({ ALL_STARTUPS = [] }) {
                     {/* Startup Information */}
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <h4 className="font-bold text-slate-100 text-base">
+                        <h4 className="font-bold text-slate-900 dark:text-slate-100 text-base">
                           {startupName}
                         </h4>
 
                         {isApproved ? (
                           <Badge label="Approved" variant="green" />
                         ) : isResubmitted ? (
-                          <span className="inline-flex items-center gap-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full">
-                            <RefreshCw className="w-3 h-3 text-indigo-400 animate-spin-slow" />
+                          <span className="inline-flex items-center gap-1 bg-indigo-50 border border-indigo-200 text-indigo-700 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:text-indigo-400 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full">
+                            <RefreshCw className="w-3 h-3 text-indigo-600 dark:text-indigo-400 animate-spin-slow" />
                             <span>Resubmitted (Needs Review)</span>
                           </span>
                         ) : isRejected ? (
                           <Badge label="Rejected / Removed" variant="red" />
                         ) : (
-                          <Badge label="Pending Review" variant="amber" />
+                          <span className="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-800 dark:bg-amber-500/10 dark:border-amber-500/20 dark:text-amber-300 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full">
+                            Pending Review
+                          </span>
                         )}
                       </div>
 
-                      <p className="text-xs text-slate-400 mb-1.5">
-                        <span className="font-semibold text-slate-300">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mb-1.5">
+                        <span className="font-semibold text-slate-800 dark:text-slate-200">
                           {s.industry || "General"}
                         </span>{" "}
                         ·{" "}
-                        <span className="font-mono text-slate-400">
+                        <span className="font-mono text-slate-500 dark:text-slate-400">
                           {fundingStage}
                         </span>
                       </p>
 
-                      <p className="text-xs text-slate-300 leading-relaxed max-w-2xl mb-2 line-clamp-2">
+                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mb-2 line-clamp-2">
                         {s.description || "No description provided."}
                       </p>
 
-                      <div className="flex flex-wrap items-center gap-4 text-[11px] font-mono text-slate-500">
+                      <div className="flex flex-wrap items-center gap-4 text-[11px] font-mono text-slate-500 dark:text-slate-400">
                         <span>
                           Founder:{" "}
-                          <strong className="text-amber-400/90 font-normal">
+                          <strong className="text-violet-600 dark:text-violet-400 font-semibold">
                             {founderEmail}
                           </strong>
                         </span>
@@ -341,7 +345,7 @@ export default function ManageStartupsPage({ ALL_STARTUPS = [] }) {
                             href={`/startups/${s._id}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-indigo-400 hover:underline"
+                            className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold hover:underline"
                           >
                             <span>Public Page</span>
                             <ExternalLink className="w-3 h-3" />
@@ -352,7 +356,7 @@ export default function ManageStartupsPage({ ALL_STARTUPS = [] }) {
                   </div>
 
                   {/* Admin Actions */}
-                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-800/80">
+                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-100 dark:border-slate-800/80">
                     {/* Approve Button */}
                     {!isApproved && (
                       <Btn
@@ -375,7 +379,7 @@ export default function ManageStartupsPage({ ALL_STARTUPS = [] }) {
                         type="button"
                         disabled={isProcessing}
                         onClick={() => handleUpdateStatus(s, "Rejected")}
-                        className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition-colors disabled:opacity-50 cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 dark:border-red-500/20 transition-colors disabled:opacity-50 cursor-pointer"
                         title="Flag/Reject this startup so the founder sees a removal notice"
                       >
                         {isProcessing ? "Saving..." : "Reject"}
@@ -388,7 +392,7 @@ export default function ManageStartupsPage({ ALL_STARTUPS = [] }) {
                         type="button"
                         disabled={isProcessing}
                         onClick={() => handleUpdateStatus(s, "Pending")}
-                        className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-400 border border-slate-800 transition-colors disabled:opacity-50 cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-800 dark:text-slate-300 dark:border-slate-700/60 transition-colors disabled:opacity-50 cursor-pointer"
                         title="Set status back to Pending Review"
                       >
                         Set Pending
@@ -400,7 +404,7 @@ export default function ManageStartupsPage({ ALL_STARTUPS = [] }) {
                       type="button"
                       disabled={isProcessing}
                       onClick={() => setConfirmDeleteStartup(s)}
-                      className="p-2 rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                      className="p-2 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 dark:text-slate-400 dark:hover:text-red-400 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
                       title="Permanently delete this startup record"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -420,9 +424,9 @@ export default function ManageStartupsPage({ ALL_STARTUPS = [] }) {
           onClose={() => setConfirmDeleteStartup(null)}
         >
           <div className="space-y-4 font-sans">
-            <p className="text-sm text-slate-300 leading-relaxed">
+            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
               Are you sure you want to permanently delete{" "}
-              <strong className="text-slate-100">
+              <strong className="text-slate-900 dark:text-slate-100 font-bold">
                 @
                 {confirmDeleteStartup.startup_name ||
                   confirmDeleteStartup.name ||
@@ -432,7 +436,7 @@ export default function ManageStartupsPage({ ALL_STARTUPS = [] }) {
               startup records.
             </p>
 
-            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400 font-mono">
+            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-400 font-mono">
               ⚠️ Note: If you just want the founder to fix issues, use the{" "}
               <strong>Reject</strong> button instead so they receive a prompt to
               update and resubmit their profile.

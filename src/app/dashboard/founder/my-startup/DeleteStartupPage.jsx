@@ -33,11 +33,13 @@ export default function DeleteStartupPage({ startup, onClose }) {
 
   return (
     <Modal title="Delete Startup?" onClose={onClose}>
-      <div className="space-y-4">
-        <p className="text-sm text-slate-400">
+      <div className="space-y-4 font-sans">
+        <p className="text-sm text-slate-600 dark:text-slate-400">
           Are you sure you want to delete{" "}
-          <span className="font-semibold text-slate-200">"{startupName}"</span>?
-          This action cannot be undone.
+          <span className="font-semibold text-slate-900 dark:text-slate-100">
+            &quot;{startupName}&quot;
+          </span>
+          ? This action cannot be undone.
         </p>
 
         <div className="flex gap-3 pt-2">

@@ -90,19 +90,21 @@ export default function FounderApplicationsPage({ founderApplications }) {
   }
 
   return (
-    <div className="p-8 space-y-6 font-sans">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-5xl mx-auto font-sans">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">Applications</h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+            Applications
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Review applicant profiles, portfolio links, and motivation messages.
           </p>
         </div>
 
-        <span className="text-xs font-mono text-slate-500 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl w-fit">
+        <span className="text-xs font-mono text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl w-fit shadow-xs">
           Total Applications:{" "}
-          <span className="text-amber-500 font-bold font-mono">
+          <span className="text-violet-600 dark:text-violet-400 font-bold font-mono">
             {applications.length}
           </span>
         </span>
@@ -110,11 +112,11 @@ export default function FounderApplicationsPage({ founderApplications }) {
 
       {/* Error Banner */}
       {error && (
-        <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-mono flex items-center justify-between">
+        <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 dark:text-red-400 text-xs font-mono flex items-center justify-between">
           <span>⚠️ {error}</span>
           <button
             onClick={() => setError(null)}
-            className="underline hover:text-red-300 cursor-pointer"
+            className="underline hover:text-red-600 dark:hover:text-red-300 cursor-pointer"
           >
             Dismiss
           </button>
@@ -141,33 +143,38 @@ export default function FounderApplicationsPage({ founderApplications }) {
               "Collaborator Role";
             const email = app.applicantEmail || app.email || "N/A";
             const date = app.appliedDate || app.createdAt || "Recent";
-            const isPending = app.status === "Pending";
+            const isPending =
+              String(app.status || "").toLowerCase() === "pending" ||
+              String(app.status || "").toLowerCase() === "reviewing";
             const isProcessing = loadingId === appId;
 
             return (
               <div
                 key={appId}
-                className="rounded-2xl p-5 bg-[#0D1528] border border-slate-800 hover:border-slate-700/80 transition-all duration-200"
+                className="rounded-2xl p-5 bg-white border border-slate-200 shadow-sm hover:border-violet-500/40 dark:bg-[#0D1528] dark:border-slate-800 dark:hover:border-slate-700/80 transition-all duration-200"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   {/* Applicant Summary Details */}
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-1">
-                      <span className="font-semibold text-sm text-slate-100">
+                      <span className="font-bold text-sm text-slate-900 dark:text-slate-100">
                         {applicantName}
                       </span>
                       <StatusBadge status={app.status} />
                     </div>
 
-                    <p className="text-xs text-slate-400 mb-1">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">
                       Applied for:{" "}
-                      <span className="text-amber-500 font-medium">
+                      <span className="text-violet-600 dark:text-violet-400 font-semibold">
                         {roleTitle}
                       </span>
                     </p>
 
-                    <p className="text-xs font-mono text-slate-500">
-                      {email} · <span className="text-slate-400">{date}</span>
+                    <p className="text-xs font-mono text-slate-500 dark:text-slate-400">
+                      {email} ·{" "}
+                      <span className="text-slate-700 dark:text-slate-300">
+                        {date}
+                      </span>
                     </p>
                   </div>
 
@@ -214,30 +221,32 @@ export default function FounderApplicationsPage({ founderApplications }) {
         <Modal title="Application Details" onClose={() => setSelected(null)}>
           {(() => {
             const selectedId = String(selected._id || selected.id);
-            const isPending = selected.status === "Pending";
+            const isPending =
+              String(selected.status || "").toLowerCase() === "pending" ||
+              String(selected.status || "").toLowerCase() === "reviewing";
             const isProcessing = loadingId === selectedId;
 
             return (
               <div className="space-y-4">
                 {/* Applicant Info */}
                 <div>
-                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 mb-1">
+                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 font-semibold">
                     Applicant Name
                   </p>
-                  <p className="font-semibold text-slate-100 text-base">
+                  <p className="font-bold text-slate-900 dark:text-slate-100 text-base">
                     {selected.applicantName || selected.name || "N/A"}
                   </p>
-                  <p className="text-sm text-slate-400 font-mono mt-0.5">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 font-mono mt-0.5">
                     {selected.applicantEmail || selected.email || "N/A"}
                   </p>
                 </div>
 
                 {/* Role Title */}
                 <div>
-                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 mb-1">
+                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 font-semibold">
                     Role Title
                   </p>
-                  <p className="text-sm font-medium text-amber-500">
+                  <p className="text-sm font-semibold text-violet-600 dark:text-violet-400">
                     {selected.opportunityTitle ||
                       selected.roleTitle ||
                       "Collaborator Role"}
@@ -246,7 +255,7 @@ export default function FounderApplicationsPage({ founderApplications }) {
 
                 {/* Portfolio Link */}
                 <div>
-                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 mb-1">
+                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 font-semibold">
                     Portfolio / Website
                   </p>
                   {selected.portfolioLink ? (
@@ -254,13 +263,13 @@ export default function FounderApplicationsPage({ founderApplications }) {
                       href={formatUrl(selected.portfolioLink)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-amber-500 underline hover:text-amber-400 break-all inline-flex items-center gap-1 cursor-pointer"
+                      className="text-sm text-violet-600 dark:text-violet-400 underline hover:text-violet-700 dark:hover:text-violet-300 break-all inline-flex items-center gap-1 cursor-pointer font-medium"
                     >
                       <span>{selected.portfolioLink}</span>
                       <span>↗</span>
                     </a>
                   ) : (
-                    <p className="text-sm text-slate-500 italic">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 italic">
                       No link provided
                     </p>
                   )}
@@ -268,10 +277,10 @@ export default function FounderApplicationsPage({ founderApplications }) {
 
                 {/* Motivation Message */}
                 <div>
-                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 mb-1">
+                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 font-semibold">
                     Motivation Message
                   </p>
-                  <p className="text-sm leading-relaxed text-slate-300 bg-[#060C1A] p-3 rounded-xl border border-slate-800">
+                  <p className="text-sm leading-relaxed text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-[#060C1A] p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
                     {selected.motivationMessage ||
                       selected.motivation ||
                       "No message provided."}
@@ -279,8 +288,8 @@ export default function FounderApplicationsPage({ founderApplications }) {
                 </div>
 
                 {/* Status Indicator */}
-                <div className="border-t border-slate-800 pt-3 flex items-center justify-between">
-                  <span className="text-xs font-mono text-slate-500">
+                <div className="border-t border-slate-100 dark:border-slate-800 pt-3 flex items-center justify-between">
+                  <span className="text-xs font-mono text-slate-500 dark:text-slate-400 font-semibold">
                     Current Status
                   </span>
                   <StatusBadge status={selected.status} />

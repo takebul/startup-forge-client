@@ -66,20 +66,22 @@ export default function MyApplications({ myApplications = [] }) {
   };
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-5xl mx-auto font-sans">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">My Applications</h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+            My Applications
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Track the status of roles you have applied for across different
             startups.
           </p>
         </div>
 
-        <span className="text-xs font-mono text-slate-500 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl">
+        <span className="text-xs font-mono text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3.5 py-1.5 rounded-xl w-fit shadow-xs">
           Total Applied:{" "}
-          <span className="text-amber-500 font-bold">
+          <span className="text-violet-600 dark:text-violet-400 font-bold font-mono">
             {applications.length}
           </span>
         </span>
@@ -104,25 +106,27 @@ export default function MyApplications({ myApplications = [] }) {
             return (
               <div
                 key={appId}
-                className="rounded-2xl p-5 bg-[#0D1528] border border-slate-800 hover:border-slate-700/80 transition-all duration-200"
+                className="rounded-2xl p-5 bg-white border border-slate-200 shadow-sm hover:border-violet-500/40 dark:bg-[#0D1528] dark:border-slate-800 dark:hover:border-slate-700/80 transition-all duration-200"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   {/* Left Column: Role Details */}
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2 mb-1">
-                      <h4 className="font-semibold text-sm text-slate-100">
+                      <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">
                         {roleTitle}
                       </h4>
                       <StatusBadge status={app.status} />
                     </div>
 
-                    <p className="text-xs text-amber-500 font-medium">
+                    <p className="text-xs text-violet-600 dark:text-violet-400 font-semibold font-mono">
                       @{startupName}
                     </p>
 
-                    <p className="text-xs font-mono text-slate-500 mt-1">
+                    <p className="text-xs font-mono text-slate-500 dark:text-slate-400 mt-1">
                       Applied:{" "}
-                      <span className="text-slate-400">{appliedDate}</span>
+                      <span className="text-slate-700 dark:text-slate-300 font-semibold">
+                        {appliedDate}
+                      </span>
                     </p>
                   </div>
 
@@ -165,21 +169,21 @@ export default function MyApplications({ myApplications = [] }) {
               "Collaborator Role";
 
             return (
-              <div className="space-y-4">
+              <div className="space-y-4 font-sans">
                 <div>
-                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 mb-1">
+                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 font-semibold">
                     Role Title
                   </p>
-                  <h3 className="font-bold text-lg text-slate-100">
+                  <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100">
                     {roleTitle}
                   </h3>
-                  <p className="text-sm text-amber-500 font-medium mt-0.5">
+                  <p className="text-sm text-violet-600 dark:text-violet-400 font-semibold font-mono mt-0.5">
                     @{selectedApp.startupName || "Startup"}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 mb-1">
+                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 font-semibold">
                     Portfolio / Website Link
                   </p>
                   {selectedApp.portfolioLink ? (
@@ -187,30 +191,31 @@ export default function MyApplications({ myApplications = [] }) {
                       href={selectedApp.portfolioLink}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-sm text-amber-500 underline hover:text-amber-400 break-all"
+                      className="text-sm text-violet-600 dark:text-violet-400 underline hover:text-violet-700 dark:hover:text-violet-300 break-all font-medium inline-flex items-center gap-1"
                     >
-                      {selectedApp.portfolioLink} ↗
+                      <span>{selectedApp.portfolioLink}</span>
+                      <span>↗</span>
                     </a>
                   ) : (
-                    <p className="text-sm text-slate-500 italic">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 italic">
                       No link provided
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 mb-1">
+                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 font-semibold">
                     Your Motivation Message
                   </p>
-                  <p className="text-sm leading-relaxed text-slate-300 bg-[#060C1A] p-3.5 rounded-xl border border-slate-800">
+                  <p className="text-sm leading-relaxed text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-[#060C1A] p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
                     {selectedApp.motivationMessage ||
                       selectedApp.motivation ||
                       "No message provided."}
                   </p>
                 </div>
 
-                <div className="border-t border-slate-800 pt-3 flex items-center justify-between">
-                  <span className="text-xs font-mono text-slate-500">
+                <div className="border-t border-slate-100 dark:border-slate-800 pt-3 flex items-center justify-between">
+                  <span className="text-xs font-mono text-slate-500 dark:text-slate-400 font-semibold">
                     Current Status
                   </span>
                   <StatusBadge status={selectedApp.status} />
@@ -224,7 +229,7 @@ export default function MyApplications({ myApplications = [] }) {
                       setConfirmDeleteId(appId);
                     }}
                   >
-                    Withdraw & Delete Application
+                    Withdraw &amp; Delete Application
                   </Btn>
                   <Btn
                     variant="ghost"
@@ -246,8 +251,8 @@ export default function MyApplications({ myApplications = [] }) {
           title="Withdraw Application?"
           onClose={() => setConfirmDeleteId(null)}
         >
-          <div className="space-y-4">
-            <p className="text-sm text-slate-400">
+          <div className="space-y-4 font-sans">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               Are you sure you want to delete this application? Startup founders
               will no longer be able to view your submission.
             </p>

@@ -61,6 +61,7 @@ const BrowseOpportunitiesPage = async ({ searchParams }) => {
         opportunitiesData={opportunities}
         startups={startups}
         user={fullUser}
+        rawBookmarks={rawBookmarks}
         initialBookmarks={parseBookmarks(rawBookmarks)}
         initialAppliedOppIds={parseAppliedOppIds(rawApplications)}
       />
@@ -69,4 +70,3 @@ const BrowseOpportunitiesPage = async ({ searchParams }) => {
 };
 
 export default BrowseOpportunitiesPage;
-

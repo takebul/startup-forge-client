@@ -18,10 +18,10 @@ import {
 const WORK_TYPE_STYLES = {
   Remote: { bg: "rgba(16,185,129,0.12)", color: "#10B981" },
   Hybrid: { bg: "rgba(99,102,241,0.12)", color: "#818CF8" },
-  "On-site": { bg: "rgba(245,158,11,0.12)", color: "#F59E0B" },
+  "On-site": { bg: "rgba(2,132,199,0.12)", color: "#0284C7" },
 };
 
-// 🔥 Helper function: Safely converts strings or arrays into a clean Array
+// Helper function: Safely converts strings or arrays into a clean Array
 function getSkillsArray(skills) {
   if (Array.isArray(skills)) return skills;
   if (typeof skills === "string" && skills.trim()) {
@@ -53,12 +53,11 @@ export default function ManageOpportunities({ founderOpportunities }) {
     setOpportunities(parseOpportunities(founderOpportunities));
   }, [founderOpportunities]);
 
-  // FIX 1: Initialize editing with null, not opportunities array!
   const [editing, setEditing] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // FIX 2: Fixed handleUpdate API integration
+  // Handle Update API integration
   async function handleUpdate() {
     if (!editing) return;
     const targetId = editing._id || editing.id;
@@ -79,7 +78,7 @@ export default function ManageOpportunities({ founderOpportunities }) {
     }
   }
 
-  // FIX 3: Fully wired handleDelete API integration
+  // Handle Delete API integration
   async function handleDelete(id) {
     if (!id) return;
 
@@ -99,31 +98,31 @@ export default function ManageOpportunities({ founderOpportunities }) {
   }
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-5xl mx-auto font-sans">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
             Manage Opportunities
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             View, edit, or remove active job postings for your startup.
           </p>
         </div>
-        <span className="text-xs font-mono text-slate-500 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl">
+        <span className="text-xs font-mono text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl w-fit shadow-xs">
           Total Posted:{" "}
-          <span className="text-amber-500 font-bold">
+          <span className="text-violet-600 dark:text-violet-400 font-bold font-mono">
             {opportunities.length}
           </span>
         </span>
       </div>
 
       {opportunities.length === 0 ? (
-        <div className="rounded-2xl p-14 text-center bg-[#0D1528] border border-slate-800">
+        <div className="rounded-3xl p-14 text-center bg-white border border-slate-200 shadow-sm dark:bg-[#0D1528] dark:border-slate-800">
           <p className="text-4xl mb-3">📋</p>
-          <p className="font-semibold text-base text-slate-200 mb-1">
+          <p className="font-bold text-base text-slate-900 dark:text-slate-100 mb-1">
             No active opportunities
           </p>
-          <p className="text-sm text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             You haven't posted any open roles yet.
           </p>
         </div>
@@ -132,8 +131,8 @@ export default function ManageOpportunities({ founderOpportunities }) {
           {opportunities.map((o) => {
             const itemId = o._id || o.id;
             const badgeStyle = WORK_TYPE_STYLES[o.workType] || {
-              bg: "rgba(255,255,255,0.05)",
-              color: "#94A3B8",
+              bg: "rgba(124,58,237,0.1)",
+              color: "#7C3AED",
             };
 
             const skillsList = getSkillsArray(o.requiredSkills);
@@ -141,13 +140,13 @@ export default function ManageOpportunities({ founderOpportunities }) {
             return (
               <div
                 key={itemId}
-                className="rounded-2xl p-5 bg-[#0D1528] border border-slate-800 hover:border-slate-700/80 transition-all duration-200"
+                className="rounded-2xl p-5 bg-white border border-slate-200 shadow-sm hover:border-violet-500/40 dark:bg-[#0D1528] dark:border-slate-800 dark:hover:border-slate-700/80 transition-all duration-200"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     {/* Header badges & Title */}
                     <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <h4 className="font-semibold text-sm text-slate-100">
+                      <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">
                         {o.roleTitle}
                       </h4>
                       <span
@@ -167,7 +166,7 @@ export default function ManageOpportunities({ founderOpportunities }) {
                       {skillsList.map((sk) => (
                         <span
                           key={sk}
-                          className="text-[11px] px-2 py-0.5 rounded-md font-mono bg-white/5 text-slate-400 border border-slate-800"
+                          className="text-[11px] px-2 py-0.5 rounded-md font-mono bg-slate-100 text-slate-700 border border-slate-200 dark:bg-white/5 dark:text-slate-300 dark:border-slate-800"
                         >
                           {sk}
                         </span>
@@ -175,9 +174,11 @@ export default function ManageOpportunities({ founderOpportunities }) {
                     </div>
 
                     {/* Deadline */}
-                    <p className="text-xs font-mono text-slate-500">
+                    <p className="text-xs font-mono text-slate-500 dark:text-slate-400">
                       Application Deadline:{" "}
-                      <span className="text-slate-400">{o.deadline}</span>
+                      <span className="text-slate-700 dark:text-slate-300 font-semibold">
+                        {o.deadline}
+                      </span>
                     </p>
                   </div>
 
@@ -282,7 +283,7 @@ export default function ManageOpportunities({ founderOpportunities }) {
           title="Delete Opportunity?"
           onClose={() => setConfirmDelete(null)}
         >
-          <p className="text-sm text-slate-400 mb-5">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-5">
             Are you sure you want to remove this opportunity? Applicants will no
             longer be able to submit applications.
           </p>

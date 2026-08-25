@@ -20,8 +20,8 @@ import {
   Menu,
   Sparkles,
   Building2,
-  CreditCard,
   User,
+  CreditCardIcon,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 
@@ -80,7 +80,7 @@ export default function Navbar() {
     { name: "Home", href: "/", icon: Home },
     { name: "Startups", href: "/startups", icon: Rocket },
     { name: "Opportunities", href: "/opportunities", icon: Briefcase },
-    { name: "Pricing", href: "/pricing", icon: CreditCard },
+    { name: "Pricing", href: "/pricing", icon: CreditCardIcon },
   ];
 
   const toggleTheme = () => {
