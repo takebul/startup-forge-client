@@ -27,6 +27,7 @@ import {
 import { createApplication } from "@/lib/actions/applications";
 import { createBookmark, deleteBookmark } from "@/lib/actions/bookmarks";
 import ApplyModal from "@/components/ApplyModal/ApplyModal";
+import { toast } from "@/components/Toast/Toast";
 
 const WORK_TYPE_VARIANTS = {
   Remote: "green",
@@ -618,6 +619,7 @@ export default function BrowseOpportunities({
     try {
       if (isBookmarked) {
         await deleteBookmark(targetId, activeUserId);
+        toast.delete("Bookmark Removed", "Opportunity removed from your saved list.");
       } else {
         const targetOpp =
           opportunitiesList.find((o) => String(o._id || o.id) === targetId) ||
@@ -634,9 +636,11 @@ export default function BrowseOpportunities({
           deadline: targetOpp?.deadline || "N/A",
           requiredSkills: getSkillsArray(targetOpp?.requiredSkills),
         });
+        toast.create("Opportunity Bookmarked!", `"${targetOpp?.roleTitle || "Role"}" saved to your bookmarks.`);
       }
     } catch (err) {
       console.error("Failed to toggle bookmark:", err);
+      toast.error("Bookmark Error", "Failed to update bookmark.");
       setBookmarks((prev) =>
         isBookmarked ? [...prev, targetId] : prev.filter((b) => b !== targetId),
       );
@@ -683,8 +687,10 @@ export default function BrowseOpportunities({
         motivation: "",
       });
       setShowSuccessModal(true);
+      toast.create("Application Submitted!", `Your application for "${payload.opportunityTitle}" was sent.`);
     } catch (err) {
       console.error("Failed to post application:", err);
+      toast.error("Application Failed", err.message || "Failed to submit application.");
     } finally {
       setIsSubmitting(false);
     }

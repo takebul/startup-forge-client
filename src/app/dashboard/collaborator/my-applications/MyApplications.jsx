@@ -9,6 +9,7 @@ import {
   Modal,
 } from "@/components/Dashboard/founder-dashboard-shared";
 import { deleteApplications } from "@/lib/actions/applications";
+import { toast } from "@/components/Toast/Toast";
 
 export default function MyApplications({ myApplications = [] }) {
   // Helper to safely extract applications array from props
@@ -58,8 +59,10 @@ export default function MyApplications({ myApplications = [] }) {
       ) {
         setSelectedApp(null);
       }
+      toast.delete("Application Deleted", "Your application record has been removed.");
     } catch (err) {
       console.error("Failed to delete application:", err);
+      toast.error("Delete Failed", err.message || "Failed to delete application.");
     } finally {
       setIsDeleting(false);
     }

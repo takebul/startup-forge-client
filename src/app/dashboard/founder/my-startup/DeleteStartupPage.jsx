@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Modal, Btn } from "@/components/Dashboard/founder-dashboard-shared";
 import { deleteStartup } from "@/lib/actions/startup";
+import { toast } from "@/components/Toast/Toast";
 
 export default function DeleteStartupPage({ startup, onClose }) {
   const router = useRouter();
@@ -22,10 +23,12 @@ export default function DeleteStartupPage({ startup, onClose }) {
 
       // Refresh server components
       router.refresh();
+      toast.delete("Startup Deleted", `"${startupName}" has been permanently removed.`);
 
       if (onClose) onClose();
     } catch (error) {
       console.error("Failed to delete startup:", error);
+      toast.error("Delete Failed", error.message || "Failed to delete startup.");
     } finally {
       setLoading(false);
     }

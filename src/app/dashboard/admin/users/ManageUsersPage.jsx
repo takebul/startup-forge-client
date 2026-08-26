@@ -6,6 +6,7 @@ import { Search, BadgeCheck, ShieldAlert, Crown } from "lucide-react";
 import { Btn, Badge } from "@/components/Dashboard/founder-dashboard-shared";
 import { authClient } from "@/lib/auth-client";
 import { updateUserStatus } from "@/lib/actions/users";
+import { toast } from "@/components/Toast/Toast";
 
 // Helper function to format ISO date strings (e.g., 2026-08-17T10:11:58.148Z -> 2026-08-17)
 function formatDate(dateStr) {
@@ -143,11 +144,17 @@ export default function ManageUsersPage({ ALL_USERS = [], currentUser }) {
 
       // 4. Refresh Server Component Data
       router.refresh();
+      if (nextStatus === "blocked") {
+        toast.delete("User Suspended", `Account for "${targetUser.name || targetUser.email}" has been blocked.`);
+      } else {
+        toast.update("User Unblocked", `Account for "${targetUser.name || targetUser.email}" has been restored.`);
+      }
     } catch (err) {
       console.error("Failed to update user status:", err);
       setError(
         err?.message || "Failed to update user status. Reverting changes.",
       );
+      toast.error("Status Update Failed", err?.message || "Could not update user status.");
       setUsers(previousUsers);
     } finally {
       setLoadingId(null);

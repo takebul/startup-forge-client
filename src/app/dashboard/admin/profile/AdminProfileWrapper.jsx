@@ -26,6 +26,7 @@ import {
 } from "@/components/Dashboard/founder-dashboard-shared";
 import { authClient } from "@/lib/auth-client";
 import { updateUserProfile } from "@/lib/actions/users";
+import { toast } from "@/components/Toast/Toast";
 
 export default function AdminProfileWrapper({ initialUser }) {
   const router = useRouter();
@@ -39,9 +40,11 @@ export default function AdminProfileWrapper({ initialUser }) {
     image:
       user?.image ||
       "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+    roleTitle: "Platform Lead & Super Admin",
+    email: user?.email || "admin@startupforge.com",
     bio:
       user?.bio ||
-      "Platform administrator overseeing founder listings, application verification, and ecosystem moderation.",
+      "Full administrative privileges over user accounts, platform moderation, venture reviews, and billing reconciliation.",
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,18 +53,16 @@ export default function AdminProfileWrapper({ initialUser }) {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState(null);
 
-  // Sync profile when user updates
+  // Sync profile if user updates
   useEffect(() => {
     if (user) {
-      setProfile({
-        name: user.name || "System Administrator",
-        image:
-          user.image ||
-          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-        bio:
-          user.bio ||
-          "Platform administrator overseeing founder listings, application verification, and ecosystem moderation.",
-      });
+      setProfile((prev) => ({
+        ...prev,
+        name: user.name || prev.name,
+        image: user.image || prev.image,
+        email: user.email || prev.email,
+        bio: user.bio || prev.bio,
+      }));
     }
   }, [user]);
 
@@ -93,9 +94,11 @@ export default function AdminProfileWrapper({ initialUser }) {
       setTimeout(() => setSaved(false), 3500);
 
       router.refresh();
+      toast.update("Admin Profile Saved", "Administrator credentials and profile updated successfully.");
     } catch (err) {
       console.error("Failed to save admin profile:", err);
       setError(err?.message || "Failed to update profile. Please try again.");
+      toast.error("Save Failed", err?.message || "Failed to update profile.");
     } finally {
       setSaving(false);
     }

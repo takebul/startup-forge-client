@@ -22,6 +22,7 @@ import {
   Modal,
 } from "@/components/Dashboard/founder-dashboard-shared";
 import { deleteBookmark } from "@/lib/actions/bookmarks";
+import { toast } from "@/components/Toast/Toast";
 
 const WORK_TYPE_VARIANTS = {
   Remote: "green",
@@ -110,8 +111,10 @@ export default function BookmarkedPage({ initialBookmarks = [], user }) {
 
       // Refresh server cache
       router.refresh();
+      toast.delete("Bookmark Removed", "Opportunity removed from your saved bookmarks.");
     } catch (err) {
       console.error("Failed to remove bookmark:", err);
+      toast.error("Failed to Remove", err.message || "Failed to remove bookmark.");
       // Revert local state if server request fails
       setBookmarks(parseBookmarksList(initialBookmarks));
     } finally {

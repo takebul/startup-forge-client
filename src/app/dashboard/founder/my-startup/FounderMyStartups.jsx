@@ -35,6 +35,7 @@ import {
   deleteStartup,
   updateStartup,
 } from "@/lib/actions/startup";
+import { toast } from "@/components/Toast/Toast";
 
 function parseInitialStartups(data) {
   if (!data) return [];
@@ -125,8 +126,10 @@ export default function FounderMyStartups({ founder, startups }) {
       });
       setIsCreating(false);
       router.refresh();
+      toast.create("Startup Profile Created!", `"${payload.startup_name}" has been published and submitted for review.`);
     } catch (err) {
       console.error("Failed to create startup:", err);
+      toast.error("Creation Failed", err.message || "Failed to create startup profile.");
     } finally {
       setLoading(false);
     }
@@ -161,8 +164,10 @@ export default function FounderMyStartups({ founder, startups }) {
 
       router.refresh();
       setEditingStartup(null);
+      toast.update("Startup Updated & Resubmitted!", "Your updated profile has been saved and sent for review.");
     } catch (error) {
       console.error("Failed to update startup:", error);
+      toast.error("Update Failed", error.message || "Failed to update startup details.");
     } finally {
       setLoading(false);
     }
@@ -187,8 +192,10 @@ export default function FounderMyStartups({ founder, startups }) {
 
       router.refresh();
       setConfirmDeleteId(null);
+      toast.delete("Startup Record Deleted", "The startup profile has been permanently removed.");
     } catch (error) {
       console.error("Failed to delete startup:", error);
+      toast.error("Delete Failed", error.message || "Failed to delete startup profile.");
     } finally {
       setLoading(false);
     }

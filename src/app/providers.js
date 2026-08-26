@@ -1,6 +1,7 @@
 "use client";
 
 import { ThemeProvider } from "next-themes";
+import { ToastContainer } from "@/components/Toast/Toast";
 
 export function Providers({ children }) {
   return (
@@ -11,6 +12,8 @@ export function Providers({ children }) {
       disableTransitionOnChange
     >
       {children}
+      <ToastContainer />
     </ThemeProvider>
   );
 }
+

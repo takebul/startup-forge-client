@@ -10,6 +10,7 @@ import {
   Btn,
 } from "@/components/Dashboard/founder-dashboard-shared";
 import { updateStartup } from "@/lib/actions/startup";
+import { toast } from "@/components/Toast/Toast";
 
 export default function EditingStartupPage({ startup, onCancel }) {
   const router = useRouter();
@@ -46,10 +47,12 @@ export default function EditingStartupPage({ startup, onCancel }) {
 
       // Re-trigger Next.js server fetch to refresh page data
       router.refresh();
+      toast.update("Startup Updated!", `"${formData.startup_name}" details have been updated successfully.`);
 
       if (onCancel) onCancel();
     } catch (error) {
       console.error("Failed to update startup:", error);
+      toast.error("Update Failed", error.message || "Failed to update startup details.");
     } finally {
       setLoading(false);
     }

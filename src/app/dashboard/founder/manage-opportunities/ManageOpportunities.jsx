@@ -14,6 +14,7 @@ import {
   updateOpportunity,
   deleteOpportunity,
 } from "@/lib/actions/opportunities";
+import { toast } from "@/components/Toast/Toast";
 
 const WORK_TYPE_STYLES = {
   Remote: { bg: "rgba(16,185,129,0.12)", color: "#10B981" },
@@ -71,8 +72,10 @@ export default function ManageOpportunities({ founderOpportunities }) {
       // Refresh Server Components to fetch fresh list
       router.refresh();
       setEditing(null);
+      toast.update("Opportunity Updated", `"${editing.roleTitle || "Role"}" has been successfully updated.`);
     } catch (error) {
       console.error("Failed to update opportunity:", error);
+      toast.error("Update Failed", error.message || "Failed to update opportunity.");
     } finally {
       setLoading(false);
     }
@@ -90,8 +93,10 @@ export default function ManageOpportunities({ founderOpportunities }) {
       // Refresh Server Components to fetch fresh list
       router.refresh();
       setConfirmDelete(null);
+      toast.delete("Opportunity Removed", "The opportunity listing has been deleted.");
     } catch (error) {
       console.error("Failed to delete opportunity:", error);
+      toast.error("Delete Failed", error.message || "Failed to delete opportunity.");
     } finally {
       setLoading(false);
     }

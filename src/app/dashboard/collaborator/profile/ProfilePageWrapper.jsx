@@ -25,6 +25,7 @@ import {
 } from "@/components/Dashboard/founder-dashboard-shared";
 import { authClient } from "@/lib/auth-client";
 import { updateUserProfile } from "@/lib/actions/users";
+import { toast } from "@/components/Toast/Toast";
 
 function formatPlanDisplayName(planId) {
   if (!planId) return "Collaborator Free";
@@ -149,9 +150,11 @@ export default function ProfilePageWrapper({ initialUser }) {
       setTimeout(() => setSaved(false), 3500);
 
       router.refresh();
+      toast.update("Profile Saved", "Your collaborator profile details have been updated successfully.");
     } catch (err) {
       console.error("Failed to save collaborator profile:", err);
       setError(err?.message || "Failed to update profile. Please try again.");
+      toast.error("Save Failed", err?.message || "Failed to update profile.");
     } finally {
       setSaving(false);
     }

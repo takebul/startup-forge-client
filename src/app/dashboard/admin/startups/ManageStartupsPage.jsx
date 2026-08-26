@@ -20,6 +20,7 @@ import {
   Modal,
 } from "@/components/Dashboard/founder-dashboard-shared";
 import { updateStartup, deleteStartup } from "@/lib/actions/startup";
+import { toast } from "@/components/Toast/Toast";
 
 // Helper to safely extract startups array from props or server payloads
 function parseStartups(data) {
@@ -75,9 +76,14 @@ export default function ManageStartupsPage({ ALL_STARTUPS = [] }) {
 
       // 3. Refresh Server Component Data
       router.refresh();
+      toast.update(
+        `Startup ${newStatus}`,
+        `Startup review status has been updated to "${newStatus}".`
+      );
     } catch (err) {
       console.error("Failed to update startup status:", err);
       setError("Failed to update startup status. Reverting changes.");
+      toast.error("Status Update Failed", err.message || "Could not update status.");
       // Rollback on failure
       setStartups(previousStartups);
     } finally {
@@ -93,6 +99,7 @@ export default function ManageStartupsPage({ ALL_STARTUPS = [] }) {
     const id = String(
       confirmDeleteStartup._id || confirmDeleteStartup.id || "",
     );
+    const startupName = confirmDeleteStartup.startup_name || confirmDeleteStartup.name || "Startup";
 
     setLoadingId(id);
     setError(null);
@@ -112,9 +119,11 @@ export default function ManageStartupsPage({ ALL_STARTUPS = [] }) {
       // 3. Close Modal & Refresh Server Component Data
       setConfirmDeleteStartup(null);
       router.refresh();
+      toast.delete("Startup Removed", `"${startupName}" has been permanently removed.`);
     } catch (err) {
       console.error("Failed to delete startup:", err);
       setError("Failed to delete startup listing. Reverting changes.");
+      toast.error("Delete Failed", err.message || "Failed to delete startup.");
       setStartups(previousStartups);
     } finally {
       setLoadingId(null);

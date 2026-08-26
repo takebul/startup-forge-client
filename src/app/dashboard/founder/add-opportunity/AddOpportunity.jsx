@@ -15,6 +15,7 @@ import {
 import { Select, Modal, Btn } from "@/components/Dashboard/founder-dashboard-shared";
 import { createOpportunity } from "@/lib/actions/opportunities";
 import { authClient } from "@/lib/auth-client";
+import { toast } from "@/components/Toast/Toast";
 
 function parseOpportunities(data) {
   if (Array.isArray(data)) return data;
@@ -112,9 +113,11 @@ export default function AddOpportunity({ opportunities = [], plans }) {
       router.refresh();
 
       setIsSuccess(true);
+      toast.create("Opportunity Published!", "Your role is now live and accepting applications.");
     } catch (err) {
       console.error("Error creating opportunity:", err);
       setError(err.message || "Failed to add opportunity. Please try again.");
+      toast.error("Failed to Post Opportunity", err.message || "Please try again.");
     } finally {
       setLoading(false);
     }

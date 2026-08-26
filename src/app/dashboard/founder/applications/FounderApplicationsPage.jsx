@@ -9,6 +9,7 @@ import {
   EmptyState,
 } from "@/components/Dashboard/founder-dashboard-shared";
 import { updateApplication } from "@/lib/actions/applications";
+import { toast } from "@/components/Toast/Toast";
 
 // Helper function to ensure portfolio URLs always open externally
 function formatUrl(url) {
@@ -79,9 +80,14 @@ export default function FounderApplicationsPage({ founderApplications }) {
 
       // 3. Refresh Server Component cache
       router.refresh();
+      toast.update(
+        `Application ${newStatus}`,
+        `Candidate application has been marked as ${newStatus}.`
+      );
     } catch (err) {
       console.error("Failed to update status:", err);
       setError("Failed to update status. Reverting changes.");
+      toast.error("Update Failed", "Could not update application status.");
       // Rollback to previous state on failure
       setApplications(previousApplications);
     } finally {
