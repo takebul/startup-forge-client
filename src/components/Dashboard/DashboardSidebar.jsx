@@ -236,7 +236,7 @@ const DashboardSidebar = ({ initialUser }) => {
 
       {/* Profile Card & Badges */}
       <div className="p-3 border-t border-slate-100 dark:border-slate-800/70">
-        <div className="flex items-center justify-between rounded-2xl bg-slate-50 dark:bg-[#0D1528] p-3 border border-slate-200/80 dark:border-slate-800/80 shadow-xs">
+        <div className="flex items-center justify-between rounded-2xl bg-slate-50 dark:bg-slate-900/80 p-3 border border-slate-200/80 dark:border-slate-800/80 shadow-xs">
           <div className="flex items-center space-x-2.5 min-w-0">
             <div className="relative shrink-0">
               <img
@@ -245,15 +245,21 @@ const DashboardSidebar = ({ initialUser }) => {
                   "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80"
                 }
                 alt={user?.name || "User"}
-                className="h-8.5 w-8.5 rounded-full object-cover ring-2 ring-violet-500/30"
+                className="h-9 w-9 rounded-full object-cover ring-2 ring-violet-500/30"
               />
               {/* Badge overlay on Avatar */}
               {isAdmin ? (
-                <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-purple-600 text-white ring-2 ring-white dark:ring-[#0D1528]">
+                <div
+                  className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-purple-600 text-white ring-2 ring-white dark:ring-slate-900 shadow-sm"
+                  title="Super Administrator"
+                >
                   <Crown className="h-2.5 w-2.5" />
                 </div>
               ) : isUpgraded ? (
-                <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-violet-600 text-white ring-2 ring-white dark:ring-[#0D1528]">
+                <div
+                  className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-sky-500 text-white ring-2 ring-white dark:ring-slate-900 shadow-sm"
+                  title="Verified Member"
+                >
                   <BadgeCheck className="h-3 w-3" />
                 </div>
               ) : null}
@@ -264,31 +270,31 @@ const DashboardSidebar = ({ initialUser }) => {
                 <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
                   {user?.name || "User"}
                 </span>
-                {isAdmin && (
+                {isAdmin ? (
                   <Crown
-                    className="h-3 w-3 text-purple-600 dark:text-purple-400 shrink-0"
+                    className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400 shrink-0"
                     title="Platform Administrator"
                   />
-                )}
-                {!isAdmin && isUpgraded && (
+                ) : isUpgraded ? (
                   <BadgeCheck
-                    className="h-3 w-3 text-violet-600 dark:text-violet-400 shrink-0"
+                    className="h-3.5 w-3.5 text-sky-500 dark:text-sky-400 shrink-0"
                     title="Verified Member"
                   />
-                )}
+                ) : null}
               </div>
 
-              <div className="flex items-center space-x-1 mt-0.5">
+              <div className="flex items-center space-x-1.5 mt-0.5">
                 <span className="text-[10px] text-slate-500 dark:text-slate-400 capitalize font-mono">
                   {persona}
                 </span>
                 {isAdmin ? (
-                  <span className="text-[9px] font-mono font-bold text-purple-700 bg-purple-100 dark:text-purple-400 dark:bg-purple-500/10 px-1.5 rounded border border-purple-200 dark:border-purple-500/20">
+                  <span className="text-[9px] font-mono font-bold text-purple-700 bg-purple-100 dark:text-purple-400 dark:bg-purple-500/10 px-1.5 py-0.2 rounded border border-purple-200 dark:border-purple-500/20">
                     ADMIN
                   </span>
                 ) : isUpgraded ? (
-                  <span className="text-[9px] font-mono font-bold text-violet-700 bg-violet-100 dark:text-violet-400 dark:bg-violet-500/10 px-1.5 rounded border border-violet-200 dark:border-violet-500/20">
-                    PRO
+                  <span className="text-[9px] font-mono font-bold text-sky-700 bg-sky-50 dark:text-sky-300 dark:bg-sky-500/10 px-1.5 py-0.2 rounded border border-sky-200 dark:border-sky-500/20 flex items-center gap-0.5">
+                    <BadgeCheck className="w-2.5 h-2.5 text-sky-500 dark:text-sky-400" />
+                    <span>VERIFIED</span>
                   </span>
                 ) : null}
               </div>

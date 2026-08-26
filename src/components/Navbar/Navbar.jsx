@@ -22,6 +22,8 @@ import {
   Building2,
   User,
   CreditCardIcon,
+  BadgeCheck,
+  Crown,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 
@@ -40,6 +42,15 @@ export default function Navbar() {
   const user = session?.user;
   const isLoggedIn = !!session;
   const persona = useMemo(() => getUserPersona(user), [user]);
+  const isAdmin = persona === "admin";
+
+  // Check if user has an upgraded plan
+  const planKey = String(user?.plan || user?.plan_id || user?.subscription || "").toLowerCase();
+  const isUpgraded =
+    isAdmin ||
+    planKey.includes("premium") ||
+    planKey.includes("enterprise") ||
+    (planKey !== "" && !planKey.includes("free"));
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAvatarOpen, setIsAvatarOpen] = useState(false);
@@ -220,7 +231,7 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => setIsAvatarOpen(!isAvatarOpen)}
-                    className="flex items-center rounded-full p-0.5 ring-2 ring-violet-500/30 hover:ring-violet-500/70 transition-all cursor-pointer outline-none"
+                    className="relative flex items-center rounded-full p-0.5 ring-2 ring-violet-500/30 hover:ring-violet-500/70 transition-all cursor-pointer outline-none active:scale-95"
                     title="User Profile Menu"
                   >
                     <img
@@ -231,26 +242,51 @@ export default function Navbar() {
                       alt={user?.name || "User Avatar"}
                       className="h-8 w-8 rounded-full object-cover"
                     />
+                    {/* Badge overlay on Avatar */}
+                    {isAdmin ? (
+                      <div
+                        className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-purple-600 text-white ring-2 ring-white dark:ring-[#0D1528] shadow-xs"
+                        title="Admin"
+                      >
+                        <Crown className="h-2 w-2" />
+                      </div>
+                    ) : isUpgraded ? (
+                      <div
+                        className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-sky-500 text-white ring-2 ring-white dark:ring-[#0D1528] shadow-xs"
+                        title="Verified Member"
+                      >
+                        <BadgeCheck className="h-2.5 w-2.5" />
+                      </div>
+                    ) : null}
                   </button>
 
                   {isAvatarOpen && (
                     <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-white dark:bg-[#0D1528] border border-slate-200 dark:border-slate-800 p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                       {/* Account Summary Header */}
-                      <div className="px-3 py-2.5 mb-1 rounded-xl bg-slate-50 dark:bg-[#060C1A] border border-slate-200/80 dark:border-slate-800/80">
+                      <div className="px-3 py-2.5 mb-1 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/80">
                         <div className="flex items-center justify-between gap-2">
-                          <p className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
-                            {user?.name || "User Account"}
-                          </p>
+                          <div className="flex items-center gap-1 min-w-0">
+                            <p className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
+                              {user?.name || "User Account"}
+                            </p>
+                            {isAdmin ? (
+                              <Crown className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                            ) : isUpgraded ? (
+                              <BadgeCheck className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400 shrink-0" title="Verified Member" />
+                            ) : null}
+                          </div>
                           <span
                             className={`px-2 py-0.5 text-[10px] font-mono font-bold rounded-full uppercase shrink-0 ${
-                              persona === "admin"
+                              isAdmin
                                 ? "text-purple-700 bg-purple-100 border border-purple-200 dark:text-purple-400 dark:bg-purple-500/10 dark:border-purple-500/20"
-                                : persona === "founder"
-                                  ? "text-amber-700 bg-amber-100 border border-amber-200 dark:text-amber-400 dark:bg-amber-500/10 dark:border-amber-500/20"
-                                  : "text-violet-700 bg-violet-100 border border-violet-200 dark:text-violet-400 dark:bg-violet-500/10 dark:border-violet-500/20"
+                                : isUpgraded
+                                  ? "text-sky-700 bg-sky-50 border border-sky-200 dark:text-sky-300 dark:bg-sky-500/10 dark:border-sky-500/20"
+                                  : persona === "founder"
+                                    ? "text-amber-700 bg-amber-100 border border-amber-200 dark:text-amber-400 dark:bg-amber-500/10 dark:border-amber-500/20"
+                                    : "text-violet-700 bg-violet-100 border border-violet-200 dark:text-violet-400 dark:bg-violet-500/10 dark:border-violet-500/20"
                             }`}
                           >
-                            {persona}
+                            {isAdmin ? "Admin" : isUpgraded ? "Verified" : persona}
                           </span>
                         </div>
                         <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400 truncate mt-0.5">
@@ -378,18 +414,44 @@ export default function Navbar() {
               {isLoggedIn && (
                 <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800">
                   <div className="flex items-center gap-3 min-w-0">
-                    <img
-                      src={
-                        user?.image ||
-                        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80"
-                      }
-                      alt={user?.name || "User Avatar"}
-                      className="h-10 w-10 rounded-full object-cover ring-2 ring-violet-500/30 shrink-0"
-                    />
+                    <div className="relative shrink-0">
+                      <img
+                        src={
+                          user?.image ||
+                          "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80"
+                        }
+                        alt={user?.name || "User Avatar"}
+                        className="h-10 w-10 rounded-full object-cover ring-2 ring-violet-500/30"
+                      />
+                      {/* Badge overlay on Avatar */}
+                      {isAdmin ? (
+                        <div
+                          className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-purple-600 text-white ring-2 ring-white dark:ring-[#0D1528] shadow-xs"
+                          title="Admin"
+                        >
+                          <Crown className="h-2 w-2" />
+                        </div>
+                      ) : isUpgraded ? (
+                        <div
+                          className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-sky-500 text-white ring-2 ring-white dark:ring-[#0D1528] shadow-xs"
+                          title="Verified Member"
+                        >
+                          <BadgeCheck className="h-2.5 w-2.5" />
+                        </div>
+                      ) : null}
+                    </div>
+
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                        {user?.name || "User Account"}
-                      </p>
+                      <div className="flex items-center gap-1">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                          {user?.name || "User Account"}
+                        </p>
+                        {isAdmin ? (
+                          <Crown className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                        ) : isUpgraded ? (
+                          <BadgeCheck className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400 shrink-0" title="Verified Member" />
+                        ) : null}
+                      </div>
                       <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400 truncate">
                         {user?.email || "user@example.com"}
                       </p>
@@ -397,14 +459,16 @@ export default function Navbar() {
                   </div>
                   <span
                     className={`px-2.5 py-0.5 text-[10px] font-mono font-bold rounded-full uppercase shrink-0 ${
-                      persona === "admin"
+                      isAdmin
                         ? "text-purple-700 bg-purple-100 dark:text-purple-400 dark:bg-purple-500/10"
-                        : persona === "founder"
-                          ? "text-amber-700 bg-amber-100 dark:text-amber-400 dark:bg-amber-500/10"
-                          : "text-violet-700 bg-violet-100 dark:text-violet-400 dark:bg-violet-500/10"
+                        : isUpgraded
+                          ? "text-sky-700 bg-sky-50 border border-sky-200 dark:text-sky-300 dark:bg-sky-500/10 dark:border-sky-500/20"
+                          : persona === "founder"
+                            ? "text-amber-700 bg-amber-100 border border-amber-200 dark:text-amber-400 dark:bg-amber-500/10 dark:border-amber-500/20"
+                            : "text-violet-700 bg-violet-100 border border-violet-200 dark:text-violet-400 dark:bg-violet-500/10 dark:border-violet-500/20"
                     }`}
                   >
-                    {persona}
+                    {isAdmin ? "Admin" : isUpgraded ? "Verified" : persona}
                   </span>
                 </div>
               )}
