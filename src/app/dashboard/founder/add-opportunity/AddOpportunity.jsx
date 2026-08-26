@@ -286,7 +286,7 @@ export default function AddOpportunity({ opportunities = [], plans }) {
                 }
                 placeholder="e.g. Senior Full Stack Engineer"
                 required
-                className="w-full px-3 py-2.5 text-sm outline-none bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-violet-500 dark:bg-[#060C1A] dark:border-slate-800 dark:text-slate-100 dark:focus:border-violet-500 rounded-xl"
+                className="w-full px-3 py-2.5 text-sm outline-none bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-violet-500 dark:bg-[#060C1A] dark:border-slate-800 dark:text-slate-100 dark:focus:bg-[#060C1A] dark:focus:border-violet-500 rounded-xl"
               />
             </InputGroup>
             <Description className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
@@ -311,7 +311,7 @@ export default function AddOpportunity({ opportunities = [], plans }) {
                 }
                 placeholder="React, Node.js, PostgreSQL"
                 required
-                className="w-full px-3 py-2.5 text-sm outline-none bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-violet-500 dark:bg-[#060C1A] dark:border-slate-800 dark:text-slate-100 dark:focus:border-violet-500 rounded-xl"
+                className="w-full px-3 py-2.5 text-sm outline-none bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-violet-500 dark:bg-[#060C1A] dark:border-slate-800 dark:text-slate-100 dark:focus:bg-[#060C1A] dark:focus:border-violet-500 rounded-xl"
               />
             </InputGroup>
             <Description className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">

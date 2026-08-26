@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Briefcase, ArrowRight, Sparkles, Building2 } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 // Helper parser to safely extract array data regardless of API response wrapping
 function parseArrayData(data, key) {
@@ -15,6 +16,8 @@ function parseArrayData(data, key) {
 }
 
 const FeaturedStartups = ({ featuredStartups = [], opportunities = [] }) => {
+  const { data: session } = authClient.useSession();
+  const currentUser = session?.user;
   // 1. Safely Parse Input Datasets
   const rawStartups = useMemo(
     () => parseArrayData(featuredStartups, "featuredStartups"),
@@ -122,6 +125,25 @@ const FeaturedStartups = ({ featuredStartups = [], opportunities = [] }) => {
                   ? startup.founder_email.split("@")[0]
                   : "Founder");
 
+              const startupFounderEmail = String(
+                startup.founder_email || startup.founderEmail || "",
+              )
+                .toLowerCase()
+                .trim();
+              const userEmail = String(currentUser?.email || "")
+                .toLowerCase()
+                .trim();
+              const userId = String(currentUser?.id || currentUser?._id || "");
+              const sOwnerId = String(startup.startupId || startup.userId || "");
+              const sDocId = String(startup._id || startup.id || "");
+
+              const isOwnStartup = Boolean(
+                currentUser && (
+                  (userEmail && startupFounderEmail && startupFounderEmail === userEmail) ||
+                  (userId && (sOwnerId === userId || sDocId === userId))
+                )
+              );
+
               return (
                 <motion.div
                   key={startupId}
@@ -133,7 +155,7 @@ const FeaturedStartups = ({ featuredStartups = [], opportunities = [] }) => {
                   className="group flex flex-col justify-between rounded-3xl border border-slate-200/90 bg-white p-6 shadow-sm hover:border-violet-300 hover:shadow-xl hover:shadow-violet-500/5 dark:border-slate-800/90 dark:bg-slate-900/80 dark:hover:border-violet-500/40 dark:hover:shadow-2xl dark:hover:shadow-violet-500/10"
                 >
                   <div>
-                    {/* Header: Logo & Funding Stage */}
+                    {/* Header: Logo & Funding Stage / Own Startup */}
                     <div className="flex items-start justify-between gap-4">
                       {startup.logo ? (
                         <img
@@ -147,9 +169,17 @@ const FeaturedStartups = ({ featuredStartups = [], opportunities = [] }) => {
                         </div>
                       )}
 
-                      <span className="rounded-full border border-slate-200/80 bg-slate-100/90 px-3 py-1 text-xs font-mono font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-300">
-                        {startup.funding_stage || "Early Stage"}
-                      </span>
+                      <div className="flex flex-wrap items-center justify-end gap-1.5">
+                        {isOwnStartup && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[10px] font-mono font-bold text-amber-800 shadow-xs dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300">
+                            <Sparkles className="w-3 h-3 text-amber-500" />
+                            Own Startup
+                          </span>
+                        )}
+                        <span className="rounded-full border border-slate-200/80 bg-slate-100/90 px-3 py-1 text-xs font-mono font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-300">
+                          {startup.funding_stage || "Early Stage"}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Startup & Founder Info */}

@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Briefcase, ArrowRight, Sparkles, Calendar } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 // Helper parser to safely extract array data regardless of API response wrapping
 function parseArrayData(data, key) {
@@ -67,6 +68,9 @@ const FeaturedOpportunities = ({
   featuredOpportunities = [],
   startups = [],
 }) => {
+  const { data: session } = authClient.useSession();
+  const currentUser = session?.user;
+
   // 1. Safely Parse Input Datasets
   const rawOpportunities = useMemo(
     () => parseArrayData(featuredOpportunities, "featuredOpportunities"),
@@ -108,15 +112,27 @@ const FeaturedOpportunities = ({
 
       return {
         oppId,
-        roleTitle: opp.role_title || opp.title || "Collaborator",
+        roleTitle: opp.roleTitle || opp.role_title || "Collaborator Role",
         startupName: finalStartupName,
-        startupId: matchedStartup?._id || matchedStartup?.id || targetStartupId,
+        startupId: matchedStartup?._id || matchedStartup?.id || targetStartupId || "",
         logo: finalLogo,
-        skills: parseSkills(opp.skills_required || opp.skills || []),
-        commitment: opp.commitment || "Part-time",
-        workType: opp.work_type || opp.workType || "Remote",
-        deadline: finalDeadline,
+        workType: opp.workType || opp.work_type || "Remote",
+        commitment: opp.commitmentLevel || opp.commitment_level || "Part-Time",
+        deadlineFormatted: formatDate(finalDeadline),
         expired: isDeadlinePassed(finalDeadline),
+        skills: parseSkills(opp.requiredSkills || opp.required_skills),
+        founderEmail:
+          opp.founder_email ||
+          opp.founderEmail ||
+          matchedStartup?.founder_email ||
+          matchedStartup?.founderEmail ||
+          "",
+        founderId:
+          opp.founderId ||
+          opp.startupId ||
+          matchedStartup?.startupId ||
+          matchedStartup?.userId ||
+          "",
       };
     });
   }, [rawOpportunities, startupLookup]);
@@ -124,40 +140,29 @@ const FeaturedOpportunities = ({
   return (
     <section className="relative overflow-hidden py-10 md:py-12 lg:py-14 text-slate-900 transition-colors duration-300 dark:text-slate-100 font-sans">
       <div className="container relative mx-auto px-6 lg:px-12 max-w-6xl">
-        {/* Section Header with Motion Scroll */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-40px" }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 pb-2"
-        >
-          <div className="max-w-2xl text-left space-y-3">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-violet-200/80 bg-violet-50 px-3.5 py-1 text-xs font-mono font-bold uppercase tracking-wider text-violet-700 dark:border-violet-500/20 dark:bg-violet-500/10 dark:text-violet-300">
-              <Sparkles className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
-              <span>Open Collaborative Roles</span>
+        {/* Section Header with Subtle Accent */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4 border-b border-slate-200/80 dark:border-slate-800/80 pb-6">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-violet-200/60 bg-violet-50/80 text-violet-700 text-xs font-mono font-medium dark:border-violet-500/20 dark:bg-violet-500/10 dark:text-violet-300 mb-2.5">
+              <Sparkles className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
+              <span>High Priority Openings</span>
             </div>
-            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl lg:text-5xl">
-              Featured{" "}
-              <span className="bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-violet-400 dark:via-indigo-300 dark:to-purple-300">
-                Opportunities
-              </span>
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+              Featured Opportunities
             </h2>
-            <p className="text-base text-slate-600 dark:text-slate-400 sm:text-lg leading-relaxed">
-              Find your next collaborative role. Join early-stage teams as an
-              engineer, designer, or growth specialist and build groundbreaking
-              ventures together.
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-xl">
+              Connect directly with verified venture founders looking for specialized talent.
             </p>
           </div>
 
           <Link
             href="/opportunities"
-            className="hidden sm:inline-flex items-center gap-2 font-mono text-xs font-bold text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 group shrink-0 pb-1"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 group shrink-0 transition-colors"
           >
-            <span>Explore All Roles ({opportunities.length})</span>
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            <span>Explore All Roles</span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
           </Link>
-        </motion.div>
+        </div>
 
         {/* Opportunities Grid */}
         {opportunities.length === 0 ? (
@@ -188,11 +193,22 @@ const FeaturedOpportunities = ({
             </div>
           </motion.div>
         ) : (
-          <div className="mt-8 md:mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {opportunities.slice(0, 5).map((item, idx) => {
-              const roleTitle =
-                item.roleTitle || item.role_title || item.title || "Collaborator Role";
+              const roleTitle = item.roleTitle;
               const workTypeBadgeStyle = getWorkTypeBadgeStyle(item.workType);
+
+              const itemFounderEmail = String(item.founderEmail || "").toLowerCase().trim();
+              const userEmail = String(currentUser?.email || "").toLowerCase().trim();
+              const userId = String(currentUser?.id || currentUser?._id || "");
+              const itemStartupId = String(item.startupId || "");
+
+              const isOwnPost = Boolean(
+                currentUser && (
+                  (userEmail && itemFounderEmail && itemFounderEmail === userEmail) ||
+                  (userId && itemStartupId && (itemStartupId === userId || String(item.founderId) === userId))
+                )
+              );
 
               return (
                 <motion.div
@@ -205,13 +221,21 @@ const FeaturedOpportunities = ({
                   className="group flex flex-col justify-between rounded-3xl border border-slate-200/90 bg-white p-6 shadow-sm hover:border-violet-300 hover:shadow-xl hover:shadow-violet-500/5 dark:border-slate-800/90 dark:bg-slate-900/80 dark:hover:border-violet-500/40 dark:hover:shadow-2xl dark:hover:shadow-violet-500/10"
                 >
                   <div>
-                    {/* Header Tags: Work Type & Commitment */}
+                    {/* Header Tags: Work Type & Commitment & Own Post */}
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span
-                        className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-mono font-semibold transition-colors ${workTypeBadgeStyle}`}
-                      >
-                        {item.workType}
-                      </span>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span
+                          className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-mono font-semibold transition-colors ${workTypeBadgeStyle}`}
+                        >
+                          {item.workType}
+                        </span>
+                        {isOwnPost && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[10px] font-mono font-bold text-amber-800 shadow-xs dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300">
+                            <Sparkles className="w-3 h-3 text-amber-500" />
+                            Own Post
+                          </span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-1.5">
                         <span className="rounded-full border border-slate-200/80 bg-slate-100/90 px-2.5 py-0.5 text-[11px] font-mono font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-300">
                           {item.commitment}
@@ -290,17 +314,17 @@ const FeaturedOpportunities = ({
                     </div>
                   </div>
 
-                  {/* Card Footer: Application Deadline & Action */}
+                  {/* Card Footer: Deadline & Action */}
                   <div className="mt-6 border-t border-slate-100 pt-4 dark:border-slate-800/80">
                     <div className="flex items-center justify-between gap-2">
                       <div>
-                        <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400 font-mono">
-                          <Calendar className="h-3 w-3 text-slate-400 dark:text-slate-400" />
-                          <span>Deadline</span>
-                        </div>
-                        <p className="mt-0.5 text-xs font-bold font-mono text-slate-800 dark:text-slate-200">
-                          {formatDate(item.deadline)}
+                        <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 font-mono">
+                          Deadline
                         </p>
+                        <div className="flex items-center gap-1 text-xs font-bold text-slate-800 dark:text-slate-200 font-mono">
+                          <Calendar className="h-3.5 w-3.5 text-violet-500" />
+                          <span>{item.deadlineFormatted}</span>
+                        </div>
                       </div>
 
                       <Link

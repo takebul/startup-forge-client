@@ -212,6 +212,13 @@ export default function OpportunityDetailsPage({
     founder?.image ||
     "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
 
+  const isOwnPost = Boolean(
+    user && (
+      (user.email && founderEmail && String(founderEmail).toLowerCase() === String(user.email).toLowerCase()) ||
+      (user.id && (String(matchedStartup?.startupId) === String(user.id) || String(opp?.startupId) === String(user.id) || String(startupId) === String(user.id)))
+    )
+  );
+
   // =========================================================================
   // SUBMIT APPLICATION HANDLER
   // =========================================================================
@@ -323,6 +330,12 @@ export default function OpportunityDetailsPage({
                   <span className="rounded-md bg-violet-100 px-2.5 py-0.5 text-xs font-semibold text-violet-700 dark:bg-violet-500/10 dark:text-violet-300 font-mono">
                     {commitmentLevel}
                   </span>
+                  {isOwnPost && (
+                    <span className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-xs font-mono font-bold text-amber-800 shadow-xs dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      Own Post
+                    </span>
+                  )}
                   {isDeadlinePassed && (
                     <span className="rounded-md bg-red-100 px-2.5 py-0.5 text-xs font-bold text-red-700 dark:bg-red-500/10 dark:text-red-400 font-mono border border-red-500/20">
                       Deadline Passed

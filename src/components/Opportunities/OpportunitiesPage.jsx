@@ -15,8 +15,10 @@ import {
   XCircle,
   ChevronLeft,
   ChevronRight,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@heroui/react";
+import { authClient } from "@/lib/auth-client";
 
 // Helper parser to safely extract array data
 function parseArrayData(data, key) {
@@ -85,6 +87,8 @@ export default function OpportunitiesPage({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { data: session } = authClient.useSession();
+  const currentUser = session?.user;
 
   // Read active filter values from URL search parameters
   const urlSearch = searchParams.get("search") || "";
@@ -131,7 +135,7 @@ export default function OpportunitiesPage({
     [startups],
   );
 
-  // 3. Associate Opportunities with Startup Details
+  // 3. Associate Opportunities with Startup Details & Founder Ownership
   const enrichedOpportunities = useMemo(() => {
     return rawOpportunities.map((opp) => {
       const oppStartupId = String(opp.startupId || "");
@@ -162,6 +166,18 @@ export default function OpportunitiesPage({
         logo: matchedStartup?.logo || opp.logo || null,
         resolvedIndustry:
           matchedStartup?.industry || opp.industry || "Technology",
+        founderEmail:
+          opp.founder_email ||
+          opp.founderEmail ||
+          matchedStartup?.founder_email ||
+          matchedStartup?.founderEmail ||
+          "",
+        founderId:
+          opp.founderId ||
+          opp.startupId ||
+          matchedStartup?.startupId ||
+          matchedStartup?.userId ||
+          "",
         parsedSkillsList: parseSkills(
           opp.requiredSkills || opp.required_skills,
         ),
@@ -253,7 +269,7 @@ export default function OpportunitiesPage({
         </div>
 
         {/* Filter Controls Bar */}
-        <div className="mt-10 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="mt-10 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800/90 dark:bg-slate-900/80">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             {/* Search Input */}
             <div className="relative flex-1">
@@ -268,12 +284,12 @@ export default function OpportunitiesPage({
                     placeholder="Search by role title or skills (e.g. React, Python, Figma)..."
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-800 outline-none transition-colors focus:border-violet-600 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:border-violet-500"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition-colors focus:border-violet-600 focus:bg-white dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-950 dark:focus:border-violet-500 [color-scheme:light] dark:[color-scheme:dark]"
                   />
                 </div>
                 <Button
                   type="submit"
-                  className="rounded-xl bg-violet-600 text-white font-semibold text-xs px-4 h-10 hover:bg-violet-700 transition-colors cursor-pointer"
+                  className="rounded-xl bg-violet-600 text-white font-semibold text-xs px-4 h-10 hover:bg-violet-700 transition-colors cursor-pointer shadow-sm shadow-violet-600/20"
                 >
                   Search
                 </Button>
@@ -292,10 +308,10 @@ export default function OpportunitiesPage({
                   onChange={(e) =>
                     updateQueryParam({ workType: e.target.value })
                   }
-                  className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 outline-none transition-colors focus:border-violet-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 cursor-pointer"
+                  className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 outline-none transition-colors focus:border-violet-600 focus:bg-white dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-200 dark:focus:bg-slate-950 dark:focus:border-violet-500 cursor-pointer [color-scheme:light] dark:[color-scheme:dark]"
                 >
                   {workTypes.map((type, index) => (
-                    <option key={index} value={type}>
+                    <option key={index} value={type} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
                       {type}
                     </option>
                   ))}
@@ -312,10 +328,10 @@ export default function OpportunitiesPage({
                   onChange={(e) =>
                     updateQueryParam({ industry: e.target.value })
                   }
-                  className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 outline-none transition-colors focus:border-violet-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 cursor-pointer"
+                  className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 outline-none transition-colors focus:border-violet-600 focus:bg-white dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-200 dark:focus:bg-slate-950 dark:focus:border-violet-500 cursor-pointer [color-scheme:light] dark:[color-scheme:dark]"
                 >
                   {industries.map((ind, index) => (
-                    <option key={index} value={ind}>
+                    <option key={index} value={ind} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
                       {ind}
                     </option>
                   ))}
@@ -330,11 +346,11 @@ export default function OpportunitiesPage({
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 outline-none transition-colors focus:border-violet-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 cursor-pointer"
+                  className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 outline-none transition-colors focus:border-violet-600 focus:bg-white dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-200 dark:focus:bg-slate-950 dark:focus:border-violet-500 cursor-pointer [color-scheme:light] dark:[color-scheme:dark]"
                 >
-                  <option value="default">Default (Newest)</option>
-                  <option value="deadline">Closest Deadline</option>
-                  <option value="title">Role Title (A-Z)</option>
+                  <option value="default" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Default (Newest)</option>
+                  <option value="deadline" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Closest Deadline</option>
+                  <option value="title" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Role Title (A-Z)</option>
                 </select>
               </div>
             </div>
@@ -392,6 +408,26 @@ export default function OpportunitiesPage({
                   item.commitmentLevel || item.commitment_level || "Contract";
                 const deadlineFormatted = formatDate(item.deadline);
 
+                const itemFounderEmail = String(
+                  item.founderEmail || item.founder_email || "",
+                )
+                  .toLowerCase()
+                  .trim();
+                const userEmail = String(currentUser?.email || "")
+                  .toLowerCase()
+                  .trim();
+                const userId = String(currentUser?.id || currentUser?._id || "");
+                const itemStartupId = String(
+                  item.resolvedStartupId || item.startupId || item.startup_id || "",
+                );
+
+                const isOwnPost = Boolean(
+                  currentUser && (
+                    (userEmail && itemFounderEmail && itemFounderEmail === userEmail) ||
+                    (userId && itemStartupId && (itemStartupId === userId || String(item.founderId) === userId))
+                  )
+                );
+
                 return (
                   <motion.div
                     key={oppId}
@@ -405,11 +441,19 @@ export default function OpportunitiesPage({
                     <div>
                       {/* Header Tags: Work Type & Commitment */}
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span
-                          className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-mono font-semibold transition-colors ${getWorkTypeBadgeStyle(workType)}`}
-                        >
-                          {workType}
-                        </span>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span
+                            className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-mono font-semibold transition-colors ${getWorkTypeBadgeStyle(workType)}`}
+                          >
+                            {workType}
+                          </span>
+                          {isOwnPost && (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[10px] font-mono font-bold text-amber-800 shadow-xs dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300">
+                              <Sparkles className="w-3 h-3 text-amber-500" />
+                              Own Post
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center gap-1.5">
                           <span className="rounded-full border border-slate-200/80 bg-slate-100/90 px-2.5 py-0.5 text-[11px] font-mono font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-300">
                             {commitmentLevel}

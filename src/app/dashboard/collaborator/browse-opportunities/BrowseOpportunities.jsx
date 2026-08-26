@@ -884,6 +884,13 @@ export default function BrowseOpportunities({
             const isDeadlinePassed = checkIsDeadlinePassed(o.deadline);
             const skillsList = getSkillsArray(o.requiredSkills);
 
+            const isOwnPost = Boolean(
+              fullUser && (
+                (fullUser.email && (o.founderEmail || o.founder_email) && String(o.founderEmail || o.founder_email).toLowerCase() === String(fullUser.email).toLowerCase()) ||
+                (activeUserId && (String(o.startupId) === String(activeUserId) || String(o.resolvedStartupId) === String(activeUserId)))
+              )
+            );
+
             return (
               <div
                 key={itemId}
@@ -894,7 +901,7 @@ export default function BrowseOpportunities({
                 }`}
               >
                 <div>
-                  {/* Header Tags: Work Type, Commitment, Expired & Bookmark Button */}
+                  {/* Header Tags: Work Type, Commitment, Own Post, Expired & Bookmark Button */}
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex flex-wrap items-center gap-1.5">
                       <span
@@ -908,6 +915,12 @@ export default function BrowseOpportunities({
                       >
                         {o.workType || "Remote"}
                       </span>
+                      {isOwnPost && (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[10px] font-mono font-bold text-amber-800 shadow-xs dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300">
+                          <Sparkles className="w-3 h-3 text-amber-500" />
+                          Own Post
+                        </span>
+                      )}
                       <span className="rounded-full border border-slate-200/80 bg-slate-100/90 px-2.5 py-0.5 text-[11px] font-mono font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-300">
                         {o.commitmentLevel || "Part-Time"}
                       </span>

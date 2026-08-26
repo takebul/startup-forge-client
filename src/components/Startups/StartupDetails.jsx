@@ -266,6 +266,13 @@ export default function StartupDetails({
     founder?.image ||
     "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
 
+  const isOwnStartup = Boolean(
+    user && (
+      (user.email && startup?.founder_email && String(startup.founder_email).toLowerCase() === String(user.email).toLowerCase()) ||
+      (user.id && (String(startup?.startupId) === String(user.id) || String(startup?.userId) === String(user.id) || String(startup?._id || startup?.id) === String(user.id)))
+    )
+  );
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors duration-200 dark:bg-slate-950 dark:text-slate-100 font-sans">
       {/* -----------------------------------------------------------------------------
@@ -305,6 +312,12 @@ export default function StartupDetails({
                   <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
                     {startupName}
                   </h1>
+                  {isOwnStartup && (
+                    <span className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-mono font-bold text-amber-800 shadow-xs dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      Own Startup
+                    </span>
+                  )}
                   <span className="rounded-md bg-violet-100 px-2.5 py-1 text-xs font-mono font-bold text-violet-700 dark:bg-violet-500/10 dark:text-violet-300">
                     {fundingStage}
                   </span>
