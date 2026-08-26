@@ -1,6 +1,6 @@
-import { serverFetch } from "../core/server";
+import { protectedFetch } from "../core/server";
 
 export const getNotifications = async (userId, role) => {
   if (!userId) return { notifications: [], unreadCount: 0 };
-  return serverFetch(`/api/notifications?userId=${userId}&role=${role}`);
+  return protectedFetch(`/api/notifications?userId=${userId}&role=${role}`);
 };

@@ -1,12 +1,8 @@
-import { protectedFetch, serverFetch } from "../core/server";
+import { protectedFetch } from "../core/server";
 
 export const getProfileData = async (userId) => {
-  return serverFetch(`/api/user/profile/${userId}`);
+  return protectedFetch(`/api/user/profile/${userId}`);
 };
-
-// export const getUsersData = async () => {
-//   return serverFetch("/api/users");
-// };
 
 export const getUsersData = async () => {
   return protectedFetch("/api/users");

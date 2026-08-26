@@ -1,11 +1,13 @@
-import { protectedFetch, serverFetch } from "../core/server";
+import { protectedFetch } from "../core/server";
 
 export const getApplicationsById = async (opportunityId) => {
-  return serverFetch(`/api/my/applications?applicationId=${opportunityId}`);
+  return protectedFetch(`/api/my/applications?applicationId=${opportunityId}`);
 };
 
 export const getApplicationsByCollaboratorId = async (collaboratorId) => {
-  return serverFetch(`/api/my/applications?collaboratorId=${collaboratorId}`);
+  return protectedFetch(
+    `/api/my/applications?collaboratorId=${collaboratorId}`,
+  );
 };
 
 export const getApplicationsByStartupId = async (startupId) => {

@@ -1,7 +1,7 @@
-import { serverFetch } from "../core/server";
+import { protectedFetch, serverFetch } from "../core/server";
 
 export const getOpportunitiesByUserId = async (startupId) => {
-  return serverFetch(`/api/my/opportunities?startupId=${startupId}`);
+  return protectedFetch(`/api/my/opportunities?startupId=${startupId}`);
 };
 
 // export const getOpportunities = async (search, page, limit) => {

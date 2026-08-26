@@ -1,7 +1,7 @@
-import { serverFetch } from "../core/server";
+import { protectedFetch, serverFetch } from "../core/server";
 
 export const getFounderStartup = async (startupId) => {
-  return serverFetch(`/api/my/startup?startupId=${startupId}`);
+  return protectedFetch(`/api/my/startup?startupId=${startupId}`);
 };
 
 export const getStartups = async () => {

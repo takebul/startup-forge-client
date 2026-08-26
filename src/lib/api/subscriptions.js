@@ -1,5 +1,5 @@
-import { serverFetch } from "../core/server";
+import { protectedFetch } from "../core/server";
 
 export const getSubscriptions = async () => {
-  return serverFetch("/api/subscriptions");
+  return protectedFetch("/api/subscriptions");
 };
