@@ -18,7 +18,6 @@ import {
   User,
   Users,
   Zap,
-  Flame,
   ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
@@ -178,8 +177,8 @@ const DashboardSidebar = ({ initialUser }) => {
       {/* Brand Logo & Platform Badge */}
       <div className="flex h-16 items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800/70">
         <Link href="/" className="flex items-center space-x-2.5 group">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 text-white font-bold font-mono shadow-sm group-hover:scale-105 transition-transform">
-            <Flame className="w-4 h-4" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-violet-600 via-purple-600 to-indigo-600 text-white shadow-sm shadow-violet-600/30 group-hover:scale-105 transition-transform">
+            <Rocket className="w-4 h-4" />
           </div>
           <span className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
             StartupForge

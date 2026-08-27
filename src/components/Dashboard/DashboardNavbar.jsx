@@ -24,7 +24,6 @@ import {
   Search,
   Bookmark,
   User,
-  Flame,
   CreditCard,
   ChevronRight,
   BadgeCheck,
@@ -353,8 +352,8 @@ export default function DashboardNavbar({ user: initialUser }) {
 
           {/* Mobile/Tablet Brand Logo Mark (Line break: StartupForge on top, Persona badge below) */}
           <Link href="/" className="flex items-center gap-2.5 lg:hidden group">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 text-white font-bold font-mono shadow-sm group-hover:scale-105 transition-transform shrink-0">
-              <Flame className="w-4.5 h-4.5" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-violet-600 via-purple-600 to-indigo-600 text-white shadow-sm shadow-violet-600/30 group-hover:scale-105 transition-transform shrink-0">
+              <Rocket className="w-4.5 h-4.5" />
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
@@ -615,8 +614,8 @@ export default function DashboardNavbar({ user: initialUser }) {
                 onClick={() => setIsMobileDrawerOpen(false)}
                 className="flex items-center space-x-2.5"
               >
-                <div className="flex h-8.5 w-8.5 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 text-white font-bold font-mono shadow-sm shrink-0">
-                  <Flame className="w-4.5 h-4.5" />
+                <div className="flex h-8.5 w-8.5 items-center justify-center rounded-xl bg-gradient-to-tr from-violet-600 via-purple-600 to-indigo-600 text-white shadow-sm shadow-violet-600/30 shrink-0">
+                  <Rocket className="w-4.5 h-4.5" />
                 </div>
                 <div className="flex flex-col min-w-0">
                   <span className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">

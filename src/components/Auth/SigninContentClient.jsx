@@ -14,7 +14,7 @@ import {
   CheckCircle2,
   Loader2,
   ShieldAlert,
-  Flame,
+  Rocket,
   Shield,
 } from "lucide-react";
 import Link from "next/link";
@@ -231,8 +231,8 @@ function SigninContent() {
         {/* Header: logo, title, and subtitle */}
         <div className="mb-7">
           <div className="flex items-center gap-2.5 mb-4">
-            <div className="w-8 h-8 rounded-xl bg-violet-100 border border-violet-200 dark:bg-violet-500/10 dark:border-violet-500/20 flex items-center justify-center text-violet-600 dark:text-violet-400">
-              <Flame className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-violet-600 via-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-sm shadow-violet-600/30">
+              <Rocket className="w-4 h-4" />
             </div>
             <span className="text-xs font-bold tracking-wider text-violet-600 dark:text-violet-400 uppercase font-mono">
               StartupForge Auth
