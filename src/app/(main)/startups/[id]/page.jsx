@@ -1,7 +1,7 @@
 import { getOpportunities } from "@/lib/api/opportunities";
-import { getUsersData } from "@/lib/api/users";
+import { getProfileData, getUsersData } from "@/lib/api/users";
 import { getStartupDetails } from "@/lib/api/startups";
-import { getApplicationsById } from "@/lib/api/applications";
+import { getApplicationsByCollaboratorId } from "@/lib/api/applications";
 import { getUserSession } from "@/lib/core/session";
 import StartupDetails from "@/components/Startups/StartupDetails";
 
@@ -42,14 +42,19 @@ const StartupDetailsPage = async ({ params }) => {
       : user?.accountType || (user?.role !== "user" ? user?.role : null);
 
   // 2. Fetch opportunity details, startups, and conditionally users data
-  const [opportunities, userData, startup] = await Promise.all([
+  const [opportunities, userData, startup, profileData] = await Promise.all([
     getOpportunities(),
     resolvedRole === "admin" ? getUsersData() : Promise.resolve([]),
     getStartupDetails(id),
+    user?.id ? getProfileData(user.id) : Promise.resolve(null),
   ]);
 
+  const fullUser = profileData?.data || profileData?.user || profileData;
+
   // 2. Fetch logged-in collaborator's existing applications
-  const userApplications = user?.id ? await getApplicationsById(user.id) : [];
+  const userApplications = user?.id
+    ? await getApplicationsByCollaboratorId(user?.id)
+    : [];
 
   // 3. Extract array of opportunity IDs the user has already submitted to
   const initialAppliedOppIds = Array.isArray(userApplications)
@@ -66,6 +71,7 @@ const StartupDetailsPage = async ({ params }) => {
         startups={startup}
         opportunities={opportunities}
         userData={userData}
+        initialUser={fullUser ? { ...user, ...fullUser } : user}
         initialAppliedOppIds={initialAppliedOppIds}
       />
     </div>
@@ -73,4 +79,3 @@ const StartupDetailsPage = async ({ params }) => {
 };
 
 export default StartupDetailsPage;
-

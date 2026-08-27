@@ -5,6 +5,7 @@ import { getUserToken } from "./session";
 
 const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL;
 
+// Build the authenticated request headers.
 export const authHeader = async () => {
   const token = await getUserToken();
   const header = token
@@ -16,6 +17,7 @@ export const authHeader = async () => {
   return header;
 };
 
+// Send a JSON mutation to the backend.
 export const serverMutation = async (path, data, method = "POST") => {
   const uri = `${baseUrl}${path}`;
 
@@ -31,6 +33,7 @@ export const serverMutation = async (path, data, method = "POST") => {
   return handleStatusCode(res);
 };
 
+// Delete a backend resource.
 export const deleteData = async (dataId) => {
   const uri = `${baseUrl}${dataId}`;
 
@@ -41,6 +44,7 @@ export const deleteData = async (dataId) => {
   return handleStatusCode(res);
 };
 
+// Fetch a public backend resource.
 export const serverFetch = async (path) => {
   const uri = `${baseUrl}${path}`;
 
@@ -48,6 +52,7 @@ export const serverFetch = async (path) => {
   return handleStatusCode(res);
 };
 
+// Fetch a protected backend resource.
 export const protectedFetch = async (path) => {
   const uri = `${baseUrl}${path}`;
 
@@ -60,6 +65,7 @@ export const protectedFetch = async (path) => {
   return handleStatusCode(res);
 };
 
+// Handle authentication redirects and decode the response.
 const handleStatusCode = (res) => {
   if (res.status === 401) {
     redirect("/unauthorized");

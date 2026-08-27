@@ -1,7 +1,7 @@
 import { getOpportunityDetails } from "@/lib/api/opportunities";
 import { getStartups } from "@/lib/api/startups";
-import { getUsersData } from "@/lib/api/users";
-import { getApplicationsById } from "@/lib/api/applications";
+import { getProfileData, getUsersData } from "@/lib/api/users";
+import { getApplicationsByCollaboratorId } from "@/lib/api/applications";
 import { getUserSession } from "@/lib/core/session";
 import OpportunityDetailsPage from "@/components/Opportunities/OpportunityDetailsPage";
 
@@ -43,14 +43,19 @@ const OpportunityDetailsPageWrapper = async ({ params }) => {
       : user?.accountType || (user?.role !== "user" ? user?.role : null);
 
   // 2. Fetch opportunity details, startups, and conditionally users data
-  const [opportunity, startups, userData] = await Promise.all([
+  const [opportunity, startups, userData, profileData] = await Promise.all([
     getOpportunityDetails(id),
     getStartups(),
     resolvedRole === "admin" ? getUsersData() : Promise.resolve([]),
+    user?.id ? getProfileData(user.id) : Promise.resolve(null),
   ]);
 
+  const fullUser = profileData?.data || profileData?.user || profileData;
+
   // 2. Fetch logged-in collaborator's submitted applications to check if already applied
-  const userApplications = user?.id ? await getApplicationsById(user.id) : [];
+  const userApplications = user?.id
+    ? await getApplicationsByCollaboratorId(user?.id)
+    : [];
 
   const initialAppliedOppIds = Array.isArray(userApplications)
     ? userApplications
@@ -66,6 +71,7 @@ const OpportunityDetailsPageWrapper = async ({ params }) => {
         opportunity={opportunity}
         startups={startups}
         userData={userData}
+        initialUser={fullUser ? { ...user, ...fullUser } : user}
         initialAppliedOppIds={initialAppliedOppIds}
       />
     </div>
@@ -73,4 +79,3 @@ const OpportunityDetailsPageWrapper = async ({ params }) => {
 };
 
 export default OpportunityDetailsPageWrapper;
-

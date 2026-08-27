@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -11,9 +11,7 @@ import {
   CreditCard,
   KeyRound,
   CheckCircle2,
-  Sparkles,
   Edit,
-  ExternalLink,
   Lock,
 } from "lucide-react";
 import {
@@ -94,7 +92,10 @@ export default function AdminProfileWrapper({ initialUser }) {
       setTimeout(() => setSaved(false), 3500);
 
       router.refresh();
-      toast.update("Admin Profile Saved", "Administrator credentials and profile updated successfully.");
+      toast.update(
+        "Admin Profile Saved",
+        "Administrator credentials and profile updated successfully.",
+      );
     } catch (err) {
       console.error("Failed to save admin profile:", err);
       setError(err?.message || "Failed to update profile. Please try again.");
@@ -112,7 +113,8 @@ export default function AdminProfileWrapper({ initialUser }) {
           <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <span>Administrator Profile</span>
             <span className="text-[10px] font-mono font-bold text-purple-700 bg-purple-100 border border-purple-200 dark:text-purple-400 dark:bg-purple-500/10 dark:border-purple-500/20 px-2.5 py-0.5 rounded-full uppercase flex items-center gap-1">
-              <Crown className="w-3 h-3 text-purple-600 dark:text-purple-400" /> Super Admin
+              <Crown className="w-3 h-3 text-purple-600 dark:text-purple-400" />{" "}
+              Super Admin
             </span>
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -181,7 +183,10 @@ export default function AdminProfileWrapper({ initialUser }) {
               Tier: <strong>Full Admin Bypass</strong>
             </span>
             <span className="text-[11px] font-mono text-slate-600 bg-slate-100 border border-slate-200 dark:text-slate-400 dark:bg-slate-800/60 dark:border-slate-800 px-3 py-1.5 rounded-xl text-center">
-              Role ID: <strong className="text-slate-800 dark:text-slate-200">admin_root</strong>
+              Role ID:{" "}
+              <strong className="text-slate-800 dark:text-slate-200">
+                admin_root
+              </strong>
             </span>
           </div>
         </div>

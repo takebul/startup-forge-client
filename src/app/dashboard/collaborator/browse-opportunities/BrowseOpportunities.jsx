@@ -6,7 +6,6 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Btn,
-  Badge,
   Modal,
   EmptyState,
 } from "@/components/Dashboard/founder-dashboard-shared";
@@ -14,26 +13,15 @@ import { Bookmark } from "@gravity-ui/icons";
 import {
   CheckCircle2,
   Inbox,
-  XCircle,
-  Clock,
-  Briefcase,
-  ExternalLink,
-  ShieldAlert,
   Rocket,
   Search,
   RotateCcw,
-  Building2,
+  Sparkles,
 } from "lucide-react";
 import { createApplication } from "@/lib/actions/applications";
 import { createBookmark, deleteBookmark } from "@/lib/actions/bookmarks";
 import ApplyModal from "@/components/ApplyModal/ApplyModal";
 import { toast } from "@/components/Toast/Toast";
-
-const WORK_TYPE_VARIANTS = {
-  Remote: "green",
-  Hybrid: "indigo",
-  "On-site": "blue",
-};
 
 const PAGE_SIZE = 4;
 
@@ -268,10 +256,7 @@ export default function BrowseOpportunities({
           opp.startupName ||
           opp.startup_name ||
           "Startup",
-        industry:
-          matchedStartup?.industry ||
-          opp.industry ||
-          "Technology",
+        industry: matchedStartup?.industry || opp.industry || "Technology",
         logo: matchedStartup?.logo || opp.logo || null,
         resolvedStartupId: String(resolvedStartupId),
       };
@@ -298,9 +283,7 @@ export default function BrowseOpportunities({
         if (!oppId) return null;
 
         const oppStartupId = String(opp.startupId || item.startupId || "");
-        const oppStartupName = String(
-          opp.startupName || item.startupName || "",
-        )
+        const oppStartupName = String(opp.startupName || item.startupName || "")
           .toLowerCase()
           .trim();
 
@@ -540,7 +523,12 @@ export default function BrowseOpportunities({
       return filteredBookmarkedList.slice(startIndex, startIndex + PAGE_SIZE);
     }
     return opportunitiesList;
-  }, [isBookmarkedMode, filteredBookmarkedList, bookmarkedPage, opportunitiesList]);
+  }, [
+    isBookmarkedMode,
+    filteredBookmarkedList,
+    bookmarkedPage,
+    opportunitiesList,
+  ]);
 
   // Profile completion calculator
   const getProfileCompletion = (userData) => {
@@ -619,7 +607,10 @@ export default function BrowseOpportunities({
     try {
       if (isBookmarked) {
         await deleteBookmark(targetId, activeUserId);
-        toast.delete("Bookmark Removed", "Opportunity removed from your saved list.");
+        toast.delete(
+          "Bookmark Removed",
+          "Opportunity removed from your saved list.",
+        );
       } else {
         const targetOpp =
           opportunitiesList.find((o) => String(o._id || o.id) === targetId) ||
@@ -636,7 +627,10 @@ export default function BrowseOpportunities({
           deadline: targetOpp?.deadline || "N/A",
           requiredSkills: getSkillsArray(targetOpp?.requiredSkills),
         });
-        toast.create("Opportunity Bookmarked!", `"${targetOpp?.roleTitle || "Role"}" saved to your bookmarks.`);
+        toast.create(
+          "Opportunity Bookmarked!",
+          `"${targetOpp?.roleTitle || "Role"}" saved to your bookmarks.`,
+        );
       }
     } catch (err) {
       console.error("Failed to toggle bookmark:", err);
@@ -687,10 +681,16 @@ export default function BrowseOpportunities({
         motivation: "",
       });
       setShowSuccessModal(true);
-      toast.create("Application Submitted!", `Your application for "${payload.opportunityTitle}" was sent.`);
+      toast.create(
+        "Application Submitted!",
+        `Your application for "${payload.opportunityTitle}" was sent.`,
+      );
     } catch (err) {
       console.error("Failed to post application:", err);
-      toast.error("Application Failed", err.message || "Failed to submit application.");
+      toast.error(
+        "Application Failed",
+        err.message || "Failed to submit application.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -885,10 +885,14 @@ export default function BrowseOpportunities({
             const skillsList = getSkillsArray(o.requiredSkills);
 
             const isOwnPost = Boolean(
-              fullUser && (
-                (fullUser.email && (o.founderEmail || o.founder_email) && String(o.founderEmail || o.founder_email).toLowerCase() === String(fullUser.email).toLowerCase()) ||
-                (activeUserId && (String(o.startupId) === String(activeUserId) || String(o.resolvedStartupId) === String(activeUserId)))
-              )
+              fullUser &&
+              ((fullUser.email &&
+                (o.founderEmail || o.founder_email) &&
+                String(o.founderEmail || o.founder_email).toLowerCase() ===
+                  String(fullUser.email).toLowerCase()) ||
+                (activeUserId &&
+                  (String(o.startupId) === String(activeUserId) ||
+                    String(o.resolvedStartupId) === String(activeUserId)))),
             );
 
             return (

@@ -4,12 +4,7 @@ export const getOpportunitiesByUserId = async (startupId) => {
   return protectedFetch(`/api/my/opportunities?startupId=${startupId}`);
 };
 
-// export const getOpportunities = async (search, page, limit) => {
-//   return serverFetch(
-//     `/api/opportunities?search=${search}&page=${page}&limit=${limit}`,
-//   );
-// };
-
+// Fetch paginated opportunities using the active search filters.
 export const getOpportunities = async ({
   search = "",
   workType = "",

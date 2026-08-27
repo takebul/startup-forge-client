@@ -59,7 +59,6 @@ const FeaturedStartups = ({ featuredStartups = [], opportunities = [] }) => {
   return (
     <section className="relative overflow-hidden py-10 md:py-12 lg:py-14 text-slate-900 transition-colors duration-300 dark:text-slate-100 font-sans">
       <div className="container relative mx-auto px-6 lg:px-12 max-w-6xl">
-
         {/* Section Header with Motion Scroll */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -89,7 +88,7 @@ const FeaturedStartups = ({ featuredStartups = [], opportunities = [] }) => {
             href="/startups"
             className="hidden sm:inline-flex items-center gap-2 font-mono text-xs font-bold text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 group shrink-0 pb-1"
           >
-            <span>Explore All Startups ({startups.length})</span>
+            <span>Explore All Startups</span>
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
         </motion.div>
@@ -134,14 +133,17 @@ const FeaturedStartups = ({ featuredStartups = [], opportunities = [] }) => {
                 .toLowerCase()
                 .trim();
               const userId = String(currentUser?.id || currentUser?._id || "");
-              const sOwnerId = String(startup.startupId || startup.userId || "");
+              const sOwnerId = String(
+                startup.startupId || startup.userId || "",
+              );
               const sDocId = String(startup._id || startup.id || "");
 
               const isOwnStartup = Boolean(
-                currentUser && (
-                  (userEmail && startupFounderEmail && startupFounderEmail === userEmail) ||
-                  (userId && (sOwnerId === userId || sDocId === userId))
-                )
+                currentUser &&
+                ((userEmail &&
+                  startupFounderEmail &&
+                  startupFounderEmail === userEmail) ||
+                  (userId && (sOwnerId === userId || sDocId === userId))),
               );
 
               return (
@@ -150,7 +152,11 @@ const FeaturedStartups = ({ featuredStartups = [], opportunities = [] }) => {
                   initial={{ opacity: 0, y: 35 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-40px" }}
-                  transition={{ duration: 0.45, delay: idx * 0.08, ease: "easeOut" }}
+                  transition={{
+                    duration: 0.45,
+                    delay: idx * 0.08,
+                    ease: "easeOut",
+                  }}
                   whileHover={{ y: -6, transition: { duration: 0.2 } }}
                   className="group flex flex-col justify-between rounded-3xl border border-slate-200/90 bg-white p-6 shadow-sm hover:border-violet-300 hover:shadow-xl hover:shadow-violet-500/5 dark:border-slate-800/90 dark:bg-slate-900/80 dark:hover:border-violet-500/40 dark:hover:shadow-2xl dark:hover:shadow-violet-500/10"
                 >
@@ -259,7 +265,8 @@ const FeaturedStartups = ({ featuredStartups = [], opportunities = [] }) => {
                       Explore All Active Startups
                     </h3>
                     <p className="mt-3 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                      Discover hundreds of fast-growing ventures seeking talent, co-founders, and specialized team members.
+                      Discover hundreds of fast-growing ventures seeking talent,
+                      co-founders, and specialized team members.
                     </p>
                   </div>
                 </div>
@@ -299,6 +306,3 @@ const FeaturedStartups = ({ featuredStartups = [], opportunities = [] }) => {
 };
 
 export default FeaturedStartups;
-
-
-

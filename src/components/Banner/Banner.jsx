@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button, Chip, ProgressBar } from "@heroui/react";
 import {
   ResponsiveContainer,
@@ -16,12 +16,10 @@ import {
 import {
   ArrowRight,
   Plus,
-  Rocket,
   Search,
   Users,
   Building2,
   FileCheck,
-  Sparkles,
   TrendingUp,
   Zap,
   ShieldCheck,
@@ -41,11 +39,15 @@ function parseArrayData(data, key) {
 }
 
 // Collaborator profile strength calculator
+const DEFAULT_PROFILE_IMAGE =
+  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
+
 function calculateProfileStrength(userData) {
   if (!userData) return 25;
   let score = 0;
   if (userData.name && String(userData.name).trim().length > 0) score += 25;
-  if (userData.image && String(userData.image).trim().length > 0) score += 25;
+  const image = userData.image || DEFAULT_PROFILE_IMAGE;
+  if (String(image).trim().length > 0) score += 25;
   if (
     userData.skills &&
     (Array.isArray(userData.skills)
@@ -139,7 +141,8 @@ const GuestBanner = () => {
   const [activeTab, setActiveTab] = useState("matches"); // 'matches' | 'growth'
 
   useEffect(() => {
-    setMounted(true);
+    const frame = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   return (
@@ -148,7 +151,12 @@ const GuestBanner = () => {
         {/* Top Hero Pitch */}
         <div className="mx-auto max-w-4xl text-center">
           {/* Live Active Badge */}
-          <motion.div variants={fadeUp} initial="hidden" animate="show" custom={0}>
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            custom={0}
+          >
             <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold tracking-wide border-violet-200 bg-white/80 text-violet-700 dark:border-violet-500/25 dark:bg-violet-500/10 dark:text-violet-300 shadow-xs backdrop-blur-md">
               <span className="h-2 w-2 animate-pulse rounded-full bg-violet-600 dark:bg-violet-400" />
               500+ Active Startups Recruiting Right Now
@@ -165,7 +173,7 @@ const GuestBanner = () => {
           >
             Build great startups
             <br />
-            <span className="bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-violet-400 dark:via-indigo-300 dark:to-purple-300">
+            <span className="bg-linear-to-r from-violet-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-violet-400 dark:via-indigo-300 dark:to-purple-300">
               together on StartupForge
             </span>
           </motion.h1>
@@ -204,7 +212,7 @@ const GuestBanner = () => {
             <Link href="/signup" className="w-full sm:w-auto">
               <Button
                 size="lg"
-                variant="bordered"
+                variant="outline"
                 className="w-full sm:w-auto rounded-2xl border border-slate-300/90 bg-white/80 hover:bg-white text-slate-800 font-bold text-sm shadow-xs hover:border-violet-400 hover:-translate-y-0.5 active:scale-95 transition-all dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-900 px-8 py-3.5"
               >
                 Post an Opportunity
@@ -226,7 +234,7 @@ const GuestBanner = () => {
           {/* Deck Header Bar with Interactive Tab Switcher */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 dark:border-slate-800/80 pb-5">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-600/25">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-linear-to-tr from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-600/25">
                 <Activity className="h-5 w-5" />
               </div>
               <div>
@@ -240,7 +248,8 @@ const GuestBanner = () => {
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Real-time matching velocity and ecosystem liquidity across 30+ domains
+                  Real-time matching velocity and ecosystem liquidity across 30+
+                  domains
                 </p>
               </div>
             </div>
@@ -316,7 +325,7 @@ const GuestBanner = () => {
           </div>
 
           {/* Dynamic Recharts Visualization */}
-          <div className="mt-6 h-[240px] w-full">
+          <div className="mt-6 h-60 w-full">
             {mounted ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
@@ -324,17 +333,45 @@ const GuestBanner = () => {
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                 >
                   <defs>
-                    <linearGradient id="colorMatches" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient
+                      id="colorMatches"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
                       <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#7c3aed" stopOpacity={0.0} />
+                      <stop
+                        offset="95%"
+                        stopColor="#7c3aed"
+                        stopOpacity={0.0}
+                      />
                     </linearGradient>
                     <linearGradient id="colorApps" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
+                      <stop
+                        offset="95%"
+                        stopColor="#6366f1"
+                        stopOpacity={0.0}
+                      />
                     </linearGradient>
-                    <linearGradient id="colorVentures" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+                    <linearGradient
+                      id="colorVentures"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="5%"
+                        stopColor="#10b981"
+                        stopOpacity={0.35}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor="#10b981"
+                        stopOpacity={0.0}
+                      />
                     </linearGradient>
                   </defs>
                   <CartesianGrid
@@ -434,7 +471,8 @@ const FounderBanner = ({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    const frame = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   const appsList = useMemo(() => {
@@ -496,8 +534,8 @@ const FounderBanner = ({
               variants={fadeUp}
               className="text-sm leading-relaxed text-slate-600 dark:text-slate-400 max-w-xl"
             >
-              Post new roles, review candidate applications with verified skill tags,
-              and coordinate your recruitment pipeline in real time.
+              Post new roles, review candidate applications with verified skill
+              tags, and coordinate your recruitment pipeline in real time.
             </motion.p>
 
             <motion.div
@@ -516,7 +554,7 @@ const FounderBanner = ({
 
               <Link href="/dashboard/founder/applications">
                 <Button
-                  variant="bordered"
+                  variant="outline"
                   className="rounded-2xl border-slate-300/80 bg-white/80 text-slate-700 hover:bg-white dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-900 font-semibold text-xs px-5 py-3 hover:-translate-y-0.5 transition-all shadow-xs"
                   startContent={<Users className="w-4 h-4" />}
                 >
@@ -566,14 +604,31 @@ const FounderBanner = ({
             </div>
 
             {/* Interactive Recharts Sparkline */}
-            <div className="h-[110px] w-full pt-1">
+            <div className="h-27.5 w-full pt-1">
               {mounted ? (
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={FOUNDER_VELOCITY_DATA} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                  <AreaChart
+                    data={FOUNDER_VELOCITY_DATA}
+                    margin={{ top: 5, right: 5, left: -25, bottom: 0 }}
+                  >
                     <defs>
-                      <linearGradient id="founderVelocity" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.4} />
-                        <stop offset="95%" stopColor="#7c3aed" stopOpacity={0.0} />
+                      <linearGradient
+                        id="founderVelocity"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor="#7c3aed"
+                          stopOpacity={0.4}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#7c3aed"
+                          stopOpacity={0.0}
+                        />
                       </linearGradient>
                     </defs>
                     <Tooltip content={<CustomChartTooltip />} />
@@ -679,7 +734,7 @@ const CollaboratorBanner = ({
 
               <Link href="/dashboard/collaborator/my-applications">
                 <Button
-                  variant="bordered"
+                  variant="outline"
                   className="rounded-2xl border-slate-300/80 bg-white/80 text-slate-700 hover:bg-white dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-900 font-semibold text-xs px-5 py-3 hover:-translate-y-0.5 transition-all shadow-xs"
                   startContent={<FileCheck className="w-4 h-4" />}
                 >
@@ -735,7 +790,6 @@ const CollaboratorBanner = ({
                 </div>
                 <ProgressBar
                   size="sm"
-                  radius="full"
                   value={profileStrength}
                   color="primary"
                   className="max-w-full"
@@ -812,7 +866,7 @@ const AdminBanner = ({ userData = [], startups = [], opportunities = [] }) => {
 
           <motion.div
             variants={fadeUp}
-            className="flex flex-shrink-0 flex-wrap gap-2.5"
+            className="flex shrink-0 flex-wrap gap-2.5"
           >
             <Link href="/dashboard/admin/users">
               <Button
@@ -826,7 +880,7 @@ const AdminBanner = ({ userData = [], startups = [], opportunities = [] }) => {
 
             <Link href="/dashboard/admin/startups">
               <Button
-                variant="bordered"
+                variant="outline"
                 className="rounded-2xl border-slate-300/80 bg-white/80 text-slate-700 hover:bg-white dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-900 font-semibold text-xs px-4 py-2 hover:-translate-y-0.5 transition-all shadow-xs"
                 startContent={<Building2 className="w-3.5 h-3.5" />}
               >
@@ -851,7 +905,7 @@ const AdminBanner = ({ userData = [], startups = [], opportunities = [] }) => {
             },
             {
               label: "Pending Reviews",
-              value: pendingStartups || "7",
+              value: pendingStartups || "0",
               alert: pendingStartups > 0,
             },
             {

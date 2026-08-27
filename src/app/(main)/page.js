@@ -4,7 +4,7 @@ import FeaturedStartups from "@/components/HomePage/FeturedStartups";
 import Testimonials from "@/components/HomePage/Testimonials";
 import WhyJoinStartupForge from "@/components/HomePage/WhyJoinStartupForge";
 import {
-  getApplicationsById,
+  getApplicationsByCollaboratorId,
   getApplicationsByStartupId,
 } from "@/lib/api/applications";
 import {
@@ -17,7 +17,7 @@ import {
   getFounderStartup,
   getStartups,
 } from "@/lib/api/startups";
-import { getUsersData } from "@/lib/api/users";
+import { getProfileData, getUsersData } from "@/lib/api/users";
 import { getUserSession } from "@/lib/core/session";
 
 export const metadata = {
@@ -61,6 +61,7 @@ export default async function Home() {
     collaboratorApplications,
     featuredStartups,
     featuredOpportunities,
+    collaboratorProfile,
   ] = await Promise.all([
     resolvedRole === "founder" && user?.id
       ? getApplicationsByStartupId(user.id)
@@ -75,17 +76,27 @@ export default async function Home() {
     resolvedRole === "admin" ? getUsersData() : Promise.resolve([]),
     getStartups(),
     resolvedRole === "collaborator" && user?.id
-      ? getApplicationsById(user.id)
+      ? getApplicationsByCollaboratorId(user.id)
       : Promise.resolve([]),
     getFeaturedStartups(),
     getFeaturedOpportunities(),
+    resolvedRole === "collaborator" && user?.id
+      ? getProfileData(user.id)
+      : Promise.resolve(null),
   ]);
+
+  const profileData =
+    collaboratorProfile?.data || collaboratorProfile?.user || collaboratorProfile;
+  const bannerUser =
+    resolvedRole === "collaborator" && profileData
+      ? { ...user, ...profileData }
+      : user;
 
   return (
     <>
       <BannerPage
         role={resolvedRole}
-        user={user}
+        user={bannerUser}
         founderApplications={founderApplications}
         founderOpportunities={founderOpportunities}
         founderStartup={founderStartup}

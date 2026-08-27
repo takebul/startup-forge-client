@@ -5,20 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Briefcase,
-  Building2,
-  Calendar,
   CheckCircle2,
-  Clock,
   ExternalLink,
-  Globe,
-  Mail,
-  MapPin,
   Sparkles,
-  User,
-  ArrowRight,
   Inbox,
-  AlertTriangle,
   XCircle,
   ShieldAlert,
   LogIn,
@@ -26,6 +16,7 @@ import {
 import { authClient } from "@/lib/auth-client";
 import { createApplication } from "@/lib/actions/applications";
 import ApplyModal from "@/components/ApplyModal/ApplyModal";
+import { Modal } from "@/components/Dashboard/founder-dashboard-shared";
 
 // Helper parser to safely extract array data regardless of API response wrapping
 function parseArrayData(data, key) {
@@ -47,6 +38,16 @@ function parseSkills(skills) {
       .filter(Boolean);
   }
   return [];
+}
+
+function getProfileCompletion(userData) {
+  if (!userData) return 0;
+  let score = 0;
+  if (userData.name && String(userData.name).trim()) score += 25;
+  if (userData.image && String(userData.image).trim()) score += 25;
+  if (parseSkills(userData.skills).length > 0) score += 25;
+  if (userData.bio && String(userData.bio).trim()) score += 25;
+  return score;
 }
 
 // Helper to resolve user persona (admin, founder, collaborator)
@@ -91,6 +92,7 @@ export default function OpportunityDetailsPage({
   const isCollaborator = persona === "collaborator";
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showIncompleteModal, setShowIncompleteModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
@@ -138,6 +140,16 @@ export default function OpportunityDetailsPage({
 
   // Check if current user already submitted to this opportunity
   const isAlreadyApplied = appliedOppIds.includes(oppId);
+  const profileCompletion = useMemo(() => getProfileCompletion(user), [user]);
+  const isProfileComplete = profileCompletion === 100;
+
+  const handleInitiateApply = () => {
+    if (!isProfileComplete) {
+      setShowIncompleteModal(true);
+      return;
+    }
+    setIsModalOpen(true);
+  };
 
   // 3. Parse Related Datasets
   const startupsList = useMemo(
@@ -213,10 +225,15 @@ export default function OpportunityDetailsPage({
     "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
 
   const isOwnPost = Boolean(
-    user && (
-      (user.email && founderEmail && String(founderEmail).toLowerCase() === String(user.email).toLowerCase()) ||
-      (user.id && (String(matchedStartup?.startupId) === String(user.id) || String(opp?.startupId) === String(user.id) || String(startupId) === String(user.id)))
-    )
+    user &&
+    ((user.email &&
+      founderEmail &&
+      String(founderEmail).toLowerCase() ===
+        String(user.email).toLowerCase()) ||
+      (user.id &&
+        (String(matchedStartup?.startupId) === String(user.id) ||
+          String(opp?.startupId) === String(user.id) ||
+          String(startupId) === String(user.id)))),
   );
 
   // =========================================================================
@@ -406,7 +423,7 @@ export default function OpportunityDetailsPage({
                 <motion.button
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
-                  onClick={() => setIsModalOpen(true)}
+                  onClick={handleInitiateApply}
                   className="rounded-xl bg-violet-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-violet-600/25 transition-all hover:bg-violet-700 dark:hover:bg-violet-500 cursor-pointer"
                 >
                   Apply for this Position
@@ -568,7 +585,7 @@ export default function OpportunityDetailsPage({
                 </div>
               ) : (
                 <button
-                  onClick={() => setIsModalOpen(true)}
+                  onClick={handleInitiateApply}
                   className="mt-6 w-full rounded-xl bg-violet-600 py-3 text-xs font-bold text-white transition-colors hover:bg-violet-700 dark:hover:bg-violet-500 cursor-pointer shadow-md shadow-violet-600/10"
                 >
                   Apply Now
@@ -625,6 +642,48 @@ export default function OpportunityDetailsPage({
           onSubmit={handleSubmitApplication}
           isSubmitting={isSubmitting}
         />
+      )}
+
+      {showIncompleteModal && (
+        <Modal
+          title="Profile Completion Required"
+          onClose={() => setShowIncompleteModal(false)}
+        >
+          <div className="space-y-4 text-center py-2">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-violet-200 bg-violet-50 text-2xl dark:border-violet-500/20 dark:bg-violet-500/10">
+              ⚠️
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                Complete Your Profile First
+              </h3>
+              <p className="mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+                Your profile is currently{" "}
+                <strong className="font-mono text-violet-600 dark:text-violet-400">
+                  {profileCompletion}%
+                </strong>{" "}
+                complete. Add your full name, photo, skills, and bio before
+                applying for an opportunity.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 pt-2 sm:flex-row">
+              <Link
+                href="/dashboard/collaborator/profile"
+                onClick={() => setShowIncompleteModal(false)}
+                className="flex-1 rounded-xl bg-violet-600 px-4 py-2.5 text-center text-xs font-bold text-white transition-colors hover:bg-violet-700"
+              >
+                Complete Profile →
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowIncompleteModal(false)}
+                className="flex-1 rounded-xl border border-slate-200 bg-slate-100 px-4 py-2.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-200 dark:border-slate-800 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </Modal>
       )}
 
       {/* -----------------------------------------------------------------------------

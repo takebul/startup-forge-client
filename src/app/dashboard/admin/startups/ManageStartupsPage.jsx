@@ -4,13 +4,8 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   ShieldAlert,
-  Building2,
-  CheckCircle2,
-  XCircle,
   Trash2,
   Search,
-  RotateCcw,
-  Clock,
   ExternalLink,
   RefreshCw,
 } from "lucide-react";
@@ -78,12 +73,15 @@ export default function ManageStartupsPage({ ALL_STARTUPS = [] }) {
       router.refresh();
       toast.update(
         `Startup ${newStatus}`,
-        `Startup review status has been updated to "${newStatus}".`
+        `Startup review status has been updated to "${newStatus}".`,
       );
     } catch (err) {
       console.error("Failed to update startup status:", err);
       setError("Failed to update startup status. Reverting changes.");
-      toast.error("Status Update Failed", err.message || "Could not update status.");
+      toast.error(
+        "Status Update Failed",
+        err.message || "Could not update status.",
+      );
       // Rollback on failure
       setStartups(previousStartups);
     } finally {
@@ -99,7 +97,10 @@ export default function ManageStartupsPage({ ALL_STARTUPS = [] }) {
     const id = String(
       confirmDeleteStartup._id || confirmDeleteStartup.id || "",
     );
-    const startupName = confirmDeleteStartup.startup_name || confirmDeleteStartup.name || "Startup";
+    const startupName =
+      confirmDeleteStartup.startup_name ||
+      confirmDeleteStartup.name ||
+      "Startup";
 
     setLoadingId(id);
     setError(null);
@@ -119,7 +120,10 @@ export default function ManageStartupsPage({ ALL_STARTUPS = [] }) {
       // 3. Close Modal & Refresh Server Component Data
       setConfirmDeleteStartup(null);
       router.refresh();
-      toast.delete("Startup Removed", `"${startupName}" has been permanently removed.`);
+      toast.delete(
+        "Startup Removed",
+        `"${startupName}" has been permanently removed.`,
+      );
     } catch (err) {
       console.error("Failed to delete startup:", err);
       setError("Failed to delete startup listing. Reverting changes.");
@@ -199,7 +203,10 @@ export default function ManageStartupsPage({ ALL_STARTUPS = [] }) {
           )}
 
           <span className="text-xs font-mono text-slate-600 bg-white border border-slate-200/90 dark:bg-slate-900/80 dark:border-slate-800/90 dark:text-slate-300 px-3.5 py-1.5 rounded-xl shadow-xs">
-            Total: <strong className="text-slate-900 dark:text-white font-bold">{startups.length}</strong>
+            Total:{" "}
+            <strong className="text-slate-900 dark:text-white font-bold">
+              {startups.length}
+            </strong>
           </span>
         </div>
       </div>

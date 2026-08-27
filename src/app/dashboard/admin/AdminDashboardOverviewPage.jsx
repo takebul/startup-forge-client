@@ -8,7 +8,6 @@ import {
   DollarSign,
   TrendingUp,
   Crown,
-  Calendar,
 } from "lucide-react";
 import {
   BarChart,
@@ -51,7 +50,9 @@ const CustomBarTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-xl px-3.5 py-2.5 bg-white dark:bg-[#0D1528] border border-slate-200 dark:border-slate-800 text-xs shadow-xl space-y-1 font-sans">
-      <p className="font-semibold text-slate-900 dark:text-slate-200">{label}</p>
+      <p className="font-semibold text-slate-900 dark:text-slate-200">
+        {label}
+      </p>
       <p className="text-violet-600 dark:text-violet-400 font-mono font-bold">
         Revenue: $
         {payload[0].value.toLocaleString("en-US", {
@@ -316,7 +317,9 @@ export default function AdminDashboardOverviewPage({
                 <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 font-mono mt-1">
                   {stat.value}
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{stat.sub}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  {stat.sub}
+                </p>
               </div>
 
               <div
@@ -457,7 +460,9 @@ export default function AdminDashboardOverviewPage({
                   />
                   <span>{item.name}</span>
                 </div>
-                <span className="font-bold text-slate-900 dark:text-slate-100">{item.value}</span>
+                <span className="font-bold text-slate-900 dark:text-slate-100">
+                  {item.value}
+                </span>
               </div>
             ))}
           </div>
