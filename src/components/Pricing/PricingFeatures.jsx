@@ -7,6 +7,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+// Feature highlight cards: icon, title, description, and accent styling
 const FEATURE_HIGHLIGHTS = [
   {
     icon: Rocket,
@@ -59,6 +60,7 @@ const FEATURE_HIGHLIGHTS = [
 export default function PricingFeatures() {
   return (
     <section className="mt-28">
+      {/* Section header */}
       <div className="mx-auto max-w-2xl text-center">
         <span className="rounded-full bg-violet-100 px-3.5 py-1 text-xs font-mono font-semibold uppercase tracking-wider text-violet-700 dark:bg-violet-500/10 dark:text-violet-300">
           Complete Matching Platform
@@ -72,6 +74,7 @@ export default function PricingFeatures() {
         </p>
       </div>
 
+      {/* Feature highlight grid */}
       <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {FEATURE_HIGHLIGHTS.map((item, index) => {
           const IconComponent = item.icon;

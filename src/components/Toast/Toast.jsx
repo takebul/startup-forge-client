@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle2,
@@ -8,7 +8,6 @@ import {
   AlertTriangle,
   Info,
   Trash2,
-  Sparkles,
   RefreshCw,
   X,
   PlusCircle,
@@ -74,6 +73,7 @@ class ToastManager {
 
 export const toast = new ToastManager();
 
+// Theme config (icon, colors, badge) per toast type
 const TOAST_THEMES = {
   create: {
     icon: PlusCircle,
@@ -147,6 +147,7 @@ const TOAST_THEMES = {
   },
 };
 
+// Individual toast card with auto-dismiss timer and progress bar
 function ToastItem({ toastItem, onDismiss }) {
   const theme = TOAST_THEMES[toastItem.type] || TOAST_THEMES.info;
   const Icon = theme.icon;
@@ -221,6 +222,7 @@ function ToastItem({ toastItem, onDismiss }) {
   );
 }
 
+// Renders the toast stack in the top-right corner, subscribing to the event bus
 export function ToastContainer() {
   const [toasts, setToasts] = useState([]);
 

@@ -1,4 +1,3 @@
-import React from "react";
 import MyApplications from "./MyApplications";
 import { getApplicationsByCollaboratorId } from "@/lib/api/applications";
 import { getUserSession } from "@/lib/core/session";

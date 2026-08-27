@@ -16,6 +16,7 @@ import {
   markNotificationAsRead,
 } from "@/lib/actions/notifications";
 
+// Format a timestamp string into a human-readable date/time
 function formatTimestamp(dateStr) {
   if (!dateStr) return "Recent";
   try {
@@ -40,6 +41,7 @@ function formatTimestamp(dateStr) {
   }
 }
 
+// Determine user persona (admin / founder / collaborator)
 function getUserPersona(u) {
   if (!u) return "collaborator";
   const role = String(u.role || "").toLowerCase();
@@ -52,6 +54,8 @@ function getUserPersona(u) {
 
 export default function NotificationDropdown({ user }) {
   const router = useRouter();
+
+  // Component state: dropdown open flag, notifications, unread count, loading
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -61,6 +65,7 @@ export default function NotificationDropdown({ user }) {
   const activeUserId = String(user?.id || user?._id || "");
   const persona = useMemo(() => getUserPersona(user), [user]);
 
+  // Fetch the current user's notifications and unread count
   const fetchUserNotifications = useCallback(async () => {
     if (!activeUserId) return;
     setIsLoading(true);
@@ -79,6 +84,7 @@ export default function NotificationDropdown({ user }) {
     fetchUserNotifications();
   }, [fetchUserNotifications]);
 
+  // Mark all notifications as read (optimistic UI update)
   const handleMarkAllRead = async () => {
     if (!activeUserId || unreadCount === 0) return;
 
@@ -93,6 +99,7 @@ export default function NotificationDropdown({ user }) {
     }
   };
 
+  // Mark one notification as read and navigate to its target link
   const handleNotificationClick = async (notif) => {
     const notifId = notif._id || notif.id;
 
@@ -136,6 +143,7 @@ export default function NotificationDropdown({ user }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Render the icon matching a notification type
   const renderIcon = (type) => {
     switch (type) {
       case "success":

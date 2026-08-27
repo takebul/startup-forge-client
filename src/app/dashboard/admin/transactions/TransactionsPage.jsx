@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { DollarSign, Search, Receipt } from "lucide-react";
+import { DollarSign, Search } from "lucide-react";
 import {
   StatusBadge,
   Badge,

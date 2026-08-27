@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+// Frequently asked questions: question/answer pairs
 const FAQ_ITEMS = [
   {
     question: "Can I upgrade or downgrade my plan at any time?",
@@ -28,14 +29,17 @@ const FAQ_ITEMS = [
 ];
 
 export default function PricingFaq() {
+  // Which FAQ item is expanded (or null when all are collapsed)
   const [openFaq, setOpenFaq] = useState(null);
 
+  // Toggle an FAQ item open/closed
   const toggleFaq = (index) => {
     setOpenFaq(openFaq === index ? null : index);
   };
 
   return (
     <section className="mt-28">
+      {/* Section header */}
       <div className="mx-auto max-w-2xl text-center">
         <span className="rounded-full bg-violet-100 px-3.5 py-1 text-xs font-mono font-semibold uppercase tracking-wider text-violet-700 dark:bg-violet-500/10 dark:text-violet-300">
           Got Questions?
@@ -48,6 +52,7 @@ export default function PricingFaq() {
         </p>
       </div>
 
+      {/* Accordion of expandable question/answer items */}
       <div className="mx-auto mt-10 max-w-3xl space-y-4">
         {FAQ_ITEMS.map((faq, index) => (
           <div

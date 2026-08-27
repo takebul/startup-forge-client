@@ -20,7 +20,6 @@ import {
   Menu,
   Sparkles,
   Building2,
-  User,
   CreditCardIcon,
   BadgeCheck,
   Crown,

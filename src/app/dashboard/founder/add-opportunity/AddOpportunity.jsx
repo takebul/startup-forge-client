@@ -12,7 +12,7 @@ import {
   FieldError,
 } from "@heroui/react";
 
-import { Select, Modal, Btn } from "@/components/Dashboard/founder-dashboard-shared";
+import { Select, Modal } from "@/components/Dashboard/founder-dashboard-shared";
 import { createOpportunity } from "@/lib/actions/opportunities";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "@/components/Toast/Toast";

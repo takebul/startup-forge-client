@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -10,10 +10,7 @@ import {
   Rocket,
   Briefcase,
   Users,
-  ExternalLink,
   Edit,
-  ShieldCheck,
-  Layers,
 } from "lucide-react";
 import {
   Btn,

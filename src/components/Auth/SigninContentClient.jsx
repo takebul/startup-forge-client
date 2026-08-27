@@ -21,6 +21,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "@/lib/auth-client";
 
+// Inline Google logo for the "Continue with Google" button
 function GoogleIcon({ size = 18 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 18 18" fill="none">
@@ -44,6 +45,7 @@ function GoogleIcon({ size = 18 }) {
   );
 }
 
+// Labeled form field wrapper with an animated error message
 function Field({ label, error, children }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -69,6 +71,7 @@ function Field({ label, error, children }) {
   );
 }
 
+// Styled text input with optional icon and suffix
 function TextInput({
   value,
   onChange,
@@ -110,6 +113,7 @@ function TextInput({
 
 function SigninContent() {
   const router = useRouter();
+  // Form state, validation errors, auth status, and ban reason
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -117,14 +121,17 @@ function SigninContent() {
   const [statusMessage, setStatusMessage] = useState("");
   const [banReason, setBanReason] = useState(null);
 
+  // Read the redirect target from the URL query string
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/";
 
+  // Update a single form field and clear its error
   function set(key, value) {
     setForm((f) => ({ ...f, [key]: value }));
     if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }));
   }
 
+  // Basic client-side validation for required fields
   function validate() {
     const errs = {};
     if (!form.email.trim()) errs.email = "Email address is required.";
@@ -132,6 +139,7 @@ function SigninContent() {
     return errs;
   }
 
+  // Submit credentials; show ban/error messages and redirect on success
   async function handleSubmit(e) {
     e.preventDefault();
     const errs = validate();
@@ -180,6 +188,7 @@ function SigninContent() {
     }
   }
 
+  // Sign in with Google, handling ban/error responses
   async function handleGoogleAuth() {
     setStatus("loading");
     setBanReason(null);
@@ -219,6 +228,7 @@ function SigninContent() {
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600" />
 
       <div>
+        {/* Header: logo, title, and subtitle */}
         <div className="mb-7">
           <div className="flex items-center gap-2.5 mb-4">
             <div className="w-8 h-8 rounded-xl bg-violet-100 border border-violet-200 dark:bg-violet-500/10 dark:border-violet-500/20 flex items-center justify-center text-violet-600 dark:text-violet-400">
@@ -237,6 +247,7 @@ function SigninContent() {
         </div>
 
         <AnimatePresence>
+          {/* Status banner: account-suspended alert or success/error message */}
           {banReason ? (
             <motion.div
               initial={{ opacity: 0, y: -8, height: 0 }}
@@ -286,6 +297,7 @@ function SigninContent() {
           noValidate
           className="flex flex-col gap-4"
         >
+          {/* Email and password fields with submit button */}
           <Field label="Email Address" error={errors.email}>
             <TextInput
               value={form.email}
@@ -348,12 +360,14 @@ function SigninContent() {
           </Button>
         </form>
 
+        {/* Divider between email and Google sign-in */}
         <div className="flex items-center gap-3 my-5">
           <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800" />
           <span className="text-xs text-slate-400 font-mono">or</span>
           <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800" />
         </div>
 
+        {/* Google OAuth sign-in button */}
         <button
           type="button"
           onClick={handleGoogleAuth}
@@ -364,6 +378,7 @@ function SigninContent() {
           Continue with Google
         </button>
 
+        {/* Link to the sign-up page */}
         <p className="text-center text-xs text-slate-600 dark:text-slate-400 mt-6">
           {"Don't have an account? "}
           <Link
@@ -378,6 +393,7 @@ function SigninContent() {
   );
 }
 
+// Loading fallback shown while the form suspends on useSearchParams
 function SigninFallback() {
   return (
     <div className="relative rounded-3xl border border-slate-200/90 bg-white p-12 text-center flex flex-col items-center justify-center dark:border-slate-800/90 dark:bg-slate-900/90 shadow-xl">
@@ -387,6 +403,7 @@ function SigninFallback() {
   );
 }
 
+// Page wrapper: ambient background, entrance animation, and Suspense boundary
 export default function SigninContentClient() {
   return (
     <div className="relative min-h-[85vh] flex items-center justify-center p-4 font-sans overflow-hidden bg-white text-slate-900 transition-colors duration-200 dark:bg-slate-950 dark:text-slate-100">

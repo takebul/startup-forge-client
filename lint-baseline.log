@@ -1,0 +1,480 @@
+
+> startup-forge-client@0.1.0 lint
+> eslint
+
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\app\dashboard\admin\profile\AdminProfileWrapper.jsx
+   57:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  55 |   useEffect(() => {
+  56 |     if (user) {
+> 57 |       setProfile((prev) => ({
+     |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  58 |         ...prev,
+  59 |         name: user.name || prev.name,
+  60 |         image: user.image || prev.image,  react-hooks/set-state-in-effect
+  144:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @next/next/no-img-element
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\app\dashboard\admin\startups\ManageStartupsPage.jsx
+   43:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  41 |   // Sync state whenever Server Component re-fetches ALL_STARTUPS prop
+  42 |   useEffect(() => {
+> 43 |     setStartups(parseStartups(ALL_STARTUPS));
+     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  44 |   }, [ALL_STARTUPS]);
+  45 |
+  46 |   // =========================================================================  react-hooks/set-state-in-effect
+  305:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @next/next/no-img-element
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\app\dashboard\admin\transactions\TransactionsPage.jsx
+  68:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  66 |   // Sync state when Server Component re-fetches props
+  67 |   useEffect(() => {
+> 68 |     setTransactions(parseSubscriptions(subscriptions));
+     |     ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  69 |   }, [subscriptions]);
+  70 |
+  71 |   // Total Revenue calculation (amount is stored in cents e.g., 2900 -> 29.00)  react-hooks/set-state-in-effect
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\app\dashboard\admin\users\ManageUsersPage.jsx
+   75:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  73 |   // Sync state whenever Server Component re-fetches ALL_USERS prop
+  74 |   useEffect(() => {
+> 75 |     setUsers(parseUsers(ALL_USERS));
+     |     ^^^^^^^^ Avoid calling setState() directly within an effect
+  76 |   }, [ALL_USERS]);
+  77 |
+  78 |   // =========================================================================  react-hooks/set-state-in-effect
+  305:27  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @next/next/no-img-element
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\app\dashboard\collaborator\bookmarks\BookmarkedPage.jsx
+  94:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  92 |   // Sync state whenever props update from server component
+  93 |   useEffect(() => {
+> 94 |     setBookmarks(parseBookmarksList(initialBookmarks));
+     |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  95 |   }, [initialBookmarks]);
+  96 |
+  97 |   // =========================================================================  react-hooks/set-state-in-effect
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\app\dashboard\collaborator\browse-opportunities\BrowseOpportunities.jsx
+   172:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  170 |
+  171 |   useEffect(() => {
+> 172 |     setSearchInput(urlSearch);
+      |     ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  173 |   }, [urlSearch]);
+  174 |
+  175 |   useEffect(() => {                                                                                                                                      react-hooks/set-state-in-effect
+   177:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  175 |   useEffect(() => {
+  176 |     if (user) {
+> 177 |       setFullUser((prev) => ({ ...prev, ...user }));
+      |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  178 |     }
+  179 |   }, [user]);
+  180 |                                                                                                                    react-hooks/set-state-in-effect
+   201:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  199 |
+  200 |   useEffect(() => {
+> 201 |     fetchLatestProfile();
+      |     ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  202 |   }, [fetchLatestProfile]);
+  203 |
+  204 |   // Parse Startups dataset                                                                                                                      react-hooks/set-state-in-effect
+   394:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  392 |     const fromProps = parseBookmarkIds(initialBookmarks);
+  393 |     if (fromProps.length > 0) {
+> 394 |       setBookmarks(fromProps);
+      |       ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  395 |     } else if (rawBookmarks?.length > 0) {
+  396 |       setBookmarks(parseBookmarkIds(rawBookmarks));
+  397 |     }  react-hooks/set-state-in-effect
+   401:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  399 |
+  400 |   useEffect(() => {
+> 401 |     setSubmitted(
+      |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  402 |       Array.isArray(initialAppliedOppIds)
+  403 |         ? Array.from(new Set(initialAppliedOppIds.map(String)))
+  404 |         : [],                                                                    react-hooks/set-state-in-effect
+   426:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  424 |   useEffect(() => {
+  425 |     if (fullUser?.email && !form.email) {
+> 426 |       setForm((prev) => ({ ...prev, email: fullUser.email }));
+      |       ^^^^^^^ Avoid calling setState() directly within an effect
+  427 |     }
+  428 |   }, [fullUser, form.email]);
+  429 |                                                                    react-hooks/set-state-in-effect
+   960:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @next/next/no-img-element
+  1122:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @next/next/no-img-element
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\app\dashboard\collaborator\my-applications\MyApplications.jsx
+  30:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  28 |   // Sync state whenever props update
+  29 |   useEffect(() => {
+> 30 |     setApplications(parseApplications(myApplications));
+     |     ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  31 |   }, [myApplications]);
+  32 |
+  33 |   const [selectedApp, setSelectedApp] = useState(null); // Details Modal  react-hooks/set-state-in-effect
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\app\dashboard\collaborator\profile\ProfilePageWrapper.jsx
+   74:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  72 |   useEffect(() => {
+  73 |     if (user) {
+> 74 |       setProfile({
+     |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  75 |         name: user.name || "",
+  76 |         image:
+  77 |           user.image ||  react-hooks/set-state-in-effect
+  263:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @next/next/no-img-element
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\app\dashboard\founder\add-opportunity\AddOpportunity.jsx
+  38:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  36 |   // Sync state if server props update
+  37 |   useEffect(() => {
+> 38 |     setLocalOpps(parseOpportunities(opportunities));
+     |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  39 |   }, [opportunities]);
+  40 |
+  41 |   // 2. Extract active plan cleanly  react-hooks/set-state-in-effect
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\app\dashboard\founder\applications\FounderApplicationsPage.jsx
+  45:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  43 |   // Sync state whenever Server Component re-fetches founderApplications prop
+  44 |   useEffect(() => {
+> 45 |     setApplications(parseApplications(founderApplications));
+     |     ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  46 |   }, [founderApplications]);
+  47 |
+  48 |   // =========================================================================  react-hooks/set-state-in-effect
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\app\dashboard\founder\manage-opportunities\ManageOpportunities.jsx
+   54:5   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  52 |
+  53 |   useEffect(() => {
+> 54 |     setOpportunities(parseOpportunities(founderOpportunities));
+     |     ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  55 |   }, [founderOpportunities]);
+  56 |
+  57 |   const [editing, setEditing] = useState(null);  react-hooks/set-state-in-effect
+  131:22  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                react/no-unescaped-entities
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\app\dashboard\founder\my-startup\FounderMyStartups.jsx
+   61:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  59 |   // Sync state if server component props change
+  60 |   useEffect(() => {
+> 61 |     setStartupList(parseInitialStartups(startups));
+     |     ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  62 |   }, [startups]);
+  63 |
+  64 |   const [isCreating, setIsCreating] = useState(false);  react-hooks/set-state-in-effect
+  630:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @next/next/no-img-element
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\app\dashboard\founder\profile\FounderProfileWrapper.jsx
+   74:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  72 |   useEffect(() => {
+  73 |     if (user) {
+> 74 |       setProfile({
+     |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  75 |         name: user.name || "",
+  76 |         image:
+  77 |           user.image ||  react-hooks/set-state-in-effect
+  263:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @next/next/no-img-element
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\components\Dashboard\DashboardNavbar.jsx
+  261:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  259 |   // Click outside handling for avatar dropdown and escape key for mobile drawer
+  260 |   useEffect(() => {
+> 261 |     setMounted(true);
+      |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  262 |
+  263 |     function handleClickOutside(event) {
+  264 |       if (avatarRef.current && !avatarRef.current.contains(event.target)) {  react-hooks/set-state-in-effect
+  298:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  296 |   // Close mobile drawer on route change
+  297 |   useEffect(() => {
+> 298 |     setIsMobileDrawerOpen(false);
+      |     ^^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  299 |   }, [pathname]);
+  300 |
+  301 |   const handleSignOut = async () => {                                                                                react-hooks/set-state-in-effect
+  454:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @next/next/no-img-element
+  642:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @next/next/no-img-element
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\components\Dashboard\DashboardSidebar.jsx
+  242:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\components\Dashboard\NotificationDropdown.jsx
+  79:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  77 |
+  78 |   useEffect(() => {
+> 79 |     fetchUserNotifications();
+     |     ^^^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  80 |   }, [fetchUserNotifications]);
+  81 |
+  82 |   const handleMarkAllRead = async () => {  react-hooks/set-state-in-effect
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\components\Dashboard\founder-dashboard-shared.jsx
+  284:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\components\HomePage\FeaturedOpportunities.jsx
+  260:27  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\components\HomePage\FeturedStartups.jsx
+  167:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\components\HomePage\Testimonials.jsx
+  322:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  374:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\components\Navbar\Navbar.jsx
+   65:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  63 |
+  64 |   useEffect(() => {
+> 65 |     setMounted(true);
+     |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  66 |   }, []);
+  67 |
+  68 |   // Close mobile drawer when pathname changes                                             react-hooks/set-state-in-effect
+   70:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  68 |   // Close mobile drawer when pathname changes
+  69 |   useEffect(() => {
+> 70 |     setIsMenuOpen(false);
+     |     ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  71 |     setIsAvatarOpen(false);
+  72 |   }, [pathname]);
+  73 |  react-hooks/set-state-in-effect
+  237:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @next/next/no-img-element
+  418:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @next/next/no-img-element
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\components\Opportunities\OpportunitiesPage.jsx
+  104:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  102 |
+  103 |   useEffect(() => {
+> 104 |     setSearchInput(urlSearch);
+      |     ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  105 |   }, [urlSearch]);
+  106 |
+  107 |   // 1. Resolve Pagination Bounds  react-hooks/set-state-in-effect
+  478:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @next/next/no-img-element
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\components\Opportunities\OpportunityDetailsPage.jsx
+  113:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  111 |   useEffect(() => {
+  112 |     if (user?.email && !form.email) {
+> 113 |       setForm((prev) => ({ ...prev, email: user.email }));
+      |       ^^^^^^^ Avoid calling setState() directly within an effect
+  114 |     }
+  115 |   }, [user, form.email]);
+  116 |  react-hooks/set-state-in-effect
+  331:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @next/next/no-img-element
+  602:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @next/next/no-img-element
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\components\Pricing\PricingTestimonials.jsx
+  67:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\components\Startups\StartupDetails.jsx
+  116:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  114 |   useEffect(() => {
+  115 |     if (user?.email && !form.email) {
+> 116 |       setForm((prev) => ({ ...prev, email: user.email }));
+      |       ^^^^^^^ Avoid calling setState() directly within an effect
+  117 |     }
+  118 |   }, [user, form.email]);
+  119 |  react-hooks/set-state-in-effect
+  319:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @next/next/no-img-element
+  462:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @next/next/no-img-element
+  619:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @next/next/no-img-element
+
+C:\Assignment\A10-StartupForge\startup-forge-client\src\components\Startups\StartupsPage.jsx
+  125:6   warning  React Hook useMemo has a missing dependency: 'getOpenRolesCount'. Either include it or remove the dependency array                                                                                                                                                                       react-hooks/exhaustive-deps
+  241:21  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  241:34  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  316:27  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+✖ 56 problems (29 errors, 27 warnings)
+
+EXIT:1

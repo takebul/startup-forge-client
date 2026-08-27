@@ -20,6 +20,7 @@ import PricingComparisonTable from "@/components/Pricing/PricingComparisonTable"
 import PricingTestimonials from "@/components/Pricing/PricingTestimonials";
 import PricingFaq from "@/components/Pricing/PricingFaq";
 
+// Map a plan id to its tier rank (free=0, premium=1, enterprise=2)
 function getPlanTierRank(planId) {
   if (!planId) return 0;
   const normalized = String(planId).toLowerCase();
@@ -28,6 +29,7 @@ function getPlanTierRank(planId) {
   return 0;
 }
 
+// Determine the user's persona (admin / collaborator / founder / guest)
 function getUserPersona(u) {
   if (!u) return "guest";
   const role = String(u.role || "").toLowerCase();
@@ -39,6 +41,7 @@ function getUserPersona(u) {
   return "founder";
 }
 
+// Plan catalog for founders: pricing, features, and promo styling per tier
 const FOUNDER_PLANS = [
   {
     plan_id: "founder_free",
@@ -105,6 +108,7 @@ const FOUNDER_PLANS = [
   },
 ];
 
+// Plan catalog for collaborators: pricing, features, and promo styling per tier
 const COLLABORATOR_PLANS = [
   {
     plan_id: "collaborator_free",
@@ -181,15 +185,18 @@ const COLLABORATOR_PLANS = [
 ];
 
 export default function PricingPageContent() {
+  // Current user, persona, and whether admin/guest can toggle views
   const { data: session } = authClient.useSession();
   const user = session?.user;
   const persona = useMemo(() => getUserPersona(user), [user]);
   const isAdmin = persona === "admin";
   const isGuest = persona === "guest";
 
+  // Tab state: which plan catalog (founder / collaborator) is shown
   const showToggle = isGuest || isAdmin;
   const [selectedTab, setSelectedTab] = useState("founder");
 
+  // Resolve which plan list to render, plus the user's current tier
   const currentViewTab = showToggle
     ? selectedTab
     : persona === "collaborator"

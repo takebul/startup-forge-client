@@ -6,19 +6,10 @@ import {
   BadgeCheck,
   Sparkles,
   TrendingUp,
-  Bookmark,
-  Briefcase,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  ArrowRight,
-  ShieldCheck,
-  User,
 } from "lucide-react";
 import {
   StatCard,
   Btn,
-  Badge,
 } from "@/components/Dashboard/founder-dashboard-shared";
 import {
   BarChart,

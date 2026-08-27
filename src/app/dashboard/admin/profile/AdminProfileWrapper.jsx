@@ -10,7 +10,6 @@ import {
   Users,
   CreditCard,
   KeyRound,
-  CheckCircle2,
   Edit,
   Lock,
 } from "lucide-react";

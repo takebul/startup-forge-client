@@ -34,6 +34,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import NotificationDropdown from "./NotificationDropdown";
 
+// Determine user persona (admin / founder / collaborator) from role & accountType
 function getUserPersona(u) {
   if (!u) return "collaborator";
   const role = String(u.role || "").toLowerCase();
@@ -54,6 +55,7 @@ export default function DashboardNavbar({ user: initialUser }) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
+  // UI state: avatar dropdown, mobile drawer open flags, and outside-click refs
   const [isAvatarOpen, setIsAvatarOpen] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const avatarRef = useRef(null);
@@ -298,6 +300,7 @@ export default function DashboardNavbar({ user: initialUser }) {
     setIsMobileDrawerOpen(false);
   }, [pathname]);
 
+  // Sign out the user and redirect to the sign-in page
   const handleSignOut = async () => {
     try {
       await authClient.signOut({
@@ -312,6 +315,7 @@ export default function DashboardNavbar({ user: initialUser }) {
     }
   };
 
+  // Utility: uppercase the first letter of a string
   const capitalizeFirstLetter = (str) => {
     if (!str) return "User";
     return str.charAt(0).toUpperCase() + str.slice(1);

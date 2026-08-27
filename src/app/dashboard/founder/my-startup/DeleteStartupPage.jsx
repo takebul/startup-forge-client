@@ -13,6 +13,7 @@ export default function DeleteStartupPage({ startup, onClose }) {
   const startupId = startup?.id || startup?._id;
   const startupName = startup?.startup_name || startup?.name || "this startup";
 
+  // Delete handler: remove startup, refresh server components, then close modal
   async function handleDelete() {
     if (!startupId) return;
 
@@ -36,6 +37,7 @@ export default function DeleteStartupPage({ startup, onClose }) {
 
   return (
     <Modal title="Delete Startup?" onClose={onClose}>
+      {/* Confirmation Message & Action Buttons */}
       <div className="space-y-4 font-sans">
         <p className="text-sm text-slate-600 dark:text-slate-400">
           Are you sure you want to delete{" "}

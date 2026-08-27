@@ -1,3 +1,4 @@
+// Feature-by-feature comparison across Free / Premium / Enterprise tiers
 const COMPARISON_ROWS = [
   {
     feature: "Active Listings / Profile Status",
@@ -46,6 +47,7 @@ const COMPARISON_ROWS = [
 export default function PricingComparisonTable() {
   return (
     <section className="mt-28 hidden md:block">
+      {/* Section header */}
       <div className="mx-auto max-w-2xl text-center">
         <span className="rounded-full bg-violet-100 px-3.5 py-1 text-xs font-mono font-semibold uppercase tracking-wider text-violet-700 dark:bg-violet-500/10 dark:text-violet-300">
           Feature Matrix
@@ -58,6 +60,7 @@ export default function PricingComparisonTable() {
         </p>
       </div>
 
+      {/* Comparison table */}
       <div className="mt-10 overflow-x-auto rounded-3xl border border-slate-200/90 bg-white shadow-sm dark:border-slate-800/90 dark:bg-slate-900/80">
         <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
           <thead className="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950/60 uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">

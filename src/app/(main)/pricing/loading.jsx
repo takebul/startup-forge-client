@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles, Check, Crown } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 export default function PricingLoading() {
   return (

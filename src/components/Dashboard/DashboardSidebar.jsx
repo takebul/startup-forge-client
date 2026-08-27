@@ -149,6 +149,7 @@ const DashboardSidebar = ({ initialUser }) => {
 
   const activeLinks = MAIN_MENU[persona] || MAIN_MENU.collaborator;
 
+  // Sign out the user and redirect to the sign-in page
   const handleSignOut = async () => {
     try {
       await authClient.signOut({
@@ -163,6 +164,7 @@ const DashboardSidebar = ({ initialUser }) => {
     }
   };
 
+  // Check if a nav link matches the current route
   const isLinkActive = (href) => {
     const cleanHref = href.split("?")[0];
     if (cleanHref === `/dashboard/${persona}` || cleanHref === "/dashboard") {

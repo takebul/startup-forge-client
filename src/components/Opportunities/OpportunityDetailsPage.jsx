@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle2,
@@ -82,7 +81,6 @@ export default function OpportunityDetailsPage({
   initialAppliedOppIds = [],
   initialUser,
 }) {
-  const router = useRouter();
   const { data: session } = authClient.useSession();
   const user = initialUser || session?.user;
   const isAuthenticated = !!user;

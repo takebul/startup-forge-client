@@ -18,6 +18,7 @@ export default function EditingStartupPage({ startup, onCancel }) {
 
   const startupId = startup?.id || startup?._id;
 
+  // Initial form state seeded from the startup prop
   const [formData, setFormData] = useState({
     startup_name: startup?.startup_name || startup?.name || "",
     logo: startup?.logo || "",
@@ -27,6 +28,7 @@ export default function EditingStartupPage({ startup, onCancel }) {
     description: startup?.description || "",
   });
 
+  // Dropdown options for industry & funding stage
   const industries = [
     "Artificial Intelligence",
     "CleanTech",
@@ -36,6 +38,7 @@ export default function EditingStartupPage({ startup, onCancel }) {
   ];
   const stages = ["Pre-Seed", "Seed", "Series A", "Series B", "Bootstrapped"];
 
+  // Submit handler: update startup, refresh server data, then exit edit mode
   async function handleUpdate(e) {
     e.preventDefault();
     if (!startupId) return;
@@ -60,6 +63,7 @@ export default function EditingStartupPage({ startup, onCancel }) {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-4xl font-sans">
+      {/* Page Header & Back Button */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
@@ -80,10 +84,12 @@ export default function EditingStartupPage({ startup, onCancel }) {
         )}
       </div>
 
+      {/* Edit Startup Form */}
       <Form
         onSubmit={handleUpdate}
         className="rounded-2xl p-6 sm:p-8 space-y-5 bg-white border border-slate-200 shadow-sm dark:bg-[#0D1528] dark:border-slate-800"
       >
+        {/* Startup Name */}
         <TextField className="w-full">
           <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
             Startup Name
@@ -98,6 +104,7 @@ export default function EditingStartupPage({ startup, onCancel }) {
           />
         </TextField>
 
+        {/* Logo Upload */}
         <div>
           <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
             Logo
@@ -108,6 +115,7 @@ export default function EditingStartupPage({ startup, onCancel }) {
           />
         </div>
 
+        {/* Industry & Funding Stage */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
@@ -131,6 +139,7 @@ export default function EditingStartupPage({ startup, onCancel }) {
           </div>
         </div>
 
+        {/* Founder Email (read-only) */}
         <TextField className="w-full">
           <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
             Founder Email
@@ -146,6 +155,7 @@ export default function EditingStartupPage({ startup, onCancel }) {
           />
         </TextField>
 
+        {/* Description */}
         <TextField className="w-full">
           <Label className="block text-xs font-semibold mb-1.5 font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300">
             Description
@@ -156,6 +166,7 @@ export default function EditingStartupPage({ startup, onCancel }) {
           />
         </TextField>
 
+        {/* Form Actions */}
         <div className="flex gap-3 pt-2">
           <Button
             type="submit"

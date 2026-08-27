@@ -6,7 +6,6 @@ import {
   Building2,
   Briefcase,
   DollarSign,
-  TrendingUp,
   Crown,
 } from "lucide-react";
 import {

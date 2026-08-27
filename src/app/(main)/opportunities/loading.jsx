@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles, Search, Briefcase } from "lucide-react";
+import { Sparkles, Search } from "lucide-react";
 
 export default function OpportunitiesLoading() {
   return (

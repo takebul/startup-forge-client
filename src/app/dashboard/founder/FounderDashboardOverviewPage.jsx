@@ -6,12 +6,7 @@ import {
   TrendingUp,
   BadgeCheck,
   Sparkles,
-  Briefcase,
-  Users,
-  CheckCircle2,
-  Clock,
   Plus,
-  ArrowRight,
 } from "lucide-react";
 import { StatCard, Btn } from "@/components/Dashboard/founder-dashboard-shared";
 import {

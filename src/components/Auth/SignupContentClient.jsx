@@ -30,6 +30,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signUp, signIn } from "@/lib/auth-client";
 import { updateUserStatus } from "@/lib/actions/users";
 
+// Basic signup validation: name, email, password rules, and account type
 function validate(form) {
   const errs = {};
   if (!form.name.trim()) errs.name = "Full name is required.";
@@ -51,6 +52,7 @@ function validate(form) {
   return errs;
 }
 
+// Score password strength and return a label + color
 function getStrength(pw) {
   if (!pw) return { score: 0, label: "", color: "" };
   let score = 0;
@@ -65,6 +67,7 @@ function getStrength(pw) {
   return { score, label: "Strong", color: "#22c55e" };
 }
 
+// Upload a file to imgbb and return the display URL
 async function uploadToImgbb(file) {
   const API_KEY = process.env.NEXT_PUBLIC_IMGBB_API_KEY ?? "demo";
   const fd = new FormData();
@@ -78,6 +81,7 @@ async function uploadToImgbb(file) {
   return data.data.display_url || data.data.url;
 }
 
+// Inline Google logo for the "Continue with Google" button
 function GoogleIcon({ size = 18 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 18 18" fill="none">
@@ -101,6 +105,7 @@ function GoogleIcon({ size = 18 }) {
   );
 }
 
+// Labeled form field wrapper with an animated error message
 function Field({ label, error, children }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -126,6 +131,7 @@ function Field({ label, error, children }) {
   );
 }
 
+// Styled text input with optional icon and suffix
 function TextInput({
   value,
   onChange,
@@ -165,6 +171,7 @@ function TextInput({
   );
 }
 
+// Validate an image URL is direct-linkable; returns an error message or ""
 function getImageUrlError(url) {
   if (!url || typeof url !== "string") return "Please enter a valid image URL.";
   const trimmed = url.trim();
@@ -199,16 +206,19 @@ function getImageUrlError(url) {
   }
 }
 
+// Convenience wrapper: true when the image URL is valid
 function isValidUrl(url) {
   return !getImageUrlError(url);
 }
 
 function SignupContent() {
+  // Query params: pre-selected account type and post-auth redirect target
   const router = useRouter();
   const searchParams = useSearchParams();
   const defaultRole = searchParams.get("accountType") || "";
   const redirectTo = searchParams.get("redirect") || "/";
 
+  // Form state, validation errors, image mode, and auth status
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -229,11 +239,13 @@ function SignupContent() {
 
   const strength = getStrength(form.password);
 
+  // Update a single form field and clear its error
   function set(key, value) {
     setForm((f) => ({ ...f, [key]: value }));
     if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }));
   }
 
+  // Upload a chosen file to imgbb and preview the resulting URL
   async function handleFileChange(e) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -254,9 +266,11 @@ function SignupContent() {
     }
   }
 
+  // Derive the subscription plan from the selected account type
   const plan =
     form.accountType === "founder" ? "founder_free" : "collaborator_free";
 
+  // Submit the form; create the account, set the user's status, and redirect
   async function handleSubmit(e) {
     e.preventDefault();
     const errs = validate(form);
@@ -305,6 +319,7 @@ function SignupContent() {
     }
   }
 
+  // Sign up with Google and redirect on success
   async function handleGoogleAuth() {
     setStatus("loading");
     const { error } = await signIn.social({
@@ -319,6 +334,7 @@ function SignupContent() {
     }
   }
 
+  // Display labels for each account type option
   const accountTypeLabels = {
     founder: "Founder",
     collaborator: "Collaborator",
@@ -329,6 +345,7 @@ function SignupContent() {
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600" />
 
       <div>
+        {/* Header: logo, title, and subtitle */}
         <div className="mb-7">
           <div className="flex items-center gap-2.5 mb-4">
             <div className="w-8 h-8 rounded-xl bg-violet-100 border border-violet-200 dark:bg-violet-500/10 dark:border-violet-500/20 flex items-center justify-center text-violet-600 dark:text-violet-400">
@@ -347,6 +364,7 @@ function SignupContent() {
         </div>
 
         <AnimatePresence>
+          {/* Status banner: success or error message */}
           {(status === "success" || status === "error") && (
             <motion.div
               initial={{ opacity: 0, height: 0, marginBottom: 0 }}
@@ -375,6 +393,7 @@ function SignupContent() {
           noValidate
           className="flex flex-col gap-4"
         >
+          {/* Name, email, and password fields with strength meter */}
           <Field label="Full Name" error={errors.name}>
             <TextInput
               value={form.name}
@@ -642,6 +661,7 @@ function SignupContent() {
             </AnimatePresence>
           </Field>
 
+          {/* Submit button */}
           <Button
             type="submit"
             isDisabled={status === "loading" || status === "success"}
@@ -666,12 +686,14 @@ function SignupContent() {
           </Button>
         </form>
 
+        {/* Divider between email and Google sign-up */}
         <div className="flex items-center gap-3 my-5">
           <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800" />
           <span className="text-xs text-slate-400 font-mono">or</span>
           <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800" />
         </div>
 
+        {/* Google OAuth sign-up button */}
         <button
           type="button"
           onClick={handleGoogleAuth}
@@ -682,6 +704,7 @@ function SignupContent() {
           Continue with Google
         </button>
 
+        {/* Link to the sign-in page */}
         <p className="text-center text-xs text-slate-600 dark:text-slate-400 mt-6">
           Already have an account?{" "}
           <Link
@@ -696,6 +719,7 @@ function SignupContent() {
   );
 }
 
+// Loading fallback shown while the form suspends on useSearchParams
 function SignupFallback() {
   return (
     <div className="relative rounded-3xl border border-slate-200/90 bg-white p-12 text-center flex flex-col items-center justify-center dark:border-slate-800/90 dark:bg-slate-900/90 shadow-xl">
@@ -705,6 +729,7 @@ function SignupFallback() {
   );
 }
 
+// Page wrapper: ambient background, entrance animation, and Suspense boundary
 export default function SignupContentClient() {
   return (
     <div className="relative min-h-[85vh] flex items-center justify-center p-4 font-sans overflow-hidden bg-white text-slate-900 transition-colors duration-200 dark:bg-slate-950 dark:text-slate-100">

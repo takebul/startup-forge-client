@@ -1,7 +1,5 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
-
 export default function DashboardRootLoading() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto font-sans">

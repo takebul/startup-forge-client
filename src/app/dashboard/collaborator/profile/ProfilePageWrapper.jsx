@@ -1,19 +1,15 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   BadgeCheck,
   Sparkles,
   Briefcase,
-  Layers,
   FileCheck,
   Bookmark,
   Edit,
-  ExternalLink,
-  Code2,
-  Clock,
 } from "lucide-react";
 import {
   Btn,

@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles, Search, Building2 } from "lucide-react";
+import { Sparkles, Search } from "lucide-react";
 
 export default function StartupsLoading() {
   return (

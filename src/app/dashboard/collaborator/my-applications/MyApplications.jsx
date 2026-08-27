@@ -5,7 +5,6 @@ import {
   StatusBadge,
   EmptyState,
   Btn,
-  Badge,
   Modal,
 } from "@/components/Dashboard/founder-dashboard-shared";
 import { deleteApplications } from "@/lib/actions/applications";

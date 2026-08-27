@@ -1,6 +1,6 @@
 import { Star } from "lucide-react";
-import Image from "next/image";
 
+// Customer testimonials: quote, author, role, and avatar URL
 const TESTIMONIALS = [
   {
     quote:
@@ -31,6 +31,7 @@ const TESTIMONIALS = [
 export default function PricingTestimonials() {
   return (
     <section className="mt-28">
+      {/* Section header */}
       <div className="mx-auto max-w-2xl text-center">
         <span className="rounded-full bg-violet-100 px-3.5 py-1 text-xs font-mono font-semibold uppercase tracking-wider text-violet-700 dark:bg-violet-500/10 dark:text-violet-300">
           Member Testimonials
@@ -44,6 +45,7 @@ export default function PricingTestimonials() {
         </p>
       </div>
 
+      {/* Testimonial cards with 5-star rating and author bio */}
       <div className="mt-12 grid gap-6 md:grid-cols-3">
         {TESTIMONIALS.map((t, i) => (
           <div
