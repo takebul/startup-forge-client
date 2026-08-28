@@ -263,12 +263,23 @@ export default function BrowseOpportunities({
     });
   }, [rawOpportunities, parsedStartups]);
 
-  // Parse Full Bookmarked Opportunities from database
-  const fullBookmarkedList = useMemo(() => {
+  // Local full bookmarked list (from server) — kept in state so newly added
+  // bookmarks show up in the "Bookmarked" tab immediately, not only after a refresh.
+  const [localBookmarkedList, setLocalBookmarkedList] = useState(() => {
     const list = Array.isArray(rawBookmarks)
       ? rawBookmarks
       : Array.isArray(rawBookmarks?.data)
         ? rawBookmarks.data
+        : [];
+    return list;
+  });
+
+  // Parse Full Bookmarked Opportunities from database
+  const fullBookmarkedList = useMemo(() => {
+    const list = Array.isArray(localBookmarkedList)
+      ? localBookmarkedList
+      : Array.isArray(localBookmarkedList?.data)
+        ? localBookmarkedList.data
         : [];
 
     return list
@@ -341,7 +352,7 @@ export default function BrowseOpportunities({
         };
       })
       .filter(Boolean);
-  }, [rawBookmarks, parsedStartups]);
+  }, [localBookmarkedList, parsedStartups]);
 
   // Extraction of dynamic industries from MongoDB startups
   const industries = useMemo(() => {
@@ -396,6 +407,17 @@ export default function BrowseOpportunities({
       setBookmarks(parseBookmarkIds(rawBookmarks));
     }
   }, [initialBookmarks, rawBookmarks]);
+
+  // Re-sync the full bookmarked list whenever the server re-fetches it
+  // (e.g. after navigation or router.refresh()).
+  useEffect(() => {
+    const list = Array.isArray(rawBookmarks)
+      ? rawBookmarks
+      : Array.isArray(rawBookmarks?.data)
+        ? rawBookmarks.data
+        : [];
+    setLocalBookmarkedList(list);
+  }, [rawBookmarks]);
 
   useEffect(() => {
     setSubmitted(
@@ -600,9 +622,46 @@ export default function BrowseOpportunities({
     const targetId = String(id);
     const isBookmarked = bookmarks.includes(targetId);
 
+    const targetOpp =
+      opportunitiesList.find((o) => String(o._id || o.id) === targetId) ||
+      fullBookmarkedList.find((b) => String(b._id || b.id) === targetId);
+
     setBookmarks((prev) =>
       isBookmarked ? prev.filter((b) => b !== targetId) : [...prev, targetId],
     );
+
+    // Optimistically sync the full bookmarked list so the "Bookmarked" tab
+    // reflects the change right away instead of only after a page refresh.
+    setLocalBookmarkedList((prev) => {
+      const list = Array.isArray(prev)
+        ? prev
+        : Array.isArray(prev?.data)
+          ? prev.data
+          : [];
+      const filtered = list.filter(
+        (item) =>
+          String(item.opportunityId || item._id || item.id) !== targetId,
+      );
+      if (isBookmarked) return filtered;
+      if (filtered.length !== list.length) return filtered; // already present
+      return [
+        ...filtered,
+        {
+          opportunityId: targetId,
+          startupId: String(targetOpp?.startupId || ""),
+          roleTitle: targetOpp?.roleTitle || "Collaborator Role",
+          startupName: targetOpp?.startupName || "Startup",
+          workType: targetOpp?.workType || "Remote",
+          commitmentLevel: targetOpp?.commitmentLevel || "Part-Time",
+          deadline: targetOpp?.deadline || "N/A",
+          requiredSkills: getSkillsArray(targetOpp?.requiredSkills),
+          description: targetOpp?.description || "",
+          industry: targetOpp?.industry || "Technology",
+          logo: targetOpp?.logo || null,
+          resolvedStartupId: String(targetOpp?.resolvedStartupId || ""),
+        },
+      ];
+    });
 
     try {
       if (isBookmarked) {
@@ -612,10 +671,6 @@ export default function BrowseOpportunities({
           "Opportunity removed from your saved list.",
         );
       } else {
-        const targetOpp =
-          opportunitiesList.find((o) => String(o._id || o.id) === targetId) ||
-          fullBookmarkedList.find((b) => String(b._id || b.id) === targetId);
-
         await createBookmark({
           opportunityId: targetId,
           startupId: String(targetOpp?.startupId || ""),
@@ -638,6 +693,13 @@ export default function BrowseOpportunities({
       setBookmarks((prev) =>
         isBookmarked ? [...prev, targetId] : prev.filter((b) => b !== targetId),
       );
+      // Revert the full bookmarked list back to the server-provided data
+      const rawList = Array.isArray(rawBookmarks)
+        ? rawBookmarks
+        : Array.isArray(rawBookmarks?.data)
+          ? rawBookmarks.data
+          : [];
+      setLocalBookmarkedList(rawList);
     }
   };
 
