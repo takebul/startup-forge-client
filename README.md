@@ -31,7 +31,7 @@ A full-stack startup-collaboration platform with role-aware dashboards, a gated 
 **Opportunity discovery that behaves like a real product.**
 - **Search, filter, sort, paginate** — opportunities filter by work type (Remote / Hybrid / On-site) and industry, sort by deadline or title, and paginate with configurable page sizes. All of it is URL-driven, so filter states are shareable and survive refresh.
 - **Gated application flow** — expired deadlines, duplicate applications, unauthenticated visitors, and non-collaborator accounts are rejected before submit. A **100% profile-completeness gate** (name, image, skills, bio) blocks half-baked applications.
-- **Bookmarks** with optimistic removal and rollback on failure.
+- **Bookmarks** with instant local-state updates — optimistic toggling with rollback on failure.
 
 **A founder toolkit with real workflow.**
 - Submit a startup (logo via **imgbb upload**) through an **admin approval workflow**: Pending → Approved / Rejected → Resubmitted.
@@ -50,9 +50,10 @@ A full-stack startup-collaboration platform with role-aware dashboards, a gated 
 
 **Engineered, not scaffolded.**
 - **Next.js 16 App Router + React 19** — Server Components and Server Actions, **React Compiler** enabled, parallel data fetching (`Promise.all`), streaming `loading.jsx` states, and route groups for `(main)`, `(auth)`, and `dashboard`.
-- **better-auth** — email/password + **Google OAuth**, MongoDB adapter, admin plugin, and custom user fields (`accountType`, `plan`, `status`).
+- **better-auth** — email/password + **Google OAuth**, MongoDB adapter, admin **and JWT plugins**, and custom user fields (`accountType`, `plan`, `status`).
 - **In-app notifications** — unread count badges, mark single/all read with optimistic UI.
 - **Dark mode** out of the box via `next-themes`, HeroUI + Tailwind 4 component layer, Lottie animations, and recharts throughout.
+- **Trust & polish** — verified badges, "Own Post" markers on your listings, toast notifications for action feedback, and full **Privacy Policy / Terms of Service** pages with SEO metadata.
 
 ---
 
@@ -64,7 +65,7 @@ A full-stack startup-collaboration platform with role-aware dashboards, a gated 
 | **Styling** | [Tailwind CSS 4](https://tailwindcss.com) · [HeroUI](https://heroui.com) · [next-themes](https://github.com/pacocoursey/next-themes) |
 | **Motion & icons** | [framer-motion](https://www.framer.com/motion/) / `motion` · [lucide-react](https://lucide.dev) · [@gravity-ui/icons](https://gravity-ui.com) · Lottie (`dotlottie`) |
 | **Charts** | [recharts](https://recharts.org) |
-| **Auth** | [better-auth](https://better-auth.com) + `@better-auth/mongo-adapter` · Google OAuth · Admin plugin |
+| **Auth** | [better-auth](https://better-auth.com) + `@better-auth/mongo-adapter` · Google OAuth · Admin + JWT plugins |
 | **Payments** | [Stripe](https://stripe.com) Checkout subscriptions |
 | **Data layer** | Server Actions + authed REST fetchers ([`src/lib/core`](src/lib/core), [`src/lib/api`](src/lib/api), [`src/lib/actions`](src/lib/actions)) |
 | **Backend API** | [Express 5](https://expressjs.com) · [MongoDB 7](https://www.mongodb.com) driver (separate `startup-forge-server` package) |
@@ -110,20 +111,21 @@ Open [http://localhost:3000](http://localhost:3000) — the app runs against the
 startup-forge-client/
 ├─ src/
 │  ├─ app/
-│  │  ├─ (main)/                 # Public site — home, startups, opportunities, pricing
+│  │  ├─ (main)/                 # Public site — home, startups, opportunities, pricing, privacy, terms
 │  │  ├─ (auth)/                 # Sign in / sign up
 │  │  ├─ dashboard/              # Role-gated workspaces (founder · collaborator · admin)
-│  │  │  ├─ founder/             #   startups, opportunities, applications, quota
+│  │  │  ├─ founder/             #   overview, startups, opportunities, applications, profile
 │  │  │  ├─ collaborator/        #   browse, applications, bookmarks, profile, premium
-│  │  │  └─ admin/               #   overview, users, startups, transactions
+│  │  │  └─ admin/               #   overview, users, startups, transactions, profile
 │  │  └─ api/                    # better-auth handler + Stripe subscription route
 │  ├─ components/                # Navbar, Footer, Banner, HomePage, Opportunities,
-│  │                             # Startups, Pricing, Auth, Dashboard, ApplyModal, Toast
+│  │                             # Startups, Pricing, Legal, Auth, Dashboard, ApplyModal, Toast
 │  ├─ lib/
 │  │  ├─ core/                   # Session guards + authed server fetch/mutation helpers
 │  │  ├─ api/                    # Client-side fetchers
 │  │  ├─ actions/                # Server Actions (mutations to the REST API)
-│  │  ├─ auth.js                 # better-auth config (MongoDB, Google, admin)
+│  │  ├─ auth.js                 # better-auth config (MongoDB, Google, admin + JWT)
+│  │  ├─ auth-client.js          # better-auth client hooks (session, admin, JWT)
 │  │  └─ stripe.js               # Stripe client + plan → price-id mapping
 │  └─ proxy.js                   # Plan-gating middleware (/profile → /pricing)
 ├─ public/                       # Static assets & screenshot
@@ -141,6 +143,7 @@ Create a `.env.local` at the project root (it's gitignored — never commit real
 | `BETTER_AUTH_SECRET` | Signs auth sessions | `openssl rand -base64 32` |
 | `BETTER_AUTH_URL` | Base URL of this app | `http://localhost:3000` |
 | `NEXT_PUBLIC_CLIENT_URL` | Public client origin | `http://localhost:3000` |
+| `NEXT_PUBLIC_APP_URL` | Public origin used for SEO metadata (canonical / Open Graph) | `http://localhost:3000` |
 | `NEXT_PUBLIC_SERVER_URL` | Backend REST API base URL | your running Express server |
 | `MONGODB_URI` | MongoDB connection string | [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) |
 | `MONGO_DB_NAME` | Database name | MongoDB Atlas |
