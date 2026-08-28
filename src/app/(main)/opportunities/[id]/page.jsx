@@ -1,9 +1,21 @@
 import { getOpportunityDetails } from "@/lib/api/opportunities";
 import { getStartups } from "@/lib/api/startups";
-import { getProfileData, getUsersData } from "@/lib/api/users";
+import { getProfileData } from "@/lib/api/users";
 import { getApplicationsByCollaboratorId } from "@/lib/api/applications";
 import { getUserSession } from "@/lib/core/session";
 import OpportunityDetailsPage from "@/components/Opportunities/OpportunityDetailsPage";
+
+// A public page must never crash or redirect because an optional fetch failed.
+// The protected routes return 401/403 to unauthenticated or unauthorized callers;
+// catching that here keeps the page rendering for everyone.
+const safe = async (fn, fallback) => {
+  try {
+    const result = await fn();
+    return result ?? fallback;
+  } catch {
+    return fallback;
+  }
+};
 
 export async function generateMetadata({ params }) {
   const { id } = await params;
@@ -37,26 +49,29 @@ const OpportunityDetailsPageWrapper = async ({ params }) => {
   // 1. Fetch user session first to determine role
   const user = await getUserSession();
 
-  const resolvedRole =
-    user?.role === "admin"
-      ? "admin"
-      : user?.accountType || (user?.role !== "user" ? user?.role : null);
+  const role = String(user?.role || "").toLowerCase();
+  const accountType = String(user?.accountType || "").toLowerCase();
+  const isCollaborator =
+    accountType === "collaborator" || role === "collaborator";
 
-  // 2. Fetch opportunity details, startups, and conditionally users data
-  const [opportunity, startups, userData, profileData] = await Promise.all([
-    getOpportunityDetails(id),
-    getStartups(),
-    resolvedRole === "admin" ? getUsersData() : Promise.resolve([]),
-    user?.id ? getProfileData(user.id) : Promise.resolve(null),
-  ]);
+  // 2. Fetch public data always; fetch personal data best-effort and only for
+  //    the user it belongs to. The founder profile is derived from public
+  //    startup data, never from the full users table.
+  const [opportunity, startups, profileData, userApplications] =
+    await Promise.all([
+      getOpportunityDetails(id),
+      getStartups(),
+      user?.id
+        ? safe(() => getProfileData(user.id), null)
+        : Promise.resolve(null),
+      user?.id && isCollaborator
+        ? safe(() => getApplicationsByCollaboratorId(user.id), [])
+        : Promise.resolve([]),
+    ]);
 
   const fullUser = profileData?.data || profileData?.user || profileData;
 
-  // 2. Fetch logged-in collaborator's submitted applications to check if already applied
-  const userApplications = user?.id
-    ? await getApplicationsByCollaboratorId(user?.id)
-    : [];
-
+  // 3. Fetch logged-in collaborator's submitted applications to check if already applied
   const initialAppliedOppIds = Array.isArray(userApplications)
     ? userApplications
         .map((app) =>
@@ -70,7 +85,7 @@ const OpportunityDetailsPageWrapper = async ({ params }) => {
       <OpportunityDetailsPage
         opportunity={opportunity}
         startups={startups}
-        userData={userData}
+        userData={[]}
         initialUser={fullUser ? { ...user, ...fullUser } : user}
         initialAppliedOppIds={initialAppliedOppIds}
       />

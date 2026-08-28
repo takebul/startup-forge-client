@@ -39,6 +39,7 @@ export const deleteData = async (dataId) => {
 
   const res = await fetch(uri, {
     method: "DELETE",
+    headers: await authHeader(),
   });
 
   return handleStatusCode(res);

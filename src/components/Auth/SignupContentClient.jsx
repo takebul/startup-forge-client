@@ -27,7 +27,6 @@ import {
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signUp, signIn } from "@/lib/auth-client";
-import { updateUserStatus } from "@/lib/actions/users";
 
 // Basic signup validation: name, email, password rules, and account type
 function validate(form) {
@@ -295,15 +294,6 @@ function SignupContent() {
         throw new Error(
           res.error.message || "Signup failed. Please try again.",
         );
-      }
-
-      const createdUserId = res?.data?.user?.id || res?.data?.user?._id;
-      if (createdUserId) {
-        await updateUserStatus(createdUserId, {
-          accountType: form.accountType,
-          plan: plan,
-          status: "active",
-        });
       }
 
       setStatus("success");

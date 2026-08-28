@@ -1,9 +1,19 @@
 import { getOpportunities } from "@/lib/api/opportunities";
-import { getProfileData, getUsersData } from "@/lib/api/users";
+import { getProfileData } from "@/lib/api/users";
 import { getStartupDetails } from "@/lib/api/startups";
 import { getApplicationsByCollaboratorId } from "@/lib/api/applications";
 import { getUserSession } from "@/lib/core/session";
 import StartupDetails from "@/components/Startups/StartupDetails";
+
+// A public page must never crash or redirect because an optional fetch failed.
+const safe = async (fn, fallback) => {
+  try {
+    const result = await fn();
+    return result ?? fallback;
+  } catch {
+    return fallback;
+  }
+};
 
 export async function generateMetadata({ params }) {
   const { id } = await params;
@@ -36,25 +46,27 @@ const StartupDetailsPage = async ({ params }) => {
   // 1. Fetch user session first to determine role
   const user = await getUserSession();
 
-  const resolvedRole =
-    user?.role === "admin"
-      ? "admin"
-      : user?.accountType || (user?.role !== "user" ? user?.role : null);
+  const role = String(user?.role || "").toLowerCase();
+  const accountType = String(user?.accountType || "").toLowerCase();
+  const isCollaborator =
+    accountType === "collaborator" || role === "collaborator";
 
-  // 2. Fetch opportunity details, startups, and conditionally users data
-  const [opportunities, userData, startup, profileData] = await Promise.all([
-    getOpportunities(),
-    resolvedRole === "admin" ? getUsersData() : Promise.resolve([]),
-    getStartupDetails(id),
-    user?.id ? getProfileData(user.id) : Promise.resolve(null),
-  ]);
+  // 2. Fetch public data always; fetch personal data best-effort and only for
+  //    the user it belongs to. The founder profile is derived from public
+  //    startup data, never from the full users table.
+  const [opportunities, startup, profileData, userApplications] =
+    await Promise.all([
+      getOpportunities(),
+      getStartupDetails(id),
+      user?.id
+        ? safe(() => getProfileData(user.id), null)
+        : Promise.resolve(null),
+      user?.id && isCollaborator
+        ? safe(() => getApplicationsByCollaboratorId(user.id), [])
+        : Promise.resolve([]),
+    ]);
 
   const fullUser = profileData?.data || profileData?.user || profileData;
-
-  // 2. Fetch logged-in collaborator's existing applications
-  const userApplications = user?.id
-    ? await getApplicationsByCollaboratorId(user?.id)
-    : [];
 
   // 3. Extract array of opportunity IDs the user has already submitted to
   const initialAppliedOppIds = Array.isArray(userApplications)
@@ -70,7 +82,7 @@ const StartupDetailsPage = async ({ params }) => {
       <StartupDetails
         startups={startup}
         opportunities={opportunities}
-        userData={userData}
+        userData={[]}
         initialUser={fullUser ? { ...user, ...fullUser } : user}
         initialAppliedOppIds={initialAppliedOppIds}
       />

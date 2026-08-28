@@ -1,5 +1,5 @@
-import { serverFetch } from "../core/server";
+import { protectedFetch } from "../core/server";
 
 export const getPlansById = async (planId) => {
-  return serverFetch(`/api/plans?plan_id=${planId}`);
+  return protectedFetch(`/api/plans?plan_id=${planId}`);
 };
