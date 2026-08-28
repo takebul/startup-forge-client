@@ -895,12 +895,12 @@ const AdminBanner = ({ userData = [], startups = [], opportunities = [] }) => {
           {[
             {
               label: "Total Users",
-              value: usersList.length || "3,412",
+              value: usersList.length || "0",
               alert: false,
             },
             {
               label: "Active Startups",
-              value: startupsList.length || "502",
+              value: startupsList.length || "0",
               alert: false,
             },
             {
@@ -910,7 +910,7 @@ const AdminBanner = ({ userData = [], startups = [], opportunities = [] }) => {
             },
             {
               label: "Open Roles",
-              value: oppsList.length || "1,140",
+              value: oppsList.length || "0",
               alert: false,
             },
           ].map(({ label, value, alert }) => (
