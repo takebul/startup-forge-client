@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Rocket, Mail, MapPin, MessageSquare, Sparkles } from "lucide-react";
+import { LogoLinkedin } from "@gravity-ui/icons";
 
 const Footer = () => {
   const pathname = usePathname();
@@ -18,10 +19,7 @@ const Footer = () => {
         <div className="grid grid-cols-12 gap-8 lg:gap-12">
           {/* Brand Info & Mission */}
           <div className="col-span-full md:col-span-5 space-y-4">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2.5"
-            >
+            <Link href="/" className="inline-flex items-center gap-2.5">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-violet-600 via-purple-600 to-indigo-600 text-white shadow-md shadow-violet-600/25">
                 <Rocket className="h-5 w-5" />
               </div>
@@ -34,7 +32,8 @@ const Footer = () => {
             </Link>
             <p className="max-w-sm text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
               Bridging visionary startup founders with world-class developers,
-              designers, and growth specialists to turn ambitious ideas into reality.
+              designers, and growth specialists to turn ambitious ideas into
+              reality.
             </p>
 
             <div className="pt-2 flex items-center gap-2 text-xs font-mono font-bold text-violet-700 dark:text-violet-300">
@@ -133,15 +132,15 @@ const Footer = () => {
             <ul className="space-y-3 text-sm text-slate-700 dark:text-slate-300 font-medium">
               <li className="flex items-center gap-2.5">
                 <MapPin className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" />
-                <span>San Francisco, CA &amp; Global Remote</span>
+                <span>Bangladesh, Pirojpur &amp; Global Remote</span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" />
                 <a
-                  href="mailto:support@startupforge.com"
+                  href="mailto:takebulislam@gmail.com"
                   className="hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
                 >
-                  support@startupforge.com
+                  takebulislam@gmail.com
                 </a>
               </li>
               <li className="flex items-center gap-2.5">
@@ -156,7 +155,8 @@ const Footer = () => {
         <div className="border-t border-slate-200/90 dark:border-slate-800/90 pt-8 flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-xs text-slate-600 dark:text-slate-400 font-medium">
             <span>
-              © {new Date().getFullYear()} StartupForge Inc. All rights reserved.
+              © {new Date().getFullYear()} StartupForge Inc. All rights
+              reserved.
             </span>
             <div className="flex items-center gap-4">
               <Link
@@ -178,7 +178,7 @@ const Footer = () => {
           {/* Social Links with Strong Contrast Badges */}
           <div className="flex items-center gap-2.5">
             <a
-              href="mailto:support@startupforge.com"
+              href="mailto:takebulislam@gmail.com"
               title="Email Support"
               className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/90 bg-slate-100/90 text-slate-700 shadow-xs transition-all hover:bg-violet-600 hover:text-white hover:border-violet-600 active:scale-95 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-violet-600 dark:hover:text-white"
             >
@@ -186,24 +186,17 @@ const Footer = () => {
             </a>
 
             <a
-              href="https://twitter.com"
+              href="https://www.linkedin.com/in/takebulislam"
               target="_blank"
               rel="noopener noreferrer"
-              title="Twitter / X"
+              title="LinkedIn / in"
               className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/90 bg-slate-100/90 text-slate-700 shadow-xs transition-all hover:bg-violet-600 hover:text-white hover:border-violet-600 active:scale-95 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-violet-600 dark:hover:text-white"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="h-4 w-4"
-              >
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-              </svg>
+              <LogoLinkedin />
             </a>
 
             <a
-              href="https://github.com"
+              href="https://github.com/takebul"
               target="_blank"
               rel="noopener noreferrer"
               title="GitHub"
