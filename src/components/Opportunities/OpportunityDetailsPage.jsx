@@ -184,19 +184,39 @@ export default function OpportunityDetailsPage({
     );
   }, [opp, startupsList]);
 
-  // 5. Match Founder Profile from Users Data
+  // 5. Match Founder Profile from Users Data, falling back to the public
+  //    founder profile denormalised onto the startup/opportunity document.
+  //    The full users table is admin-only, so public pages never depend on it.
   const founder = useMemo(() => {
     if (!matchedStartup && !opp) return null;
     const founderEmail = (matchedStartup?.founder_email || "").toLowerCase();
-    const startupId = String(matchedStartup?.startupId || opp?.startupId || "");
+    const startupId = String(
+      matchedStartup?.startupId || opp?.startupId || "",
+    );
 
-    return (
+    const matched =
       usersList.find(
         (u) =>
           (u.email && u.email.toLowerCase() === founderEmail) ||
           String(u._id || u.id) === startupId,
-      ) || null
-    );
+      ) || null;
+
+    if (matched) return matched;
+
+    const source = matchedStartup || opp;
+    if (
+      source?.founder_name ||
+      source?.founder_image ||
+      source?.founder_bio
+    ) {
+      return {
+        name: source.founder_name,
+        image: source.founder_image,
+        bio: source.founder_bio,
+        email: source.founder_email,
+      };
+    }
+    return null;
   }, [matchedStartup, opp, usersList]);
 
   // 6. Normalized Opportunity Display Values
@@ -216,10 +236,20 @@ export default function OpportunityDetailsPage({
     [opp],
   );
   const founderName =
-    founder?.name || matchedStartup?.founder_email?.split("@")[0] || "Founder";
-  const founderEmail = matchedStartup?.founder_email || founder?.email || "N/A";
+    founder?.name ||
+    matchedStartup?.founder_name ||
+    opp?.founder_name ||
+    matchedStartup?.founder_email?.split("@")[0] ||
+    "Founder";
+  const founderEmail =
+    matchedStartup?.founder_email ||
+    opp?.founder_email ||
+    founder?.email ||
+    "N/A";
   const founderAvatar =
     founder?.image ||
+    matchedStartup?.founder_image ||
+    opp?.founder_image ||
     "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
 
   const isOwnPost = Boolean(

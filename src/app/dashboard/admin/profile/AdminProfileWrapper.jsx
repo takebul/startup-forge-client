@@ -27,7 +27,7 @@ import { toast } from "@/components/Toast/Toast";
 
 export default function AdminProfileWrapper({ initialUser }) {
   const router = useRouter();
-  const { data: session } = authClient.useSession();
+  const { data: session, refetch: refetchSession } = authClient.useSession();
   const user = initialUser || session?.user;
   const activeUserId = String(user?.id || user?._id || "");
 
@@ -89,6 +89,10 @@ export default function AdminProfileWrapper({ initialUser }) {
       setIsModalOpen(false);
       setSaved(true);
       setTimeout(() => setSaved(false), 3500);
+
+      // Refresh the better-auth client session so the home & dashboard navbars
+      // pick up the new profile image immediately.
+      await refetchSession().catch(() => {});
 
       router.refresh();
       toast.update(
