@@ -87,15 +87,40 @@ async function buildIco() {
   }
 
   const ico = Buffer.concat([header, ...entries, ...pngs.map((p) => p.data)]);
-  const outPath = path.join(__dirname, "..", "src", "app", "favicon.ico");
-  fs.writeFileSync(outPath, ico);
+  const appIcoPath = path.join(__dirname, "..", "src", "app", "favicon.ico");
+  const publicIcoPath = path.join(__dirname, "..", "public", "favicon.ico");
+  fs.writeFileSync(appIcoPath, ico);
+  fs.writeFileSync(publicIcoPath, ico);
 
-  console.log(
-    `favicon.ico written: ${ico.length} bytes, sizes [${SIZES.join(", ")}] -> ${outPath}`,
-  );
+  // Write discrete favicon sizes to public
+  const p16 = pngs.find((p) => p.size === 16)?.data;
+  const p32 = pngs.find((p) => p.size === 32)?.data;
+  if (p16) fs.writeFileSync(path.join(__dirname, "..", "public", "favicon-16x16.png"), p16);
+  if (p32) fs.writeFileSync(path.join(__dirname, "..", "public", "favicon-32x32.png"), p32);
+
+  // Generate larger PWA and Apple touch icons
+  const appleTouch = await sharp(svgBuffer, { density: 384 })
+    .resize(180, 180, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .png({ compressionLevel: 9 })
+    .toBuffer();
+  fs.writeFileSync(path.join(__dirname, "..", "public", "apple-touch-icon.png"), appleTouch);
+
+  const chrome192 = await sharp(svgBuffer, { density: 384 })
+    .resize(192, 192, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .png({ compressionLevel: 9 })
+    .toBuffer();
+  fs.writeFileSync(path.join(__dirname, "..", "public", "android-chrome-192x192.png"), chrome192);
+
+  const chrome512 = await sharp(svgBuffer, { density: 384 })
+    .resize(512, 512, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .png({ compressionLevel: 9 })
+    .toBuffer();
+  fs.writeFileSync(path.join(__dirname, "..", "public", "android-chrome-512x512.png"), chrome512);
+
+  console.log("All public & app icons successfully regenerated for StartupForge!");
 }
 
 buildIco().catch((err) => {
-  console.error("Failed to generate favicon.ico:", err);
+  console.error("Failed to generate icons:", err);
   process.exit(1);
 });
