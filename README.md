@@ -1,8 +1,8 @@
 <div align="center">
 
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./public/logo-wordmark-dark.svg#gh-dark-mode-only">
-    <source media="(prefers-color-scheme: light)" srcset="./public/logo-wordmark.svg#gh-light-mode-only">
+    <source media="(prefers-color-scheme: dark)" srcset="./public/logo-wordmark-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="./public/logo-wordmark.svg">
     <img src="./public/logo-wordmark.svg" alt="StartupForge Logo" width="360" />
   </picture>
 
@@ -110,6 +110,18 @@
 
 StartupForge is architected with a modern decoupled stack: a **Next.js 16 App Router frontend** coordinating Server Actions and client interactions, a secure **better-auth engine**, a dedicated **Express 5 API**, and **MongoDB Atlas** persistence.
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./public/architecture-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="./public/architecture-light.svg">
+    <img src="./public/architecture-dark.svg" alt="StartupForge System Architecture" width="100%" />
+  </picture>
+</p>
+
+<details>
+  <summary><b>🔍 View Raw Mermaid Architecture Source</b></summary>
+  <br />
+
 ```mermaid
 flowchart TB
     subgraph Client["🖥️ Client Layer (Next.js 16 + React 19)"]
@@ -147,6 +159,8 @@ flowchart TB
     Client -->|Logo Uploads| ImgBB
     ServerApp -->|OAuth Flow| GoogleAuth
 ```
+
+</details>
 
 ---
 
