@@ -203,7 +203,7 @@ export default function DashboardNavbar({ user: initialUser }) {
           isAction: true,
         },
         {
-          label: "Apps",
+          label: "Applications",
           href: "/dashboard/founder/applications",
           icon: FileText,
         },
@@ -245,7 +245,7 @@ export default function DashboardNavbar({ user: initialUser }) {
         icon: Search,
       },
       {
-        label: "My Apps",
+        label: "My Applications",
         href: "/dashboard/collaborator/my-applications",
         icon: FileText,
       },
@@ -491,7 +491,10 @@ export default function DashboardNavbar({ user: initialUser }) {
                       {isAdmin ? (
                         <Crown className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
                       ) : isUpgraded ? (
-                        <BadgeCheck className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400 shrink-0" title="Verified Member" />
+                        <BadgeCheck
+                          className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400 shrink-0"
+                          title="Verified Member"
+                        />
                       ) : null}
                     </div>
                     <span
@@ -675,7 +678,10 @@ export default function DashboardNavbar({ user: initialUser }) {
                     {isAdmin ? (
                       <Crown className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
                     ) : isUpgraded ? (
-                      <BadgeCheck className="h-3.5 w-3.5 text-sky-500 dark:text-sky-400 shrink-0" title="Verified Member" />
+                      <BadgeCheck
+                        className="h-3.5 w-3.5 text-sky-500 dark:text-sky-400 shrink-0"
+                        title="Verified Member"
+                      />
                     ) : null}
                   </div>
                   <p className="text-[10px] font-mono text-slate-500 dark:text-slate-400 truncate">
