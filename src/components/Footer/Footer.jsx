@@ -13,7 +13,7 @@ const Footer = () => {
   }
 
   return (
-    <footer className="relative z-10 border-t border-slate-200/90 bg-white/95 backdrop-blur-md py-14 text-slate-800 transition-colors duration-200 dark:border-slate-800/90 dark:bg-[#060C1A]/95 dark:text-slate-200 shadow-sm">
+    <footer className="relative z-10 border-t border-slate-200/90 bg-white/95 backdrop-blur-md pt-14 pb-28 md:pb-14 text-slate-800 transition-colors duration-200 dark:border-slate-800/90 dark:bg-[#060C1A]/95 dark:text-slate-200 shadow-sm">
       <div className="container mx-auto px-6 lg:px-12 max-w-6xl space-y-12">
         {/* Main Footer Grid */}
         <div className="grid grid-cols-12 gap-8 lg:gap-12">
